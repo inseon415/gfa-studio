@@ -119,6 +119,19 @@ const W = STATS.filter(isWin).map(s => {
   const c = C.get(s.n); const t = D.imgText[s.n] || {};
   return { ...c, ...s, season: seasonOf(s.month), year: +s.month.slice(0, 4), it: t.imageText || '', vis: t.visual || '' };
 }).sort((a, b) => b.month.localeCompare(a.month) || b.proas - a.proas);
+// 같은 소재 = 같은 소재 번호, 또는 이미지 속 문구·광고 문구가 같은 재업로드
+W.forEach(w => { w.g = w.it ? 'c:' + w.it + '|' + w.m : 'n:' + w.n; });
+function groupWinners(list) {
+  const m = new Map();
+  for (const w of list) {
+    let g = m.get(w.g);
+    if (!g) { g = { ...w, rows: [], nosSet: new Set(), costSum: 0, salesSum: 0, best: 0, latest: '', anyOn: false }; m.set(w.g, g); }
+    g.rows.push(w); g.nosSet.add(w.n); g.costSum += w.cost; g.salesSum += w.psales; g.anyOn = g.anyOn || w.on;
+    if (w.proas > g.best) g.best = w.proas;
+    if (w.month > g.latest) { g.latest = w.month; Object.assign(g, { n: w.n, nm: w.nm, a: w.a, img: w.img, cp: w.cp, as: w.as }); }
+  }
+  return [...m.values()].map(g => ({ ...g, on: g.anyOn, months: [...new Set(g.rows.map(r => r.month))].sort(), nos: [...g.nosSet], proasSum: g.costSum ? g.salesSum / g.costSum * 100 : 0 }));
+}
 const MONTHS = D.months;
 const LATEST = MONTHS[MONTHS.length - 1];
 const PRODUCTS = [...new Set(W.map(w => w.p))].filter(p => p !== '[확인필요]').sort();
@@ -177,11 +190,30 @@ function card(w) {
       <div class="copy"><span>이미지 속 문구</span>${esc(w.it) || '<i class="muted">없음</i>'}</div>
     </div></article>`;
 }
+function groupCard(g) {
+  const ms = g.months; const many = ms.length > 1;
+  const shown = ms.length > 8 ? [...ms.slice(-8)] : ms;
+  return `<article class="card" data-n="${g.n}">
+    <img src="${THUMB(g.n)}" alt="${esc(g.nm)}" loading="lazy">
+    <div class="cb">
+      <div class="row"><span class="tag p">${esc(g.p)}</span><span class="tag">${esc(g.a)}</span><span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span>${g.nos.length > 1 ? `<span class="tag" title="같은 이미지·문구로 다시 올린 소재">재업로드 ${g.nos.length}개 합침</span>` : ''}</div>
+      <div class="nm">${esc(g.nm)}</div>
+      <div class="row" style="gap:4px"><span class="muted">위너 ${ms.length}개월</span>${ms.length > 8 ? '<span class="muted">…</span>' : ''}${shown.map(m => `<span class="tag">${m.slice(2).replace('-', '.')}</span>`).join('')}</div>
+      <div class="kv"><span>구매 ROAS${many ? ' <span class="muted">(합산)</span>' : ''}</span><b>${pct(g.proasSum)}</b></div>
+      <div class="kv"><span>총 비용${many ? ' <span class="muted">(합계)</span>' : ''}</span><span>${won(g.costSum)}</span></div>
+      ${many ? `<div class="kv"><span class="muted">최고 달 ROAS</span><span class="muted">${pct(g.best)}</span></div>` : ''}
+      <div class="copy"><span>광고 문구</span>${esc(g.m) || '<i class="muted">없음</i>'}</div>
+      <div class="copy"><span>이미지 속 문구</span>${esc(g.it) || '<i class="muted">없음</i>'}</div>
+    </div></article>`;
+}
 function bindCards(root) { root.querySelectorAll('.card[data-n]').forEach(el => el.onclick = () => detail(+el.dataset.n)); }
 function detail(n) {
   const c = C.get(n); const t = D.imgText[n] || {};
-  const hist = STATS.filter(s => s.n === n).sort((a, b) => a.month.localeCompare(b.month));
-  const wins = hist.filter(isWin).length;
+  const key = (W.find(w => w.n === n) || {}).g;
+  const nos = key ? [...new Set(W.filter(w => w.g === key).map(w => w.n))] : [n];
+  const multi = nos.length > 1;
+  const hist = STATS.filter(s => nos.includes(s.n)).sort((a, b) => a.month.localeCompare(b.month) || a.n - b.n);
+  const wins = new Set(hist.filter(isWin).map(s => s.month)).size;
   openModal(`<div class="mgrid">
     <div><img src="${esc(c.img || '')}" onerror="this.onerror=null;this.src='${THUMB(n)}'" alt="">
       <p class="muted">원본 이미지는 네이버 서버에서 불러옵니다. 안 보이면 저장된 작은 이미지로 바뀝니다.</p></div>
@@ -192,19 +224,20 @@ function detail(n) {
       <p><b>광고 문구</b><br>${esc(c.m) || '-'}</p>
       <p><b>이미지 속 문구</b><br>${esc(t.imageText) || '-'}</p>
       <p><b>이미지 특징</b><br>${esc(t.visual) || '-'}</p>
+      ${multi ? `<p class="notice" style="padding:8px 10px">같은 이미지·문구로 다시 올린 소재 ${nos.length}개를 합쳐 보여 줍니다: ${nos.map(x => esc(C.get(x).nm) + ' (' + esc(C.get(x).as) + ')').join(', ')}</p>` : ''}
       ${c.link ? `<p><a href="${esc(c.link)}" target="_blank" rel="noopener">연결된 상품 페이지 열기</a></p>` : ''}
       <button class="pri" id="mkfrom">이 소재를 참고해 시안 만들기</button>
     </div></div>
     <h2 style="margin-top:18px">월별 성과</h2>
-    <div class="tbl"><table><thead><tr><th>월</th><th class="n">총 비용</th><th class="n">구매완료 광고수익률</th><th class="n">구매 매출</th><th class="n">구매 수</th><th class="n">노출</th><th class="n">클릭</th><th>위너</th></tr></thead><tbody>
-    ${hist.map(s => `<tr class="${isWin(s) ? 'win' : ''}"><td>${s.month}</td><td class="n">${won(s.cost)}</td><td class="n">${pct(s.proas)}</td><td class="n">${won(s.psales)}</td><td class="n">${s.pc}</td><td class="n">${s.imp.toLocaleString()}</td><td class="n">${s.click.toLocaleString()}</td><td>${isWin(s) ? '위너' : ''}</td></tr>`).join('')}
+    <div class="tbl"><table><thead><tr><th>월</th>${multi ? '<th>소재</th>' : ''}<th class="n">총 비용</th><th class="n">구매완료 광고수익률</th><th class="n">구매 매출</th><th class="n">구매 수</th><th class="n">노출</th><th class="n">클릭</th><th>위너</th></tr></thead><tbody>
+    ${hist.map(s => `<tr class="${isWin(s) ? 'win' : ''}"><td>${s.month}</td>${multi ? `<td style="font-size:12px">${esc(C.get(s.n).nm)}</td>` : ''}<td class="n">${won(s.cost)}</td><td class="n">${pct(s.proas)}</td><td class="n">${won(s.psales)}</td><td class="n">${s.pc}</td><td class="n">${s.imp.toLocaleString()}</td><td class="n">${s.click.toLocaleString()}</td><td>${isWin(s) ? '위너' : ''}</td></tr>`).join('')}
     </tbody></table></div>`);
   $('#mkfrom').onclick = () => { closeModal(); createState.product = c.p; createState.refs = [n]; location.hash = '#create'; };
 }
 
 // ---------- HOME ----------
 function home() {
-  const latestW = W.filter(w => w.month === LATEST);
+  const latestW = groupWinners(W.filter(w => w.month === LATEST)).sort((a, b) => b.proasSum - a.proasSum);
   const prevMonth = MONTHS[MONTHS.length - 2];
   const bestProd = Object.entries(W.reduce((o, w) => (o[w.p] = (o[w.p] || 0) + 1, o), {})).sort((a, b) => b[1] - a[1])[0];
   app.innerHTML = `
@@ -217,16 +250,16 @@ function home() {
     <div class="stat"><dt>모은 기간</dt><dd>${MONTHS[0]} ~ ${LATEST}</dd></div>
     <div class="stat"><dt>소재</dt><dd>${D.creatives.length.toLocaleString()}개</dd></div>
     <div class="stat"><dt>위너 (소재 × 월)</dt><dd>${W.length}건</dd></div>
-    <div class="stat"><dt>위너가 된 소재</dt><dd>${new Set(W.map(w => w.n)).size}개</dd></div>
+    <div class="stat"><dt>위너가 된 소재</dt><dd>${new Set(W.map(w => w.g)).size}개</dd></div>
     <div class="stat"><dt>위너 최다 제품</dt><dd>${esc(bestProd[0])} ${bestProd[1]}건</dd></div>
   </dl>
   <section style="margin-top:28px">
-    <div class="row" style="justify-content:space-between"><h2>${LATEST} 위너 ${latestW.length}건 <span class="muted">(오늘까지 집계, 달이 끝나면 바뀔 수 있음)</span></h2><a href="#winners?month=${LATEST}">전체 보기</a></div>
-    <div class="grid" id="hg">${latestW.slice(0, 8).map(card).join('')}</div>
+    <div class="row" style="justify-content:space-between"><h2>${LATEST} 위너 소재 ${latestW.length}개 <span class="muted">(오늘까지 집계, 달이 끝나면 바뀔 수 있음)</span></h2><a href="#winners?month=${LATEST}">전체 보기</a></div>
+    <div class="grid" id="hg">${latestW.slice(0, 8).map(groupCard).join('')}</div>
   </section>
   <section>
     <div class="row" style="justify-content:space-between"><h2>${prevMonth} 위너</h2><a href="#winners?month=${prevMonth}">전체 보기</a></div>
-    <div class="grid" id="hg2">${W.filter(w => w.month === prevMonth).slice(0, 4).map(card).join('')}</div>
+    <div class="grid" id="hg2">${groupWinners(W.filter(w => w.month === prevMonth)).sort((a, b) => b.proasSum - a.proasSum).slice(0, 4).map(groupCard).join('')}</div>
   </section>
   <p class="muted">자료 수집: ${D.collectedAt.slice(0, 16).replace('T', ' ')} (UTC) · GFA는 최대 2년 전까지만 조회되므로 2024-09 이전은 없습니다. 이미지 속 문구는 위너 이미지 ${Object.keys(D.imgText).length}장을 Aside가 읽어 옮겼습니다.</p>`;
   bindCards(app);
@@ -247,7 +280,7 @@ function winnersPage() {
     <select name="product">${opt(PRODUCTS, f.product, '제품 전체')}</select>
     <select name="on"><option value="">ON/OFF 전체</option><option value="1" ${f.on === '1' ? 'selected' : ''}>지금 ON</option><option value="0" ${f.on === '0' ? 'selected' : ''}>지금 OFF</option></select>
     <input type="text" name="q" placeholder="문구·소재 이름 검색" value="${esc(f.q)}">
-    <select name="sort"><option value="recent" ${f.sort === 'recent' ? 'selected' : ''}>최근 달부터</option><option value="roas" ${f.sort === 'roas' ? 'selected' : ''}>구매 ROAS 높은 순</option><option value="cost" ${f.sort === 'cost' ? 'selected' : ''}>총 비용 큰 순</option></select>
+    <select name="sort"><option value="recent" ${f.sort === 'recent' ? 'selected' : ''}>최근에 위너된 순</option><option value="roas" ${f.sort === 'roas' ? 'selected' : ''}>구매 ROAS 높은 순</option><option value="cost" ${f.sort === 'cost' ? 'selected' : ''}>총 비용 큰 순</option></select>
     <button id="wreset">초기화</button><button id="wcsv">CSV 받기</button>
   </div>
   <p class="muted" id="wcount"></p>
@@ -256,9 +289,10 @@ function winnersPage() {
     const v = Object.fromEntries([...$('#wf').querySelectorAll('select,input')].map(e => [e.name, e.value]));
     let list = W.filter(w => (!v.month || w.month === v.month) && (!v.year || String(w.year) === v.year) && (!v.season || w.season === v.season) && (!v.account || w.a === v.account) && (!v.product || w.p === v.product) && (v.on === '' || String(+w.on) === v.on)
       && (!v.q || (w.m + ' ' + w.it + ' ' + w.nm).toLowerCase().includes(v.q.toLowerCase())));
-    if (v.sort === 'roas') list = [...list].sort((a, b) => b.proas - a.proas); else if (v.sort === 'cost') list = [...list].sort((a, b) => b.cost - a.cost);
-    $('#wcount').textContent = `${list.length}건 · 같은 소재가 여러 달 위너면 달마다 한 장씩 나옵니다`;
-    $('#wg').innerHTML = list.map(card).join('') || '<p class="sub">조건에 맞는 위너가 없습니다.</p>';
+    let groups = groupWinners(list);
+    if (v.sort === 'roas') groups.sort((a, b) => b.proasSum - a.proasSum); else if (v.sort === 'cost') groups.sort((a, b) => b.costSum - a.costSum); else groups.sort((a, b) => b.latest.localeCompare(a.latest) || b.proasSum - a.proasSum);
+    $('#wcount').textContent = `위너 소재 ${groups.length}개 (소재 × 달 ${list.length}건) · 같은 소재는 한 장으로 합치고 위너였던 달을 모두 적었습니다`;
+    $('#wg').innerHTML = groups.map(groupCard).join('') || '<p class="sub">조건에 맞는 위너가 없습니다.</p>';
     bindCards($('#wg'));
     const qs = new URLSearchParams(Object.entries(v).filter(([k, x]) => x && !(k === 'sort' && x === 'recent'))).toString();
     history.replaceState(null, '', '#winners' + (qs ? '?' + qs : ''));
@@ -291,13 +325,13 @@ function analysis() {
   const heatMax = Math.max(1, ...rows.flatMap(r => SEASONS.map(s => r.seasons[s])));
   // keyword frequency across distinct winner creatives
   const seen = new Map();
-  for (const w of W) if (!seen.has(w.n)) seen.set(w.n, w);
+  for (const w of W) if (!seen.has(w.g)) seen.set(w.g, w);
   const freq = {};
   for (const w of seen.values()) for (const t of new Set(tokens(w.m + ' ' + w.it))) freq[t] = (freq[t] || 0) + 1;
   const topWords = Object.entries(freq).filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]).slice(0, 40);
   const bestPerProduct = rows.map(r => {
     const best = new Map();
-    for (const w of W.filter(w => w.p === r.p)) { const b = best.get(w.n); if (!b || w.proas > b.proas) best.set(w.n, { ...w, months: (b?.months || 0) + 1 }); else b.months++; }
+    for (const w of W.filter(w => w.p === r.p)) { const b = best.get(w.g); if (!b || w.proas > b.proas) best.set(w.g, { ...w, months: (b?.months || 0) + 1 }); else b.months++; }
     return { p: r.p, list: [...best.values()].sort((a, b) => b.proas - a.proas).slice(0, 5) };
   });
   app.innerHTML = `<h1>위너 분석</h1>
@@ -362,8 +396,8 @@ function parseQ(q) {
 }
 function groupByCreative(list) {
   const g = new Map();
-  for (const w of list) { const x = g.get(w.n) || { ...w, months: [], costSum: 0, salesSum: 0, best: 0 }; x.months.push(w.month); x.costSum += w.cost; x.salesSum += w.psales; x.best = Math.max(x.best, w.proas); g.set(w.n, x); }
-  return [...g.values()].map(x => ({ ...x, months: x.months.sort() })).sort((a, b) => b.best - a.best);
+  for (const w of list) { const x = g.get(w.g) || { ...w, months: [], costSum: 0, salesSum: 0, best: 0 }; x.months.push(w.month); x.costSum += w.cost; x.salesSum += w.psales; x.best = Math.max(x.best, w.proas); g.set(w.g, x); }
+  return [...g.values()].map(x => ({ ...x, months: [...new Set(x.months)].sort() })).sort((a, b) => b.best - a.best);
 }
 function ruleAnswer(q) {
   const f = parseQ(q);
@@ -442,7 +476,7 @@ const idb = (() => {
 })();
 function productRefs(p) {
   const best = new Map();
-  for (const w of W.filter(w => w.p === p)) { const b = best.get(w.n); if (!b || w.proas > b.proas) best.set(w.n, w); }
+  for (const w of W.filter(w => w.p === p)) { const b = best.get(w.g); if (!b || w.proas > b.proas) best.set(w.g, w); }
   return [...best.values()].sort((a, b) => b.proas - a.proas);
 }
 function manualPrompt(p, refs, dir, ratio) {
