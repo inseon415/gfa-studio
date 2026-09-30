@@ -92,6 +92,10 @@ td.n,th.n{text-align:right}
 tr.win td{background:#f0fdf4}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--ink);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
+.pbox{background:#fff;height:240px;display:flex;align-items:center;justify-content:center;padding:18px;border-bottom:1px solid var(--line);box-sizing:border-box}
+.card .pbox img,.pbox img{width:auto;height:auto;max-width:100%;max-height:204px;aspect-ratio:auto;object-fit:contain;background:none}
+.pmini{display:flex;gap:12px;align-items:center;background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
+.pmini img{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:8px}
 pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;max-height:260px;overflow:auto}
 </style>
 </head>
@@ -99,7 +103,7 @@ pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);
 <header class="top"><div class="topin">
   <div class="brand">GFA 광고 스튜디오<small>바이랩 · 바이랩 2</small></div>
   <nav class="tabs" id="tabs">
-    <a href="#home">홈</a><a href="#winners">월별 위너</a><a href="#analysis">위너 분석</a><a href="#ask">질문하기</a><a href="#create">소재 만들기</a>
+    <a href="#home">홈</a><a href="#winners">월별 위너</a><a href="#analysis">위너 분석</a><a href="#ask">질문하기</a><a href="#create">소재 만들기</a><a href="#products">제품</a>
   </nav>
   <span class="keybadge" id="keybadge" title="AI 연결 설정">AI 연결 안 됨</span>
 </div></header>
@@ -134,7 +138,12 @@ function groupWinners(list) {
 }
 const MONTHS = D.months;
 const LATEST = MONTHS[MONTHS.length - 1];
-const PRODUCTS = [...new Set(W.map(w => w.p))].filter(p => p !== '[확인필요]').sort();
+const PRODUCT_LIST = D.products || [];
+const REG_ORDER = PRODUCT_LIST.map(p => p.name);
+const ordP = arr => [...arr].sort((a, b) => ((REG_ORDER.indexOf(a) + 1) || 999) - ((REG_ORDER.indexOf(b) + 1) || 999) || a.localeCompare(b));
+const PRODUCTS = ordP(new Set(W.map(w => w.p))).filter(p => p !== '[확인필요]');
+const productInfo = name => PRODUCT_LIST.find(p => p.name === name);
+const GFA_SIZE = 1200;
 const ALL_PRODUCTS = [...new Set(D.creatives.map(c => c.p))].sort();
 const THUMB = n => D.thumbs[n] || '';
 const won = x => Math.round(x).toLocaleString('ko-KR') + '원';
@@ -355,13 +364,16 @@ function analysis() {
 }
 
 // ---------- ASK ----------
-const PWORDS = [...ALL_PRODUCTS.filter(p => p !== '[확인필요]').map(p => [p, p]), ['귀', '이어클리너'], ['눈곱', '아이클리너'], ['눈물', '아이클리너'], ['양치', '덴탈스프레이'], ['덴탈', '덴탈스프레이'], ['발샴푸', '수분풋케어'], ['발바닥', '수딩풋에센스'], ['풋', '수분풋케어'], ['얼굴', '페이스클렌징'], ['세수', '페이스클렌징'], ['모래', '고양이모래'], ['샴푸', '스킨테라피'], ['인공눈물', '아이드롭']];
+const LITTERS = ['고양이 두부모래', '고양이 벤토나이트모래', '고양이 카사바모래', '고양이모래(종류 구분 없음)'];
+const PWORDS = [['두부', '고양이 두부모래'], ['벤토', '고양이 벤토나이트모래'], ['카사바', '고양이 카사바모래'], ['모래', LITTERS], ['트리트먼트', '스킨테라피 트리트먼트'], ['스밸샴', '스킨밸런스샴푸'], ['샤워기', '아토버블샤워기'], ['스킨테라피', ['스킨테라피 샴푸', '스킨테라피 트리트먼트']], ['귀', '이어클리너'], ['눈곱', '아이클리너'], ['눈물', '아이클리너'], ['양치', '덴탈스프레이'], ['덴탈', '덴탈스프레이'], ['발샴푸', '수분풋케어'], ['발바닥', '수딩풋에센스'], ['수딩', '수딩풋에센스'], ['풋', '수분풋케어'], ['얼굴', '페이스클렌징'], ['세수', '페이스클렌징'], ['페클', '페이스클렌징'], ['인공눈물', '아이드롭'], ['샴푸', '스킨테라피 샴푸']];
 function parseQ(q) {
   const now = new Date(); const cy = now.getFullYear();
   const f = { products: [], months: null, accounts: [], seasons: [], top: null, notes: [] };
   // products: exact names first, then hints
-  const exact = ALL_PRODUCTS.filter(p => q.includes(p));
-  if (exact.length) f.products = exact; else { const h = PWORDS.find(([w]) => q.includes(w)); if (h) { f.products = [h[1]]; f.notes.push(`「${h[0]}」 → ${h[1]}`); } }
+  const nq = q.replace(/\s+/g, '');
+  const exact = [...new Set([...ALL_PRODUCTS, ...REG_ORDER])].filter(p => p !== '[확인필요]' && nq.includes(p.replace(/\s+/g, '')));
+  const exactClean = exact.filter(p => !exact.some(o => o !== p && o.includes(p)));
+  if (exactClean.length) f.products = exactClean; else { const h = PWORDS.find(([w]) => q.includes(w)); if (h) { f.products = [].concat(h[1]); f.notes.push(`「${h[0]}」 → ${[].concat(h[1]).join(', ')}`); } }
   if (/바이랩\s*2/.test(q)) f.accounts.push('바이랩 2'); else if (/바이랩(?!\s*2)/.test(q) && /계정/.test(q)) f.accounts.push('바이랩');
   f.seasons = SEASONS.filter(s => q.includes(s));
   const years = [];
@@ -475,20 +487,63 @@ const idb = (() => {
   return { all: () => tx('readonly', s => s.getAll()), put: v => tx('readwrite', s => s.put(v)), del: id => tx('readwrite', s => s.delete(id)) };
 })();
 function productRefs(p) {
-  const best = new Map();
-  for (const w of W.filter(w => w.p === p)) { const b = best.get(w.g); if (!b || w.proas > b.proas) best.set(w.g, w); }
-  return [...best.values()].sort((a, b) => b.proas - a.proas);
+  const pick = list => { const best = new Map(); for (const w of list) { const b = best.get(w.g); if (!b || w.proas > b.proas) best.set(w.g, w); } return [...best.values()].sort((a, b) => b.proas - a.proas); };
+  const own = pick(W.filter(w => w.p === p));
+  if (own.length) return { list: own, own: true };
+  const fam = [LITTERS, ['스킨테라피 샴푸', '스킨테라피 트리트먼트', '스킨밸런스샴푸']].find(f => f.includes(p));
+  const sib = fam ? pick(W.filter(w => fam.includes(w.p))) : [];
+  return sib.length ? { list: sib, own: false, sib: true } : { list: pick(W), own: false };
 }
-function manualPrompt(p, refs, dir, ratio) {
-  return `바이랩(반려동물 케어 브랜드) ${p} 네이버 피드 광고 이미지 1장을 만들어 주세요. 비율 ${ratio}.
+function toGfaSize(src) {
+  return new Promise((res, rej) => { const img = new Image(); img.onload = () => {
+    const cv = document.createElement('canvas'); cv.width = GFA_SIZE; cv.height = GFA_SIZE; const x = cv.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, GFA_SIZE, GFA_SIZE);
+    const s = Math.max(GFA_SIZE / img.width, GFA_SIZE / img.height); const w = img.width * s, h = img.height * s;
+    x.drawImage(img, (GFA_SIZE - w) / 2, (GFA_SIZE - h) / 2, w, h); res(cv.toDataURL('image/jpeg', 0.92)); }; img.onerror = rej; img.src = src; });
+}
+function productsPage() {
+  const isAdmin = !!(window.ME && window.ME.is_admin);
+  app.innerHTML = `<h1>제품</h1><p class="sub" style="margin-bottom:14px">바이랩 제품 ${PRODUCT_LIST.length}개. 단상자·용기 이미지는 소재 만들기에서 제품 모습을 그대로 살리는 참고 이미지로 씁니다.${isAdmin ? ' 용기가 바뀌면 「이미지 바꾸기」로 올려 주세요.' : ''}</p>
+  ${PRODUCT_LIST.length ? '' : '<p class="notice">등록된 제품이 없습니다.</p>'}
+  <div class="grid">${PRODUCT_LIST.map((p, i) => {
+    const wc = new Set(W.filter(w => w.p === p.name).map(w => w.g)).size; const cc = D.creatives.filter(c => c.p === p.name).length;
+    return `<div class="card" style="cursor:default"><div class="pbox"><img src="${p.img}" alt="${esc(p.name)}"></div>
+      <div class="cb"><div class="row"><span class="tag">${i + 1}</span><b style="font-size:15px">${esc(p.name)}</b></div>
+      <div class="muted">${esc(p.label)}${p.size ? ' · ' + esc(p.size) : ''}</div>
+      <div style="font-size:12px;color:#374151">${esc(p.look)}</div>
+      <div class="row"><a href="#winners?product=${encodeURIComponent(p.name)}">위너 소재 ${wc}개</a><span class="muted">· 전체 소재 ${cc}개</span></div>
+      <div class="row" style="margin-top:4px"><button class="pri" data-mk="${i}">이 제품으로 소재 만들기</button><a download="${esc(p.name)}.webp" href="${p.img}">이미지 받기</a>${isAdmin ? `<button data-rep="${i}">이미지 바꾸기</button>` : ''}</div>
+      ${p.updatedAt ? `<div class="muted">이미지 등록 ${new Date(p.updatedAt).toLocaleDateString('ko-KR')}</div>` : ''}</div></div>`;
+  }).join('')}</div>`;
+  document.querySelectorAll('[data-mk]').forEach(b => b.onclick = () => { createState.product = PRODUCT_LIST[+b.dataset.mk].name; createState.refs = null; location.hash = '#create'; });
+  document.querySelectorAll('[data-rep]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.rep; const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = async () => {
+      const f = inp.files[0]; if (!f) return;
+      const src = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+      const url = await new Promise((res, rej) => { const img = new Image(); img.onload = () => { const M = 900, s = Math.min(1, M / Math.max(img.width, img.height)); const cv = document.createElement('canvas'); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); res(cv.toDataURL('image/webp', 0.9)); }; img.onerror = rej; img.src = src; });
+      if (!window.sbClient) return alert('이 화면에서는 저장할 수 없습니다.');
+      PRODUCT_LIST[i] = { ...PRODUCT_LIST[i], img: url, updatedAt: new Date().toISOString() };
+      const { error } = await window.sbClient.from('app_data').upsert({ key: 'products', payload: PRODUCT_LIST, updated_at: new Date().toISOString() });
+      if (error) alert('저장 실패: ' + error.message); else productsPage();
+    };
+    inp.click();
+  });
+}
+function manualPrompt(p, refs, dir) {
+  const pi = productInfo(p);
+  return `바이랩(반려동물 케어 브랜드) ${p} 네이버 GFA 피드형 광고 이미지 1장을 만들어 주세요. 크기는 1200 × 1200 픽셀 정사각형입니다.
+${pi ? `제품: ${pi.label}${pi.size ? ' ' + pi.size : ''} (${pi.look}). 함께 첨부한 제품 이미지의 용기·단상자 모습, 색, 라벨을 바꾸지 말고 그대로 써 주세요.\n` : ''}
 아래는 실제로 구매 광고수익률이 높았던 위너 소재입니다. 이 결(구도, 색, 말투, 글자 배치)을 살리되 그대로 베끼지 마세요.
 ${refs.map((w, i) => `${i + 1}. 이미지 속 문구: ${w.it || '-'} / 광고 문구: ${w.m || '-'} / 이미지 특징: ${w.vis || '-'} (구매 ROAS ${pct(w.proas)})`).join('\n')}
 ${dir ? '추가 방향: ' + dir + '\n' : ''}규칙: 반려동물 실사 느낌, 제품이 분명히 보일 것, 한글 문구는 짧고 굵게 2줄 이내, 효능을 과장하거나 의학적으로 단정하는 표현 금지, 로고·가격은 넣지 않기.`;
 }
 async function createPage() {
   const hasKey = !!getKey();
-  if (!createState.product || !PRODUCTS.includes(createState.product)) createState.product = PRODUCTS.includes('페이스클렌징') ? '페이스클렌징' : PRODUCTS[0];
-  const refsAll = productRefs(createState.product);
+  const CREATE_PRODUCTS = REG_ORDER.length ? REG_ORDER : PRODUCTS;
+  if (!createState.product || !CREATE_PRODUCTS.includes(createState.product)) createState.product = CREATE_PRODUCTS.includes('페이스클렌징') ? '페이스클렌징' : CREATE_PRODUCTS[0];
+  const pr = productRefs(createState.product); const refsAll = pr.list;
+  const pinfo = productInfo(createState.product);
   if (!createState.refs || !createState.refs.every(n => refsAll.some(w => w.n === n))) createState.refs = refsAll.slice(0, 3).map(w => w.n);
   const gens = (await idb.all().catch(() => [])).sort((a, b) => b.id.localeCompare(a.id));
   app.innerHTML = `<h1>소재 만들기</h1>
@@ -496,9 +551,11 @@ async function createPage() {
   ${hasKey ? '' : `<div class="notice" style="margin-bottom:14px">AI가 아직 연결되지 않았습니다. 지금도 <b>시안 요청문 만들기</b>로 위너 문구·특징을 담은 요청문을 복사해 다른 이미지 도구에 붙여 쓸 수 있습니다. 사이트 안에서 바로 이미지를 만들려면 <button class="lnk" id="setk2">AI 연결</button>을 해 주세요.</div>`}
   <div class="two">
     <div class="box">
-      <div class="row" style="margin-bottom:10px"><label>제품 <select id="cp">${PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></label>
-      <label>비율 <select id="cr"><option>1:1</option><option>4:5</option><option>9:16</option><option>16:9</option></select></label>
+      <div class="row" style="margin-bottom:10px"><label>제품 <select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></label>
+      <span class="tag p">크기 1200 × 1200 (GFA 피드형)</span>
       <span class="muted">참고 위너 <b id="rc">${createState.refs.length}</b>개 선택</span></div>
+      ${pinfo ? `<div class="pmini"><img src="${pinfo.img}"><div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">이 제품 이미지를 시안에 그대로 넣도록 AI에 함께 보냅니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
+      ${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
       <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span><img src="${THUMB(w.n)}"><div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
       <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
       <textarea id="cd" rows="3" placeholder="예) 겨울 느낌, 후기형 말투, 비포/애프터 구도, 고양이 대신 강아지"></textarea>
@@ -507,39 +564,41 @@ async function createPage() {
     <div class="box" id="cout"><p class="muted">여기에 결과가 나옵니다.</p></div>
   </div>
   <section style="margin-top:28px"><h2>만든 시안 ${gens.length}개</h2><p class="muted" style="margin-bottom:10px">시안은 이 브라우저(IndexedDB)에 저장됩니다. 팀과 나누려면 이미지를 내려받아 공유해 주세요.</p>
-  <div class="grid">${gens.map(g => `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">${esc(g.ratio)}</span><span class="muted">${esc(g.at)}</span></div>
+  <div class="grid">${gens.map(g => `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">1200×1200</span><span class="muted">${esc(g.at)}</span></div>
     ${g.copies?.length ? `<div class="copy"><span>제안 문구</span>${g.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
     <div class="muted">참고: ${g.refs.map(n => esc(C.get(n)?.nm || n)).join(', ')}</div>
-    <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_${g.id}.png">내려받기</a><button class="lnk" data-del="${g.id}">지우기</button></div></div></div>`).join('') || '<p class="muted">아직 없습니다.</p>'}</div></section>`;
+    <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${g.id.slice(0, 10)}.jpg">내려받기 (1200×1200)</a><button class="lnk" data-del="${g.id}">지우기</button></div></div></div>`).join('') || '<p class="muted">아직 없습니다.</p>'}</div></section>`;
   if ($('#setk2')) $('#setk2').onclick = openSettings;
   $('#cp').onchange = e => { createState.product = e.target.value; createState.refs = null; createPage(); };
   document.querySelectorAll('.ref').forEach(el => el.onclick = () => { const n = +el.dataset.n; const i = createState.refs.indexOf(n); if (i >= 0) createState.refs.splice(i, 1); else if (createState.refs.length < 4) createState.refs.push(n); el.classList.toggle('sel', createState.refs.includes(n)); $('#rc').textContent = createState.refs.length; });
   document.querySelectorAll('[data-del]').forEach(el => el.onclick = async () => { if (confirm('이 시안을 지울까요?')) { await idb.del(el.dataset.del); createPage(); } });
   const refsSel = () => createState.refs.map(n => refsAll.find(w => w.n === n)).filter(Boolean);
   $('#mkprompt').onclick = () => {
-    const t = manualPrompt(createState.product, refsSel(), $('#cd').value.trim(), $('#cr').value);
-    $('#cout').innerHTML = `<h2>시안 요청문</h2><pre class="prompt" id="pt">${esc(t)}</pre><div class="row"><button class="pri" id="cpy">복사</button><span class="muted">참고 이미지도 함께 넣으면 결이 더 잘 살아납니다.</span></div>`;
+    const t = manualPrompt(createState.product, refsSel(), $('#cd').value.trim());
+    $('#cout').innerHTML = `<h2>시안 요청문</h2><pre class="prompt" id="pt">${esc(t)}</pre><div class="row"><button class="pri" id="cpy">복사</button><span class="muted">제품 이미지와 참고 위너 이미지를 함께 넣으면 결이 더 잘 살아납니다.</span></div>`;
     $('#cpy').onclick = () => navigator.clipboard.writeText(t).then(() => $('#cpy').textContent = '복사됨');
   };
   $('#mkai').onclick = async () => {
     const refs = refsSel(); if (!refs.length) return alert('참고할 위너를 1개 이상 골라 주세요.');
-    const dir = $('#cd').value.trim(), ratio = $('#cr').value, p = createState.product;
+    const dir = $('#cd').value.trim(), ratio = '1:1', p = createState.product, pi = productInfo(p);
     $('#mkai').disabled = true;
     $('#cout').innerHTML = `<p><span class="spin"></span>1/2 위너 소재를 읽고 문구와 요청문을 짜는 중...</p>`;
     try {
       const plannerSys = `너는 반려동물 브랜드 바이랩의 네이버 피드 광고 소재 디자이너다. 주어진 위너 소재(실제로 구매 광고수익률이 높았던 이미지와 문구)의 공통된 결(구도, 색, 인물/반려동물, 제품 노출, 문구 말투와 길이)을 짚고, 그 결을 살린 새 소재를 기획한다.
 규칙: 위너를 그대로 베끼지 않는다. 효능을 과장하거나 의학적으로 단정하지 않는다. 이미지 속 문구는 2줄 이내로 짧게. JSON으로만 답한다:
 {"analysis":"위너들의 공통점 2~3문장","copies":[{"imageText":"이미지 속 문구","adMessage":"광고 문구"} x3],"imagePrompt":"이미지 생성 모델에 줄 영어 지시문. 첫 번째 copies의 imageText를 한글 그대로 이미지에 크게 넣으라고 명시"}`;
-      const content = [{ type: 'text', text: `제품: ${p}\n비율: ${ratio}\n${dir ? '추가 방향: ' + dir + '\n' : ''}[위너 소재]\n` + refs.map((w, i) => `${i + 1}. 이미지 속 문구: ${w.it || '-'} / 광고 문구: ${w.m || '-'} / 특징: ${w.vis || '-'} / 구매 ROAS ${pct(w.proas)}`).join('\n') }]
+      const content = [{ type: 'text', text: `제품: ${p}${pi ? ` (${pi.label}${pi.size ? ' ' + pi.size : ''}, 용기: ${pi.look})` : ''}\n크기: 1200x1200 정사각형 (네이버 GFA 피드형)\n${dir ? '추가 방향: ' + dir + '\n' : ''}${pi ? '첫 번째 이미지는 실제 제품(단상자·용기) 사진이다. 나머지는 위너 소재다.\n' : ''}[위너 소재]\n` + refs.map((w, i) => `${i + 1}. 이미지 속 문구: ${w.it || '-'} / 광고 문구: ${w.m || '-'} / 특징: ${w.vis || '-'} / 구매 ROAS ${pct(w.proas)}`).join('\n') }]
+        .concat(pi ? [{ type: 'image_url', image_url: { url: pi.img } }] : [])
         .concat(refs.map(w => ({ type: 'image_url', image_url: { url: THUMB(w.n) } })));
       const m1 = await orChat({ model: TEXT_MODEL(), messages: [{ role: 'system', content: plannerSys }, { role: 'user', content }], response_format: { type: 'json_object' } });
       const txt = (m1.content || '').replace(/^```json\s*|\s*```$/g, '');
       const plan = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
       $('#cout').innerHTML = `<p><b>위너 공통점</b><br>${esc(plan.analysis)}</p><p><b>제안 문구</b><br>${plan.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</p><p><span class="spin"></span>2/2 이미지를 만드는 중... (30초~1분)</p>`;
       const m2 = await orChat({ model: IMAGE_MODEL(), modalities: ['image', 'text'], image_config: { aspect_ratio: ratio },
-        messages: [{ role: 'user', content: [{ type: 'text', text: plan.imagePrompt + `\nAspect ratio ${ratio}. Use the attached winning ads only as style references (layout, color, tone). Photorealistic pet photo, product clearly visible, bold Korean headline text exactly: "${plan.copies[0].imageText}". No logos, no prices.` }].concat(refs.map(w => ({ type: 'image_url', image_url: { url: THUMB(w.n) } }))) }] });
-      const img = m2.images?.[0]?.image_url?.url;
-      if (!img) throw new Error('이미지가 돌아오지 않았습니다. ' + (m2.content || ''));
+        messages: [{ role: 'user', content: [{ type: 'text', text: plan.imagePrompt + `\nSquare 1:1 image for a 1200x1200 Naver GFA feed ad.${pi ? ` The FIRST attached image is the real product packaging (${pi.label}). Show this exact product: same container shape, colors, cap and label. Do not redesign, relabel or invent another package.` : ''} Use the other attached winning ads only as style references (layout, color, tone). Photorealistic pet photo, product clearly visible, bold Korean headline text exactly: "${plan.copies[0].imageText}". No extra logos, no prices.` }].concat(pi ? [{ type: 'image_url', image_url: { url: pi.img } }] : []).concat(refs.map(w => ({ type: 'image_url', image_url: { url: THUMB(w.n) } }))) }] });
+      const raw = m2.images?.[0]?.image_url?.url;
+      if (!raw) throw new Error('이미지가 돌아오지 않았습니다. ' + (m2.content || ''));
+      const img = await toGfaSize(raw);
       const g = { id: new Date().toISOString(), at: new Date().toLocaleString('ko-KR'), product: p, ratio, direction: dir, refs: refs.map(w => w.n), analysis: plan.analysis, copies: plan.copies, prompt: plan.imagePrompt, image: img };
       await idb.put(g);
       await createPage();
@@ -554,7 +613,7 @@ async function createPage() {
 function route() {
   const h = (location.hash || '#home').slice(1).split('?')[0];
   document.querySelectorAll('#tabs a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + h));
-  ({ home, winners: winnersPage, analysis, ask: askPage, create: createPage, ...(window.EXTRA_PAGES || {}) }[h] || home)();
+  ({ home, winners: winnersPage, analysis, ask: askPage, create: createPage, products: productsPage, ...(window.EXTRA_PAGES || {}) }[h] || home)();
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', route);
@@ -692,7 +751,8 @@ async function loadData() {
   const main = data.find(r => r.key === 'main')?.payload;
   if (!main) throw new Error('자료가 없습니다.');
   const thumbs = {}; data.filter(r => r.key.startsWith('thumbs')).forEach(r => Object.assign(thumbs, r.payload));
-  return { ...main, thumbs };
+  const products = data.find(r => r.key === 'products')?.payload || [];
+  return { ...main, thumbs, products };
 }
 async function afterLogin() {
   if (recovering) return recoveryView();
