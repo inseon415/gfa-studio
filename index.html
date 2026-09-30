@@ -99,102 +99,104 @@ tr.win td{background:#f0fdf4}
 pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;max-height:260px;overflow:auto}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Pen+Script&display=swap">
 <style id="studio-theme">
-/* ===== 멍스튜디오 테마: 따뜻한 강아지 사진관 ===== */
+/* ===== 바이랩 GFA 광고 스튜디오 · 프로 테마 (네이비 + 브랜드 코랄 포인트) ===== */
 :root{
-  --bg:#f6efe4; --card:#fffdf8; --line:#e8dccb; --ink:#3b2a20; --sub:#7b6656; --mute:#a8927f;
-  --acc:#e2744a; --acc-d:#c85d34; --acc2:#fde5d6; --mint:#7fb89a; --mint2:#e3f2ea; --butter:#f6d77d; --blue:#c85d34;
-  --warn:#9a5b12; --warnbg:#fff4de;
-  --paw:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%233b2a20' fill-opacity='.045'%3E%3Cellipse cx='30' cy='38' rx='9' ry='11'/%3E%3Cellipse cx='48' cy='28' rx='8' ry='10'/%3E%3Cellipse cx='66' cy='32' rx='8' ry='10'/%3E%3Cellipse cx='78' cy='48' rx='7' ry='9'/%3E%3Cpath d='M38 70c0-12 10-20 20-20s22 9 22 20c0 9-7 12-14 12-5 0-6-3-9-3s-5 3-10 3c-6 0-9-4-9-12z'/%3E%3C/g%3E%3C/svg%3E");
+  --bg:#f4f5f7; --card:#fff; --line:#e3e6eb; --ink:#0f172a; --sub:#526072; --mute:#8a96a8;
+  --navy:#1b2433; --navy2:#27324a; --acc:#d9653b; --acc-d:#bf532c; --acc2:#fdece4;
+  --pos:#0f8a5f; --pos2:#e3f5ec; --neg:#b4232f; --neg2:#fde8ea; --blue:#2c5fd6; --warn:#8a5a00; --warnbg:#fff7e6;
 }
-body{background:var(--bg) var(--paw);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;color:var(--ink)}
-h1,h2,h3,.brand,.stat dd,.studio-title{font-family:"Jua",Pretendard,sans-serif;font-weight:400;letter-spacing:0}
-h1{font-size:30px}h2{font-size:21px}
-a{color:var(--acc-d)}
-/* 간판 헤더 */
-header.top{background:#3b2a20;border-bottom:none;box-shadow:0 4px 0 var(--acc),0 10px 24px rgba(59,42,32,.18)}
-.topin{padding:12px 16px}
-.brand{color:#fff6ea;font-size:22px;display:flex;align-items:center;gap:10px}
-.brand small{color:#e8cdb4;font-family:Pretendard,sans-serif;font-size:12px;font-weight:500}
-.brand .logo{width:38px;height:38px;border-radius:12px;background:var(--acc);display:grid;place-items:center;box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
-nav.tabs a{color:#ead9c6;font-weight:600;padding:7px 14px}
-nav.tabs a:hover:not(.on){background:rgba(255,246,234,.12)}
-nav.tabs a.on{background:#fff6ea;color:#3b2a20;box-shadow:inset 0 -3px 0 var(--acc)}
-.keybadge{background:transparent;color:#ead9c6;border-color:#6b5445}
-.keybadge.ok{background:var(--mint2);color:#2f6b4c;border-color:var(--mint)}
-.userbox{color:#ead9c6}.userbox button{background:transparent;color:#ead9c6;border-color:#6b5445}.userbox button:hover{background:rgba(255,246,234,.12)}
-/* 홈 배너 */
-.studio-hero{position:relative;overflow:hidden;border-radius:22px;padding:30px 30px 26px;margin-bottom:22px;background:linear-gradient(135deg,#fff7ec 0%,#fde5d6 100%);border:2px solid #f0d9c3}
-.studio-hero:after{content:"";position:absolute;right:-30px;top:-30px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,#fff 0%,rgba(255,255,255,0) 70%);opacity:.9}
-.studio-hero .eyebrow{display:inline-flex;align-items:center;gap:6px;background:#3b2a20;color:#fff6ea;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;margin-bottom:10px}
-.studio-hero h1{font-size:36px;margin:0 0 6px}
-.studio-hero .bulb{position:absolute;right:28px;bottom:18px;font-family:"Nanum Pen Script",cursive;font-size:30px;color:var(--acc-d);transform:rotate(-4deg)}
-.filmstrip{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
-.filmstrip span{background:#3b2a20;color:#fff6ea;border-radius:6px;padding:3px 10px;font-size:12px}
-/* 통계 = 촬영 기록판 */
-.stat{background:var(--card);border:2px dashed #e3cfb9;border-radius:16px}
-.stat dt{color:var(--sub)}
-.stat dd{font-size:24px;color:var(--ink)}
-/* 폴라로이드 카드 */
-.grid{gap:22px}
-.card{position:relative;background:#fff;border:none;border-radius:6px;padding:10px 10px 4px;box-shadow:0 1px 0 #eadcca,0 10px 24px rgba(59,42,32,.13);transition:transform .18s,box-shadow .18s;transform:rotate(-.8deg)}
-.grid>.card:nth-child(2n){transform:rotate(.7deg)}
-.grid>.card:nth-child(3n){transform:rotate(-.3deg)}
-.card:hover{transform:rotate(0) translateY(-4px) !important;box-shadow:0 16px 32px rgba(59,42,32,.2)}
-.card:before{content:"";position:absolute;top:-9px;left:50%;width:74px;height:20px;margin-left:-37px;background:rgba(246,215,125,.75);transform:rotate(-2deg);box-shadow:0 1px 2px rgba(0,0,0,.08);z-index:2}
-.card>img{border-radius:2px;background:#f3ebe0}
-.card .cb{padding:12px 4px 10px}
-.card .nm{font-family:"Nanum Pen Script",cursive;font-size:20px;font-weight:400;line-height:1.15;color:#4a3528}
-.copy{border-top:1px dashed #eadcca}
-.tag{background:#f4ece2;color:#5b4637}
-.tag.p{background:var(--acc2);color:var(--acc-d)}
-.tag.on{background:var(--mint2);color:#2f6b4c}.tag.off{background:#fbe3dc;color:#a4442b}
-/* 상자·필터·표 */
-.box{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 6px 18px rgba(59,42,32,.06)}
-.filters{background:var(--card);border:1px solid var(--line);border-radius:16px}
-select,input[type=text],input[type=password],input[type=email],textarea{border-color:#e3d3c0;border-radius:10px;background:#fffdf9}
-select:focus,input:focus,textarea:focus{outline:2px solid var(--acc2);border-color:var(--acc)}
-button{border-radius:999px;border-color:#e3d3c0;background:#fffdf9;color:var(--ink)}
-button.pri{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
-button.pri:hover{background:var(--acc-d)}
-.tbl{border-color:var(--line);border-radius:14px}
-table{background:var(--card)} th{background:#f7efe5;color:var(--sub)}
-tr.win td{background:#fff3e8}
-.bars{background:var(--card);border-color:var(--line);border-radius:16px}
-.bar i{background:#c9a88c}.bar:hover i{background:var(--acc)}
-.chip{background:#fffdf9;border-color:#e3d3c0}.chip b{color:var(--acc-d)}
-.notice{background:var(--warnbg);border-color:#f1d9a8;color:var(--warn)}
-.ref{border-radius:10px;box-shadow:0 2px 8px rgba(59,42,32,.08)}.ref.sel{border-color:var(--acc)}.ref .ck{background:var(--acc)}
-.pbox{background:#fffaf2}
-.pmini{background:#fff7ec;border-color:#f0d9c3}
-.mbox{background:var(--card);border-radius:20px}
-.stat,.box,.card{color:var(--ink)}
-/* 제품 카드는 스튜디오 조명 배경 */
-.card .pbox{background:radial-gradient(circle at 50% 38%,#fff 0%,#fbf1e4 70%);border-bottom:none;border-radius:4px}
-section>h2:before,.row>h2:before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--acc);margin-right:8px;vertical-align:3px;box-shadow:14px 0 0 var(--butter),28px 0 0 var(--mint)}
-section>h2,.row>h2{padding-left:0}
-section>h2:before,.row>h2:before{margin-right:40px}
-
-header.top .userbox,header.top .userbox span{color:#ead9c6 !important}
-header.top .userbox button{color:#ead9c6 !important;background:transparent !important;border-color:#6b5445 !important}
+body{background:var(--bg);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Pretendard,sans-serif;letter-spacing:-.02em}
+h1{font-size:26px;font-weight:800}h2{font-size:18px;font-weight:700}
+a{color:var(--blue)}
+/* 헤더 */
+header.top{background:var(--navy);border-bottom:1px solid #0e1522;box-shadow:none}
+.topin{padding:10px 20px;gap:18px;flex-wrap:nowrap}
+.brand{color:#fff;font-size:16px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.brand small{display:none}
+.brand .logo{width:32px;height:32px;border-radius:8px;background:var(--acc);display:grid;place-items:center}
 nav.tabs{flex-wrap:nowrap;gap:2px}
-nav.tabs a{padding:7px 11px;white-space:nowrap;font-size:14px}
-.topin{flex-wrap:nowrap;gap:14px}
-.brand small{display:block;margin:2px 0 0}
-@media(max-width:1360px){.topin{flex-wrap:wrap;row-gap:8px}nav.tabs{order:3;flex-basis:100%}}
-.galtabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
-.galtab{padding:7px 14px;border-radius:999px;border:1.5px solid #e3d3c0;background:#fffdf9;color:#5b4637;font-weight:600;font-size:13px}
-.galtab b{font-weight:700;color:#c85d34;margin-left:2px}
-.galtab:hover{border-color:#e2744a}
-.galtab.on{background:#3b2a20;border-color:#3b2a20;color:#fff6ea}.galtab.on b{color:#f6d77d}
+nav.tabs a{color:#b7c0cf;font-weight:600;font-size:14px;padding:8px 12px;border-radius:6px;white-space:nowrap}
+nav.tabs a:hover:not(.on){background:rgba(255,255,255,.06);color:#fff}
+nav.tabs a.on{background:rgba(255,255,255,.1);color:#fff;box-shadow:inset 0 -2px 0 var(--acc)}
+.keybadge{background:transparent;color:#b7c0cf;border:1px solid #3a4660;border-radius:6px}
+.keybadge.ok{background:rgba(15,138,95,.15);color:#7fe0b5;border-color:#1f6b4f}
+header.top .userbox,header.top .userbox span{color:#b7c0cf !important}
+header.top .userbox button{color:#dfe5ee !important;background:transparent !important;border:1px solid #3a4660 !important;border-radius:6px !important}
+@media(max-width:1360px){.topin{flex-wrap:wrap;row-gap:6px}nav.tabs{order:3;flex-basis:100%}}
+main{padding-top:28px}
+/* 홈 배너 */
+.studio-hero{position:relative;border-radius:14px;padding:28px 30px;margin-bottom:22px;background:var(--navy);color:#fff;border:none;overflow:hidden}
+.studio-hero:after{content:"";position:absolute;right:0;top:0;bottom:0;width:38%;background:linear-gradient(135deg,rgba(217,101,59,.0) 0%,rgba(217,101,59,.22) 100%);clip-path:polygon(30% 0,100% 0,100% 100%,0 100%)}
+.studio-hero .eyebrow{display:inline-block;color:#f3a98c;font-size:12px;font-weight:700;letter-spacing:.06em;margin-bottom:8px;background:none;padding:0}
+.studio-hero h1{font-size:28px;color:#fff;margin:0 0 6px;position:relative;z-index:1}
+.studio-hero .sub{color:#b7c0cf;position:relative;z-index:1}
+.filmstrip{display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;align-items:center;position:relative;z-index:1}
+.filmstrip span{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#e6ebf2;border-radius:6px;padding:4px 10px;font-size:12px}
+.filmstrip span:first-child{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.fs-link{color:#f3a98c;font-size:12px;margin-left:6px}
+.bulb{display:none}
+/* KPI */
+.stats{gap:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;border-top:3px solid var(--navy)}
+.stat:nth-child(2){border-top-color:var(--acc)}.stat:nth-child(3){border-top-color:var(--pos)}.stat:nth-child(4){border-top-color:#6b7fa6}
+.stat dt{color:var(--sub);font-size:12px;font-weight:600}
+.stat dd{font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+/* 카드 */
+.grid{gap:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.04);transition:box-shadow .15s,transform .15s;transform:none;padding:0}
+.card:hover{box-shadow:0 8px 24px rgba(15,23,42,.10);transform:translateY(-2px)}
+.card:before{display:none}
+.card>img{border-radius:0;background:#eef0f3}
+.card .cb{padding:12px 14px 14px}
+.card .nm{font-family:Pretendard,sans-serif;font-size:13px;font-weight:600;color:#334155;line-height:1.35}
+.kv b{font-weight:800;color:var(--pos)}
+.copy{border-top:1px solid #eef0f3}
+.copy span{color:var(--mute);font-weight:600;font-size:11px;letter-spacing:.02em}
+.tag{background:#f1f3f6;color:#475569;border-radius:5px;font-weight:600}
+.tag.p{background:var(--acc2);color:var(--acc-d)}
+.tag.on{background:var(--pos2);color:var(--pos)}.tag.off{background:#f1f3f6;color:#8a96a8}
+/* 박스·필터·표 */
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:none}
+.filters{background:var(--card);border:1px solid var(--line);border-radius:12px}
+select,input[type=text],input[type=password],input[type=email],input[type=number],textarea{border:1px solid #d7dce3;border-radius:8px;background:#fff;font:inherit;padding:7px 10px}
+select:focus,input:focus,textarea:focus{outline:2px solid rgba(44,95,214,.2);border-color:var(--blue)}
+button{border-radius:8px;border:1px solid #d7dce3;background:#fff;color:var(--ink);font-weight:600}
+button:hover{border-color:#b8c0cc}
+button.pri{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:none}
+button.pri:hover{background:var(--navy2)}
+button.lnk{color:var(--blue);font-weight:500}
+.tbl{border:1px solid var(--line);border-radius:12px}
+table{background:#fff} th{background:#f7f8fa;color:var(--sub);font-weight:700;border-bottom:1px solid var(--line)}
+td{border-bottom:1px solid #eef0f3}
+tr.win td{background:#f2faf6}
+.bars{background:#fff;border:1px solid var(--line);border-radius:12px}
+.bar i{background:#c3cad6;border-radius:3px 3px 0 0}.bar:hover i{background:var(--acc)}
+.chip{background:#fff;border:1px solid #d7dce3;border-radius:6px;font-weight:600}.chip b{color:var(--acc-d)}
+.notice{background:var(--warnbg);border:1px solid #f1dcaa;color:var(--warn);border-radius:10px}
+.ref{border-radius:8px;border:2px solid transparent;box-shadow:0 1px 3px rgba(15,23,42,.08)}.ref.sel{border-color:var(--acc)}.ref .ck{background:var(--acc)}
+.pmini{background:#f7f8fa;border:1px solid var(--line)}
+.mbox{background:#fff;border-radius:14px}
+.card .pbox{background:linear-gradient(180deg,#fafbfc 0%,#eff1f4 100%);border-bottom:1px solid var(--line);border-radius:0}
+.galtabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+.galtab{padding:6px 12px;border-radius:6px;border:1px solid #d7dce3;background:#fff;color:#475569;font-weight:600;font-size:13px}
+.galtab b{color:var(--acc-d);margin-left:2px}
+.galtab.on{background:var(--navy);border-color:var(--navy);color:#fff}.galtab.on b{color:#f3a98c}
+/* 섹션 제목 */
+section>h2,.row>h2{display:flex;align-items:center;gap:8px}
+section>h2:before,.row>h2:before{content:"";width:4px;height:16px;border-radius:2px;background:var(--acc);display:inline-block}
+.studio-hero h1:before{display:none}
+/* 위너 기준 상자 */
+.rulebox{margin-bottom:24px;border-left:4px solid var(--acc)}
+.rulebox .rec{background:#f7f8fa;border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:260px}
+.rule-edit label{font-size:12px;color:var(--sub);font-weight:600;display:flex;align-items:center;gap:6px}
 </style>
 
 </head>
 <body>
 <header class="top"><div class="topin">
-  <div class="brand"><span class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="14" rx="3" fill="#fff6ea"/><rect x="7" y="3.5" width="6" height="3.5" rx="1.2" fill="#fff6ea"/><circle cx="12" cy="13" r="4.6" fill="#3b2a20"/><g fill="#fff6ea"><ellipse cx="10.3" cy="11.6" rx=".75" ry=".95"/><ellipse cx="12" cy="10.9" rx=".75" ry=".95"/><ellipse cx="13.7" cy="11.6" rx=".75" ry=".95"/><path d="M10.4 14.4c0-1 .8-1.7 1.6-1.7s1.7.7 1.7 1.7c0 .8-.6 1-1.1 1-.4 0-.4-.2-.6-.2s-.3.2-.7.2c-.5 0-.9-.3-.9-1z"/></g><circle cx="18.3" cy="8.8" r="1" fill="#e2744a"/></svg></span><span>바이랩 GFA 광고 스튜디오</span></div>
+  <div class="brand"><span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9" rx="1" fill="#fff"/><rect x="10" y="7" width="4" height="14" rx="1" fill="#fff"/><rect x="17" y="3" width="4" height="18" rx="1" fill="#fff"/></svg></span><span>바이랩 GFA 광고 스튜디오</span></div>
   <nav class="tabs" id="tabs">
     <a href="#home">홈</a><a href="#winners">월별 위너</a><a href="#analysis">위너 분석</a><a href="#ask">질문하기</a><a href="#create">소재 만들기</a><a href="#products">제품</a>
   </nav>
@@ -209,7 +211,8 @@ const D = window.__GFA_DATA__;
 const C = new Map(D.creatives.map(c => [c.n, c]));
 const STATS = D.stats.map(([month, n, cost, proas, psales, pc, imp, click, roas]) => ({ month, n, cost, proas, psales, pc, imp, click, roas }));
 const RULE = D.rule;
-const isWin = s => s.cost >= RULE.minCost && s.proas >= RULE.minPurchaseRoas;
+const isWin = s => s.cost >= RULE.minCost && s.proas >= RULE.minPurchaseRoas && s.pc >= (RULE.minPurchases || 0);
+const ruleText = (r = RULE) => `한 달 총 비용 ${Math.round(r.minCost).toLocaleString('ko-KR')}원 이상 · 구매완료 광고수익률 ${r.minPurchaseRoas}% 이상${r.minPurchases ? ` · 구매 ${r.minPurchases}건 이상` : ''}`;
 const SEASONS = ['봄', '여름', '가을', '겨울'];
 const seasonOf = m => { const k = +m.slice(5, 7); return k >= 3 && k <= 5 ? '봄' : k >= 6 && k <= 8 ? '여름' : k >= 9 && k <= 11 ? '가을' : '겨울'; };
 const W = STATS.filter(isWin).map(s => {
@@ -348,11 +351,10 @@ function home() {
   const bestProd = Object.entries(W.reduce((o, w) => (o[w.p] = (o[w.p] || 0) + 1, o), {})).sort((a, b) => b[1] - a[1])[0];
   app.innerHTML = `
   <section class="studio-hero">
-    <span class="eyebrow">● REC</span>
-    <h1>잘 팔린 컷만 모아 둔 광고 스튜디오</h1>
-    <p class="sub">네이버 GFA 디스플레이 · 웹사이트 전환 · 「피드」 캠페인의 ON/OFF 소재를 달마다 찍어 두었어요.</p>
-    <div class="filmstrip"><span>위너 기준</span><span>한 달 총 비용 ${won(RULE.minCost)} 이상</span><span>구매완료 광고수익률 ${RULE.minPurchaseRoas}% 이상</span></div>
-    <div class="bulb">오늘도 베스트 컷 찰칵!</div>
+    <span class="eyebrow">NAVER GFA · 디스플레이 · 웹사이트 전환</span>
+    <h1>성과로 검증된 위너 소재를 한눈에</h1>
+    <p class="sub">바이랩 · 바이랩 2 계정의 「피드」 캠페인 소재(ON/OFF 전체)를 월별 성과로 누적 관리합니다.</p>
+    <div class="filmstrip"><span>위너 기준</span><span>한 달 총 비용 ${won(RULE.minCost)} 이상</span><span>구매완료 광고수익률 ${RULE.minPurchaseRoas}% 이상</span>${RULE.minPurchases ? `<span>구매 ${RULE.minPurchases}건 이상</span>` : ''}<a href="#analysis" class="fs-link">기준 자세히 보기</a></div>
   </section>
   <dl class="stats">
     <div class="stat"><dt>보관 중인 기간</dt><dd>${MONTHS[0]} ~ ${LATEST}</dd></div>
@@ -362,11 +364,11 @@ function home() {
     <div class="stat"><dt>위너 최다 제품</dt><dd>${esc(bestProd[0])} ${bestProd[1]}건</dd></div>
   </dl>
   <section style="margin-top:28px">
-    <div class="row" style="justify-content:space-between"><h2>${LATEST} 베스트 컷 ${latestW.length}장 <span class="muted">(오늘까지 집계, 달이 끝나면 바뀔 수 있음)</span></h2><a href="#winners?month=${LATEST}">전체 보기</a></div>
+    <div class="row" style="justify-content:space-between"><h2>${LATEST} 위너 소재 ${latestW.length}개 <span class="muted">(오늘까지 집계, 달이 끝나면 바뀔 수 있음)</span></h2><a href="#winners?month=${LATEST}">전체 보기</a></div>
     <div class="grid" id="hg">${latestW.slice(0, 8).map(groupCard).join('')}</div>
   </section>
   <section>
-    <div class="row" style="justify-content:space-between"><h2>${prevMonth} 베스트 컷</h2><a href="#winners?month=${prevMonth}">전체 보기</a></div>
+    <div class="row" style="justify-content:space-between"><h2>${prevMonth} 위너 소재</h2><a href="#winners?month=${prevMonth}">전체 보기</a></div>
     <div class="grid" id="hg2">${groupWinners(W.filter(w => w.month === prevMonth)).sort((a, b) => b.proasSum - a.proasSum).slice(0, 4).map(groupCard).join('')}</div>
   </section>
   <p class="muted">마지막 수집: ${new Date(D.collectedAt).toLocaleString('ko-KR')} · GFA는 2년이 지나면 자료를 볼 수 없지만, 이 사이트는 ${MONTHS[0]}부터 모은 달을 지우지 않고 계속 보관합니다 (매주 월요일 자동 수집). 이미지 속 문구는 위너 이미지 ${Object.keys(D.imgText).length}장을 Aside가 읽어 옮겼습니다.</p>`;
@@ -422,6 +424,42 @@ function downloadCsv(list) {
 // ---------- ANALYSIS ----------
 const STOP = new Set(['이제', '진짜', '그냥', '너무', '우리', '이거', '이건', '정말', '하나', '바로', '보러가기', '강아지', '바이랩', '있는', '하는', '사용', '사용 전', '사용 후', '없음']);
 function tokens(s) { return (s.match(/[가-힣A-Za-z0-9]+/g) || []).filter(t => t.length >= 2 && !STOP.has(t) && !/^\d+$/.test(t)); }
+// ---------- 위너 기준 상자 ----------
+const FULL_MONTHS = STATS.filter(s => s.month < LATEST);
+const ACC_ROAS = (() => { const c = FULL_MONTHS.reduce((a, s) => a + s.cost, 0), p = FULL_MONTHS.reduce((a, s) => a + s.psales, 0); return c ? p / c * 100 : 0; })();
+const RECOMMENDED = { minCost: 30000, minPurchaseRoas: 150, minPurchases: 3 };
+function countFor(r) { const w = STATS.filter(s => s.cost >= r.minCost && s.proas >= r.minPurchaseRoas && s.pc >= (r.minPurchases || 0)); return { rows: w.length, cre: new Set(w.map(s => s.n)).size }; }
+function ruleBox() {
+  const isAdmin = !!(window.ME && window.ME.is_admin);
+  const now = countFor(RULE), rec = countFor(RECOMMENDED);
+  setTimeout(bindRuleBox, 0);
+  return `<section class="box rulebox"><div class="row" style="justify-content:space-between;align-items:flex-start"><div>
+    <div class="muted" style="font-weight:600;letter-spacing:.02em">지금 위너 기준</div>
+    <div style="font-size:17px;font-weight:700;margin:4px 0">${ruleText()}</div>
+    <div class="muted">이 기준으로 위너 ${now.rows}건(소재 ${now.cre}개) · 참고: 계정 전체 평균 구매완료 광고수익률 ${pct(ACC_ROAS)}</div></div>
+    <div class="rec"><div class="muted" style="font-weight:600">Aside 추천 기준</div><div style="font-weight:700">${ruleText(RECOMMENDED)}</div><div class="muted">위너 ${rec.rows}건(소재 ${rec.cre}개)</div></div></div>
+    ${isAdmin ? `<div class="row rule-edit" style="margin-top:12px">
+      <label>총 비용(원) <input type="number" id="rc1" step="10000" min="0" value="${RULE.minCost}" style="width:110px"></label>
+      <label>구매 ROAS(%) <input type="number" id="rc2" step="5" min="0" value="${RULE.minPurchaseRoas}" style="width:80px"></label>
+      <label>구매 건수 <input type="number" id="rc3" step="1" min="0" value="${RULE.minPurchases || 0}" style="width:64px"></label>
+      <span class="muted" id="rcprev"></span>
+      <button id="rcrec">추천 기준 넣기</button><button class="pri" id="rcsave">기준 저장</button></div>` : ''}
+  </section>`;
+}
+function bindRuleBox() {
+  const c1 = document.getElementById('rc1'); if (!c1) return;
+  const val = () => ({ minCost: +c1.value || 0, minPurchaseRoas: +document.getElementById('rc2').value || 0, minPurchases: +document.getElementById('rc3').value || 0 });
+  const prev = () => { const c = countFor(val()); document.getElementById('rcprev').textContent = `→ 위너 ${c.rows}건(소재 ${c.cre}개)`; };
+  ['rc1', 'rc2', 'rc3'].forEach(id => document.getElementById(id).oninput = prev); prev();
+  document.getElementById('rcrec').onclick = () => { c1.value = RECOMMENDED.minCost; document.getElementById('rc2').value = RECOMMENDED.minPurchaseRoas; document.getElementById('rc3').value = RECOMMENDED.minPurchases; prev(); };
+  document.getElementById('rcsave').onclick = async () => {
+    if (!window.sbClient) return alert('여기서는 저장할 수 없습니다.');
+    const r = val(); if (!confirm(`위너 기준을 바꿀까요?\n${ruleText(r)}\n팀원 모두의 화면에 적용됩니다.`)) return;
+    const { error } = await window.sbClient.from('app_data').upsert({ key: 'rule', payload: r, updated_at: new Date().toISOString() });
+    if (error) return alert('저장 실패: ' + error.message);
+    location.hash = '#analysis'; location.reload();
+  };
+}
 function analysis() {
   const byP = {};
   const active = STATS.filter(s => s.cost >= RULE.minCost);
@@ -443,12 +481,13 @@ function analysis() {
     return { p: r.p, list: [...best.values()].sort((a, b) => b.proas - a.proas).slice(0, 5) };
   });
   app.innerHTML = `<h1>위너 분석</h1>
-  <p class="sub" style="margin-bottom:16px">${MONTHS[0]} ~ ${LATEST} · 계절: 봄 3~5월, 여름 6~8월, 가을 9~11월, 겨울 12~2월 · 위너율 = 위너 수 ÷ 한 달 비용 10만원 이상 쓴 소재-월 수</p>
+  <p class="sub" style="margin-bottom:16px">${MONTHS[0]} ~ ${LATEST} · 계절: 봄 3~5월, 여름 6~8월, 가을 9~11월, 겨울 12~2월 · 위너율 = 위너 수 ÷ 한 달 비용 ${won(RULE.minCost)} 이상 쓴 소재-월 수</p>
+  ${ruleBox()}
   <section><h2>제품별</h2><div class="tbl"><table><thead><tr><th>제품</th><th class="n">위너</th><th class="n">위너 소재</th><th class="n">위너율</th><th class="n">위너 총 비용</th><th class="n">위너 구매 ROAS(합산)</th><th class="n">봄</th><th class="n">여름</th><th class="n">가을</th><th class="n">겨울</th></tr></thead><tbody>
   ${rows.map(r => `<tr><td><a href="#winners?product=${encodeURIComponent(r.p)}">${esc(r.p)}</a></td><td class="n">${r.win}</td><td class="n">${r.cre.size}</td><td class="n">${pct(r.win / r.act * 100)}</td><td class="n">${man(r.cost)}</td><td class="n">${pct(r.sales / r.cost * 100)}</td>${SEASONS.map(s => `<td class="n" style="background:rgba(22,163,74,${(r.seasons[s] / heatMax * .45).toFixed(2)})">${r.seasons[s] || ''}</td>`).join('')}</tr>`).join('')}
   </tbody></table></div></section>
   <section><h2>달마다 위너 수</h2><div class="bars">
-  ${byMonth.map(x => `<a class="bar" href="#winners?month=${x.m}" title="${x.m} · 위너 ${x.n}건 / 10만원 이상 소재 ${x.a}개"><s>${x.n || ''}</s><i style="height:${x.n / maxN * 110}px"></i><u>${x.m.slice(2).replace('-', '.')}</u></a>`).join('')}
+  ${byMonth.map(x => `<a class="bar" href="#winners?month=${x.m}" title="${x.m} · 위너 ${x.n}건 / ${won(RULE.minCost)} 이상 소재 ${x.a}개"><s>${x.n || ''}</s><i style="height:${x.n / maxN * 110}px"></i><u>${x.m.slice(2).replace('-', '.')}</u></a>`).join('')}
   </div></section>
   <section><h2>위너 문구에 자주 나온 말</h2><p class="muted" style="margin-bottom:8px">위너 소재 ${seen.size}개의 광고 문구 + 이미지 속 문구에서 3개 이상 소재에 나온 말. 누르면 그 말이 든 위너만 봅니다.</p>
   <div class="chips">${topWords.map(([t, c]) => `<a class="chip" href="#winners?q=${encodeURIComponent(t)}">${esc(t)}<b>${c}</b></a>`).join('')}</div></section>
@@ -539,7 +578,7 @@ async function aiAnswer(q, r) {
   const ctx = r.list.length && r.list.length < W.length ? r.list : W;
   const sys = `너는 ANBIO 바이랩 마케팅팀의 GFA 광고 분석 도우미다.
 [자료]는 네이버 GFA 디스플레이 광고(바이랩·바이랩 2 계정, 웹사이트 전환, 이름에 「피드」가 든 캠페인)의 월별 위너 소재 목록이다.
-위너 기준: 한 달 총 비용 ${RULE.minCost.toLocaleString()}원 이상 그리고 구매완료 광고수익률 ${RULE.minPurchaseRoas}% 이상. 기간 ${MONTHS[0]} ~ ${LATEST}. 계절: 봄 3~5, 여름 6~8, 가을 9~11, 겨울 12~2월.
+위너 기준: ${ruleText()}. 기간 ${MONTHS[0]} ~ ${LATEST}. 계절: 봄 3~5, 여름 6~8, 가을 9~11, 겨울 12~2월.
 규칙: [자료] 안에서만 답한다. 자료에 없으면 "자료에 없음"이라고 말하고 지어내지 않는다. 소재를 말할 때는 광고 문구·이미지 속 문구·소재 이름·월·구매 ROAS를 함께 적는다. 한국어로 짧고 분명하게, 목록은 줄마다 한 소재.`;
   const msg = await orChat({ model: TEXT_MODEL(), max_tokens: 1500, messages: [{ role: 'system', content: sys }, { role: 'user', content: `[자료] (${ctx === W ? '전체 위너' : '질문 조건으로 거른 위너'} ${ctx.length}건)\n${winnersTsv(ctx)}\n\n[질문] ${q}` }] });
   return msg.content;
@@ -777,20 +816,19 @@ window.addEventListener('hashchange', route);
 refreshKeyBadge(); route();
 </script>
 <style>
-#auth{position:fixed;inset:0;z-index:100;background:#f6efe4 var(--paw);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;font-family:Pretendard,"Malgun Gothic",sans-serif;color:#3b2a20}
-#auth .ab{position:relative;background:#fff;border-radius:6px;padding:34px 28px 26px;width:380px;max-width:100%;box-shadow:0 1px 0 #eadcca,0 18px 40px rgba(59,42,32,.18);transform:rotate(-.6deg)}
-#auth .ab:before{content:"";position:absolute;top:-11px;left:50%;width:96px;height:24px;margin-left:-48px;background:rgba(246,215,125,.8);transform:rotate(-2deg)}
-#auth .alogo{width:56px;height:56px;border-radius:16px;background:#e2744a;display:grid;place-items:center;margin-bottom:12px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.15)}
-#auth h1{font-family:"Jua",Pretendard,sans-serif;font-weight:400;font-size:28px;margin:0 0 4px}#auth .lead{color:#7b6656;font-size:13px;margin:0 0 18px}
-#auth .sign{font-family:"Nanum Pen Script",cursive;font-size:22px;color:#c85d34;margin:-2px 0 10px}
-#auth .at{display:flex;background:#f4ece2;border-radius:999px;padding:4px;margin-bottom:16px}
+#auth{position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#1b2433 0%,#1b2433 38%,#f4f5f7 38%);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;font-family:Pretendard,"Malgun Gothic",sans-serif;color:#3b2a20}
+#auth .ab{position:relative;background:#fff;border-radius:14px;padding:32px 28px 26px;width:380px;max-width:100%;border:1px solid #e3e6eb;box-shadow:0 20px 48px rgba(15,23,42,.10)}
+#auth .alogo{width:48px;height:48px;border-radius:12px;background:#1b2433;display:grid;place-items:center;margin-bottom:12px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.15)}
+#auth h1{font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 6px}#auth .lead{color:#64748b;font-size:13px;margin:0 0 18px}
+#auth .sign{display:none}
+#auth .at{display:flex;background:#f1f3f6;border-radius:999px;padding:4px;margin-bottom:16px}
 #auth .at button{flex:1;border:none;background:none;padding:8px 0;border-radius:999px;color:#7b6656;font-weight:600}
-#auth .at button.on{background:#3b2a20;color:#fff6ea}
-#auth label{display:block;font-size:12px;color:#5b4637;margin:0 0 4px}
-#auth input{width:100%;box-sizing:border-box;font:inherit;padding:10px 12px;border:1px solid #e3d3c0;border-radius:10px;margin-bottom:12px;background:#fffdf9}
-#auth .go{width:100%;padding:12px;border:none;border-radius:999px;background:#e2744a;color:#fff;font-weight:700;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
+#auth .at button.on{background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(15,23,42,.12)}
+#auth label{display:block;font-size:12px;color:#475569;font-weight:600;margin:0 0 4px}
+#auth input{width:100%;box-sizing:border-box;font:inherit;padding:10px 12px;border:1px solid #d7dce3;border-radius:8px;margin-bottom:12px;background:#fff}
+#auth .go{width:100%;padding:12px;border:none;border-radius:8px;background:#1b2433;color:#fff;font-weight:700;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
 #auth .go:disabled{opacity:.5}
-#auth .lk{display:block;text-align:center;margin-top:12px;font-size:13px;color:#c85d34;background:none;border:none;width:100%}
+#auth .lk{display:block;text-align:center;margin-top:12px;font-size:13px;color:#d9653b;background:none;border:none;width:100%}
 #auth .msg{font-size:13px;min-height:18px;margin-top:10px}#auth .msg.err{color:#a4442b}#auth .msg.ok{color:#2f6b4c}
 #auth .hint{font-size:12px;color:#a8927f;margin:-8px 0 12px}
 .userbox{display:flex;align-items:center;gap:8px;font-size:12px;color:#374151;white-space:nowrap}
@@ -912,7 +950,8 @@ async function loadData() {
   if (!main) throw new Error('자료가 없습니다.');
   const thumbs = {}; data.filter(r => r.key.startsWith('thumbs')).forEach(r => Object.assign(thumbs, r.payload));
   const products = data.find(r => r.key === 'products')?.payload || [];
-  return { ...main, thumbs, products };
+  const rule = data.find(r => r.key === 'rule')?.payload;
+  return { ...main, rule: rule || main.rule, thumbs, products };
 }
 let loginRun = null;
 function afterLogin() { if (!loginRun) loginRun = afterLoginInner().finally(() => { loginRun = null; }); return loginRun; }
