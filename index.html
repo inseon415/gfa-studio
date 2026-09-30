@@ -355,7 +355,7 @@ function home() {
     <div class="bulb">오늘도 베스트 컷 찰칵!</div>
   </section>
   <dl class="stats">
-    <div class="stat"><dt>모은 기간</dt><dd>${MONTHS[0]} ~ ${LATEST}</dd></div>
+    <div class="stat"><dt>보관 중인 기간</dt><dd>${MONTHS[0]} ~ ${LATEST}</dd></div>
     <div class="stat"><dt>소재</dt><dd>${D.creatives.length.toLocaleString()}개</dd></div>
     <div class="stat"><dt>위너 (소재 × 월)</dt><dd>${W.length}건</dd></div>
     <div class="stat"><dt>위너가 된 소재</dt><dd>${new Set(W.map(w => w.g)).size}개</dd></div>
@@ -369,7 +369,7 @@ function home() {
     <div class="row" style="justify-content:space-between"><h2>${prevMonth} 베스트 컷</h2><a href="#winners?month=${prevMonth}">전체 보기</a></div>
     <div class="grid" id="hg2">${groupWinners(W.filter(w => w.month === prevMonth)).sort((a, b) => b.proasSum - a.proasSum).slice(0, 4).map(groupCard).join('')}</div>
   </section>
-  <p class="muted">자료 수집: ${D.collectedAt.slice(0, 16).replace('T', ' ')} (UTC) · GFA는 최대 2년 전까지만 조회되므로 2024-09 이전은 없습니다. 이미지 속 문구는 위너 이미지 ${Object.keys(D.imgText).length}장을 Aside가 읽어 옮겼습니다.</p>`;
+  <p class="muted">마지막 수집: ${new Date(D.collectedAt).toLocaleString('ko-KR')} · GFA는 2년이 지나면 자료를 볼 수 없지만, 이 사이트는 ${MONTHS[0]}부터 모은 달을 지우지 않고 계속 보관합니다 (매주 월요일 자동 수집). 이미지 속 문구는 위너 이미지 ${Object.keys(D.imgText).length}장을 Aside가 읽어 옮겼습니다.</p>`;
   bindCards(app);
 }
 
