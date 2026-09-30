@@ -717,7 +717,7 @@ function accountModal() {
 }
 async function adminPage() {
   const app = document.getElementById('app');
-  app.innerHTML = `<h1>회원 관리</h1><p class="sub" style="margin-bottom:12px">가입한 사람을 승인해야 자료를 볼 수 있습니다. 승인을 취소하면 바로 못 봅니다.</p><div id="mlist"><p class="muted">불러오는 중...</p></div>`;
+  app.innerHTML = `<h1>회원 관리</h1><p class="sub" style="margin-bottom:12px">가입한 사람을 승인해야 자료를 볼 수 있습니다. 승인을 취소하면 바로 못 봅니다. 승인은 관리자(나)만 할 수 있습니다.</p><div id="mlist"><p class="muted">불러오는 중...</p></div>`;
   const { data, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
   if (error) { document.getElementById('mlist').innerHTML = `<p style="color:#b91c1c">${esc(error.message)}</p>`; return; }
   const pend = data.filter(u => !u.approved).length;
@@ -727,12 +727,11 @@ async function adminPage() {
     <td>${u.approved ? '<span class="tag on">승인됨</span>' : '<span class="tag off">승인 대기</span>'}${u.is_admin ? ' <span class="tag p">관리자</span>' : ''}</td>
     <td>${u.id === window.ME.id ? '<span class="muted">나</span>' : `<div class="row">
       ${u.approved ? `<button data-a="unapprove" data-id="${u.id}">승인 취소</button>` : `<button class="pri" data-a="approve" data-id="${u.id}">승인</button>`}
-      ${u.approved ? (u.is_admin ? `<button data-a="unadmin" data-id="${u.id}">관리자 해제</button>` : `<button data-a="admin" data-id="${u.id}">관리자로</button>`) : ''}
       <button data-a="delete" data-id="${u.id}" style="color:#b91c1c">삭제</button></div>`}</td></tr>`).join('')}
   </tbody></table></div>`;
   document.querySelectorAll('#mlist [data-a]').forEach(b => b.onclick = async () => {
     const id = b.dataset.id, a = b.dataset.a;
-    const patch = { approve: { approved: true, approved_at: new Date().toISOString() }, unapprove: { approved: false, is_admin: false }, admin: { is_admin: true }, unadmin: { is_admin: false } }[a];
+    const patch = { approve: { approved: true, approved_at: new Date().toISOString() }, unapprove: { approved: false } }[a];
     let res;
     if (a === 'delete') { if (!confirm('이 회원을 목록에서 지울까요? 다시 보려면 새로 가입하고 승인받아야 합니다.')) return; res = await sb.from('profiles').delete().eq('id', id); }
     else res = await sb.from('profiles').update(patch).eq('id', id);
