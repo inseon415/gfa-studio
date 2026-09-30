@@ -184,6 +184,11 @@ nav.tabs a{padding:7px 11px;white-space:nowrap;font-size:14px}
 .topin{flex-wrap:nowrap;gap:14px}
 .brand small{display:block;margin:2px 0 0}
 @media(max-width:1360px){.topin{flex-wrap:wrap;row-gap:8px}nav.tabs{order:3;flex-basis:100%}}
+.galtabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.galtab{padding:7px 14px;border-radius:999px;border:1.5px solid #e3d3c0;background:#fffdf9;color:#5b4637;font-weight:600;font-size:13px}
+.galtab b{font-weight:700;color:#c85d34;margin-left:2px}
+.galtab:hover{border-color:#e2744a}
+.galtab.on{background:#3b2a20;border-color:#3b2a20;color:#fff6ea}.galtab.on b{color:#f6d77d}
 </style>
 
 </head>
@@ -693,8 +698,18 @@ async function createPage() {
     </div>
   </div>
   <section style="margin-top:28px"><h2>팀 시안 갤러리 ${gens.length}개</h2><p class="muted" style="margin-bottom:10px">로그인한 팀원 모두가 같이 봅니다. 광고에 올리기 전에 문구·제품 표기를 꼭 확인해 주세요.</p>
-  <div class="grid">${gens.map(g => genCard(g, false)).join('') || '<p class="muted">아직 없습니다.</p>'}</div></section>
+  ${gens.length ? `<div class="galtabs" id="galtabs">${[['', '전체', gens.length]].concat(ordP(new Set(gens.map(g => g.product))).map(p => [p, p, gens.filter(g => g.product === p).length])).map(([v, label, n]) => `<button class="galtab ${(createState.gal || '') === v ? 'on' : ''}" data-gal="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('')}</div>` : ''}
+  <div class="grid" id="galgrid"></div></section>
   ${locals.length ? `<section><h2>이 브라우저에만 있는 시안 ${locals.length}개</h2><div class="grid">${locals.map(g => genCard(g, true)).join('')}</div></section>` : ''}`;
+  if (createState.gal && !gens.some(g => g.product === createState.gal)) createState.gal = '';
+  const drawGal = () => {
+    const list = createState.gal ? gens.filter(g => g.product === createState.gal) : gens;
+    $('#galgrid').innerHTML = list.map(g => genCard(g, false)).join('') || '<p class="muted">아직 없습니다.</p>';
+    document.querySelectorAll('#galtabs .galtab').forEach(b => b.classList.toggle('on', b.dataset.gal === (createState.gal || '')));
+    $('#galgrid').querySelectorAll('[data-gdel]').forEach(el => el.onclick = async () => { if (!confirm('팀 갤러리에서 이 시안을 지울까요?')) return; const { error } = await sb.from('generations').delete().eq('id', el.dataset.gdel); if (error) alert(error.message); createPage(); });
+  };
+  drawGal();
+  document.querySelectorAll('#galtabs .galtab').forEach(b => b.onclick = () => { createState.gal = b.dataset.gal; drawGal(); });
   if ($('#setk2')) $('#setk2').onclick = openSettings;
   $('#rfq').onclick = () => createPage();
   clearTimeout(window.__reqTimer);
