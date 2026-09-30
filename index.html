@@ -154,21 +154,25 @@ const $ = s => document.querySelector(s);
 const app = $('#app');
 
 // ---------- settings (AI key, stored only in this browser) ----------
-const LS = { key: 'gfa-or-key', tm: 'gfa-text-model', im: 'gfa-image-model', qa: 'gfa-qa' };
+const LS = { key: 'gfa-or-key', tm: 'gfa-text-model-v2', im: 'gfa-image-model-v2', qa: 'gfa-qa' };
+const DEFAULT_TEXT_MODEL = 'anthropic/claude-sonnet-5.5';
+const DEFAULT_IMAGE_MODEL = 'openai/gpt-5.4-image-2';
 const getKey = () => localStorage.getItem(LS.key) || '';
-const TEXT_MODEL = () => localStorage.getItem(LS.tm) || 'google/gemini-3.8-flash';
-const IMAGE_MODEL = () => localStorage.getItem(LS.im) || 'google/gemini-3.1-flash-image';
-function refreshKeyBadge() { const b = $('#keybadge'); const ok = !!getKey(); b.textContent = ok ? 'AI 연결됨' : 'AI 연결 안 됨'; b.classList.toggle('ok', ok); }
+const TEXT_MODEL = () => localStorage.getItem(LS.tm) || DEFAULT_TEXT_MODEL;
+const IMAGE_MODEL = () => localStorage.getItem(LS.im) || DEFAULT_IMAGE_MODEL;
+const modelName = id => ({ 'anthropic/claude-sonnet-5.5': 'Claude Sonnet 5.5', 'anthropic/claude-opus-5.5': 'Claude Opus 5.5', 'openai/gpt-5.4-image-2': 'GPT-5.4 Image 2', 'openai/gpt-5-image': 'GPT-5 Image', 'openai/gpt-5-image-mini': 'GPT-5 Image Mini' }[id] || id);
+function refreshKeyBadge() { const b = $('#keybadge'); const ok = !!getKey(); b.textContent = ok ? 'AI 연결됨 · Claude + GPT' : 'AI 연결 안 됨'; b.classList.toggle('ok', ok); }
 $('#keybadge').onclick = () => openSettings();
 function openSettings() {
   openModal(`<h2>AI 연결 (OpenRouter)</h2>
-  <p class="sub">질문하기의 AI 답변, 소재 만들기의 카피·이미지 생성에 씁니다. 키는 <b>이 브라우저에만</b> 저장되고, 요청은 이 PC에서 OpenRouter로 바로 갑니다.</p>
-  <div class="notice" style="margin:10px 0">광고 이미지와 성과 숫자가 외부 AI(OpenRouter → Google)로 전송됩니다. 회사 규정을 먼저 확인해 주세요. 키를 만들 때 사용 한도(예: 월 10달러)를 걸어 두는 걸 권합니다.</div>
-  <p><label>API 키<br><input type="password" id="k1" style="width:100%" placeholder="sk-or-..." value="${esc(getKey())}"></label></p>
-  <p><label>글·분석 모델<br><input type="text" id="k2" style="width:100%" value="${esc(TEXT_MODEL())}"></label></p>
-  <p><label>이미지 생성 모델<br><input type="text" id="k3" style="width:100%" value="${esc(IMAGE_MODEL())}"></label></p>
+  <p class="sub">질문하기의 AI 해설, 소재 만들기의 문구·이미지 생성에 씁니다. 키는 <b>이 브라우저에만</b> 저장되고, 요청은 이 PC에서 OpenRouter로 바로 갑니다.</p>
+  <div class="box" style="margin:10px 0;padding:10px 14px"><b>글·분석</b>: Claude (Anthropic) · <b>이미지 생성</b>: GPT (OpenAI) · 둘 다 OpenRouter 키 하나로 씁니다.</div>
+  <div class="notice" style="margin:10px 0">광고 이미지와 성과 숫자가 외부 AI(OpenRouter → Anthropic, OpenAI)로 전송됩니다. 회사 규정을 먼저 확인해 주세요. 키를 만들 때 사용 한도(예: 월 10달러)를 걸어 두는 걸 권합니다.</div>
+  <p><label>OpenRouter API 키<br><input type="password" id="k1" style="width:100%" placeholder="sk-or-..." value="${esc(getKey())}"></label></p>
+  <p><label>글·분석 모델 (Claude)<br><select id="k2" style="width:100%">${['anthropic/claude-sonnet-5.5', 'anthropic/claude-opus-5.5'].map(m => `<option value="${m}" ${m === TEXT_MODEL() ? 'selected' : ''}>${modelName(m)}${m === DEFAULT_TEXT_MODEL ? ' (기본, 추천)' : ' (더 정밀, 약 2배 비용)'}</option>`).join('')}</select></label></p>
+  <p><label>이미지 생성 모델 (GPT)<br><select id="k3" style="width:100%">${['openai/gpt-5.4-image-2', 'openai/gpt-5-image', 'openai/gpt-5-image-mini'].map(m => `<option value="${m}" ${m === IMAGE_MODEL() ? 'selected' : ''}>${modelName(m)}${m === DEFAULT_IMAGE_MODEL ? ' (기본, 최신)' : m.endsWith('mini') ? ' (저렴한 시험용)' : ''}</option>`).join('')}</select></label></p>
   <div class="row"><button class="pri" id="ksave">저장</button><button id="kdel">키 지우기</button></div>`);
-  $('#ksave').onclick = () => { localStorage.setItem(LS.key, $('#k1').value.trim()); localStorage.setItem(LS.tm, $('#k2').value.trim()); localStorage.setItem(LS.im, $('#k3').value.trim()); refreshKeyBadge(); closeModal(); route(); };
+  $('#ksave').onclick = () => { localStorage.setItem(LS.key, $('#k1').value.trim()); localStorage.setItem(LS.tm, $('#k2').value); localStorage.setItem(LS.im, $('#k3').value); refreshKeyBadge(); closeModal(); route(); };
   $('#kdel').onclick = () => { localStorage.removeItem(LS.key); refreshKeyBadge(); closeModal(); route(); };
 }
 async function orChat(body) {
@@ -442,7 +446,7 @@ async function aiAnswer(q, r) {
 [자료]는 네이버 GFA 디스플레이 광고(바이랩·바이랩 2 계정, 웹사이트 전환, 이름에 「피드」가 든 캠페인)의 월별 위너 소재 목록이다.
 위너 기준: 한 달 총 비용 ${RULE.minCost.toLocaleString()}원 이상 그리고 구매완료 광고수익률 ${RULE.minPurchaseRoas}% 이상. 기간 ${MONTHS[0]} ~ ${LATEST}. 계절: 봄 3~5, 여름 6~8, 가을 9~11, 겨울 12~2월.
 규칙: [자료] 안에서만 답한다. 자료에 없으면 "자료에 없음"이라고 말하고 지어내지 않는다. 소재를 말할 때는 광고 문구·이미지 속 문구·소재 이름·월·구매 ROAS를 함께 적는다. 한국어로 짧고 분명하게, 목록은 줄마다 한 소재.`;
-  const msg = await orChat({ model: TEXT_MODEL(), messages: [{ role: 'system', content: sys }, { role: 'user', content: `[자료] (${ctx === W ? '전체 위너' : '질문 조건으로 거른 위너'} ${ctx.length}건)\n${winnersTsv(ctx)}\n\n[질문] ${q}` }] });
+  const msg = await orChat({ model: TEXT_MODEL(), max_tokens: 1500, messages: [{ role: 'system', content: sys }, { role: 'user', content: `[자료] (${ctx === W ? '전체 위너' : '질문 조건으로 거른 위너'} ${ctx.length}건)\n${winnersTsv(ctx)}\n\n[질문] ${q}` }] });
   return msg.content;
 }
 function askPage() {
@@ -452,7 +456,7 @@ function askPage() {
   <p class="sub" style="margin-bottom:12px">모은 위너 자료 안에서만 답합니다. 기간·제품·계정·계절을 말로 물으면 바로 찾아 드리고, AI를 연결하면 문구 경향 같은 해석도 붙입니다.</p>
   <div class="box"><textarea id="q" rows="2" placeholder="예) 2026년 2~3월 '이어클리너' 상품 위너 소재 뭐야?"></textarea>
   <div class="row" style="margin-top:8px;justify-content:space-between"><div class="chips">${ex.map(e => `<span class="chip" data-ex="${esc(e)}">${esc(e)}</span>`).join('')}</div>
-  <div class="row"><label class="row" style="gap:4px"><input type="checkbox" id="useai" ${hasKey ? 'checked' : 'disabled'}> AI 해설 붙이기${hasKey ? '' : ' <button class="lnk" id="setk">(AI 연결)</button>'}</label><button class="pri" id="askb">묻기</button></div></div></div>
+  <div class="row"><label class="row" style="gap:4px"><input type="checkbox" id="useai" ${hasKey ? 'checked' : 'disabled'}> AI 해설 붙이기 (Claude)${hasKey ? '' : ' <button class="lnk" id="setk">(AI 연결)</button>'}</label><button class="pri" id="askb">묻기</button></div></div></div>
   <div id="ans" style="margin-top:16px"></div>
   <section style="margin-top:28px"><div class="row" style="justify-content:space-between"><h2>지난 질문</h2>${hist.length ? '<button id="clrqa">기록 지우기</button>' : ''}</div>
   ${hist.map(h => `<div class="qa"><div class="q">${esc(h.q)}</div><div class="muted">${esc(h.at)}</div>${h.ai ? `<div class="a">${esc(h.ai)}</div>` : `<div class="a">${esc(h.summary)}</div>`}</div>`).join('') || '<p class="muted">아직 없습니다. 기록은 이 브라우저에만 남습니다.</p>'}</section>`;
@@ -559,7 +563,7 @@ async function createPage() {
       <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span><img src="${THUMB(w.n)}"><div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
       <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
       <textarea id="cd" rows="3" placeholder="예) 겨울 느낌, 후기형 말투, 비포/애프터 구도, 고양이 대신 강아지"></textarea>
-      <div class="row" style="margin-top:10px"><button id="mkprompt">시안 요청문 만들기</button><button class="pri" id="mkai" ${hasKey ? '' : 'disabled'}>AI로 문구 + 이미지 만들기</button></div>
+      <div class="row" style="margin-top:10px"><button id="mkprompt">시안 요청문 만들기</button><button class="pri" id="mkai" ${hasKey ? '' : 'disabled'}>AI로 문구(Claude) + 이미지(GPT) 만들기</button></div>
     </div>
     <div class="box" id="cout"><p class="muted">여기에 결과가 나옵니다.</p></div>
   </div>
@@ -567,6 +571,7 @@ async function createPage() {
   <div class="grid">${gens.map(g => `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">1200×1200</span><span class="muted">${esc(g.at)}</span></div>
     ${g.copies?.length ? `<div class="copy"><span>제안 문구</span>${g.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
     <div class="muted">참고: ${g.refs.map(n => esc(C.get(n)?.nm || n)).join(', ')}</div>
+    ${g.imageModel ? `<div class="muted">문구 ${esc(modelName(g.textModel))} · 이미지 ${esc(modelName(g.imageModel))}</div>` : ''}
     <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${g.id.slice(0, 10)}.jpg">내려받기 (1200×1200)</a><button class="lnk" data-del="${g.id}">지우기</button></div></div></div>`).join('') || '<p class="muted">아직 없습니다.</p>'}</div></section>`;
   if ($('#setk2')) $('#setk2').onclick = openSettings;
   $('#cp').onchange = e => { createState.product = e.target.value; createState.refs = null; createPage(); };
@@ -590,16 +595,16 @@ async function createPage() {
       const content = [{ type: 'text', text: `제품: ${p}${pi ? ` (${pi.label}${pi.size ? ' ' + pi.size : ''}, 용기: ${pi.look})` : ''}\n크기: 1200x1200 정사각형 (네이버 GFA 피드형)\n${dir ? '추가 방향: ' + dir + '\n' : ''}${pi ? '첫 번째 이미지는 실제 제품(단상자·용기) 사진이다. 나머지는 위너 소재다.\n' : ''}[위너 소재]\n` + refs.map((w, i) => `${i + 1}. 이미지 속 문구: ${w.it || '-'} / 광고 문구: ${w.m || '-'} / 특징: ${w.vis || '-'} / 구매 ROAS ${pct(w.proas)}`).join('\n') }]
         .concat(pi ? [{ type: 'image_url', image_url: { url: pi.img } }] : [])
         .concat(refs.map(w => ({ type: 'image_url', image_url: { url: THUMB(w.n) } })));
-      const m1 = await orChat({ model: TEXT_MODEL(), messages: [{ role: 'system', content: plannerSys }, { role: 'user', content }], response_format: { type: 'json_object' } });
+      const m1 = await orChat({ model: TEXT_MODEL(), max_tokens: 2000, messages: [{ role: 'system', content: plannerSys }, { role: 'user', content }] });
       const txt = (m1.content || '').replace(/^```json\s*|\s*```$/g, '');
       const plan = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
-      $('#cout').innerHTML = `<p><b>위너 공통점</b><br>${esc(plan.analysis)}</p><p><b>제안 문구</b><br>${plan.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</p><p><span class="spin"></span>2/2 이미지를 만드는 중... (30초~1분)</p>`;
+      $('#cout').innerHTML = `<p><b>위너 공통점</b> <span class="muted">(${esc(modelName(TEXT_MODEL()))})</span><br>${esc(plan.analysis)}</p><p><b>제안 문구</b><br>${plan.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</p><p><span class="spin"></span>2/2 ${esc(modelName(IMAGE_MODEL()))}가 이미지를 만드는 중... (30초~2분)</p>`;
       const m2 = await orChat({ model: IMAGE_MODEL(), modalities: ['image', 'text'], image_config: { aspect_ratio: ratio },
         messages: [{ role: 'user', content: [{ type: 'text', text: plan.imagePrompt + `\nSquare 1:1 image for a 1200x1200 Naver GFA feed ad.${pi ? ` The FIRST attached image is the real product packaging (${pi.label}). Show this exact product: same container shape, colors, cap and label. Do not redesign, relabel or invent another package.` : ''} Use the other attached winning ads only as style references (layout, color, tone). Photorealistic pet photo, product clearly visible, bold Korean headline text exactly: "${plan.copies[0].imageText}". No extra logos, no prices.` }].concat(pi ? [{ type: 'image_url', image_url: { url: pi.img } }] : []).concat(refs.map(w => ({ type: 'image_url', image_url: { url: THUMB(w.n) } }))) }] });
       const raw = m2.images?.[0]?.image_url?.url;
       if (!raw) throw new Error('이미지가 돌아오지 않았습니다. ' + (m2.content || ''));
       const img = await toGfaSize(raw);
-      const g = { id: new Date().toISOString(), at: new Date().toLocaleString('ko-KR'), product: p, ratio, direction: dir, refs: refs.map(w => w.n), analysis: plan.analysis, copies: plan.copies, prompt: plan.imagePrompt, image: img };
+      const g = { id: new Date().toISOString(), at: new Date().toLocaleString('ko-KR'), product: p, ratio, direction: dir, textModel: TEXT_MODEL(), imageModel: IMAGE_MODEL(), refs: refs.map(w => w.n), analysis: plan.analysis, copies: plan.copies, prompt: plan.imagePrompt, image: img };
       await idb.put(g);
       await createPage();
       $('#cout').innerHTML = `<img src="${img}" style="width:100%;border-radius:10px"><p><b>위너 공통점</b><br>${esc(plan.analysis)}</p><p><b>제안 문구</b><br>${plan.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</p><p class="muted">아래 갤러리에 저장했습니다.</p>`;
@@ -754,8 +759,11 @@ async function loadData() {
   const products = data.find(r => r.key === 'products')?.payload || [];
   return { ...main, thumbs, products };
 }
-async function afterLogin() {
+let loginRun = null;
+function afterLogin() { if (!loginRun) loginRun = afterLoginInner().finally(() => { loginRun = null; }); return loginRun; }
+async function afterLoginInner() {
   if (recovering) return recoveryView();
+  if (appStarted) { show(false); return; }
   box.innerHTML = `<p class="lead">자료를 불러오는 중...</p>`; show(true);
   let p;
   try { p = await loadProfile(); } catch (e) { box.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; return; }
@@ -772,13 +780,14 @@ async function afterLogin() {
 
 // ---------- header user box, account modal, admin page ----------
 function installExtras(p) {
+  if (document.querySelector('.userbox')) return;
   const top = document.querySelector('.topin');
   const ub = document.createElement('div'); ub.className = 'userbox';
   ub.innerHTML = `<span>${esc(p.name || p.email)}${p.is_admin ? ' · 관리자' : ''}</span><button id="acct">내 계정</button><button id="logout">로그아웃</button>`;
   top.appendChild(ub);
   ub.querySelector('#logout').onclick = async () => { await sb.auth.signOut(); location.hash = ''; location.reload(); };
   ub.querySelector('#acct').onclick = accountModal;
-  if (p.is_admin) {
+  if (p.is_admin && !document.querySelector('#tabs a[href="#admin"]')) {
     const a = document.createElement('a'); a.href = '#admin'; a.textContent = '회원 관리'; document.getElementById('tabs').appendChild(a);
   }
   window.EXTRA_PAGES = { admin: p.is_admin ? adminPage : null, account: () => { location.hash = '#home'; setTimeout(accountModal, 50); } };
