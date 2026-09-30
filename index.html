@@ -542,52 +542,96 @@ ${pi ? `제품: ${pi.label}${pi.size ? ' ' + pi.size : ''} (${pi.look}). 함께 
 ${refs.map((w, i) => `${i + 1}. 이미지 속 문구: ${w.it || '-'} / 광고 문구: ${w.m || '-'} / 이미지 특징: ${w.vis || '-'} (구매 ROAS ${pct(w.proas)})`).join('\n')}
 ${dir ? '추가 방향: ' + dir + '\n' : ''}규칙: 반려동물 실사 느낌, 제품이 분명히 보일 것, 한글 문구는 짧고 굵게 2줄 이내, 효능을 과장하거나 의학적으로 단정하는 표현 금지, 로고·가격은 넣지 않기.`;
 }
+const STATUS_TAG = { '대기': 'off', '제작중': 'p', '완료': 'on', '실패': 'off', '취소': '' };
 async function createPage() {
   const hasKey = !!getKey();
+  const sb = window.sbClient;
   const CREATE_PRODUCTS = REG_ORDER.length ? REG_ORDER : PRODUCTS;
   if (!createState.product || !CREATE_PRODUCTS.includes(createState.product)) createState.product = CREATE_PRODUCTS.includes('페이스클렌징') ? '페이스클렌징' : CREATE_PRODUCTS[0];
   const pr = productRefs(createState.product); const refsAll = pr.list;
   const pinfo = productInfo(createState.product);
   if (!createState.refs || !createState.refs.every(n => refsAll.some(w => w.n === n))) createState.refs = refsAll.slice(0, 3).map(w => w.n);
-  const gens = (await idb.all().catch(() => [])).sort((a, b) => b.id.localeCompare(a.id));
+  const [reqRes, genRes, localGens] = await Promise.all([
+    sb ? sb.from('creative_requests').select('*').order('created_at', { ascending: false }).limit(30) : { data: [] },
+    sb ? sb.from('generations').select('*').order('created_at', { ascending: false }).limit(60) : { data: [] },
+    idb.all().catch(() => [])
+  ]);
+  const reqs = reqRes.data || []; const gens = genRes.data || [];
+  const locals = localGens.sort((a, b) => b.id.localeCompare(a.id));
+  const myId = window.ME?.id; const isAdmin = !!window.ME?.is_admin;
+  const pending = reqs.filter(r => r.status === '대기' || r.status === '제작중').length;
+  const genCard = (g, local) => {
+    const copies = g.copies || []; const refs = g.refs || [];
+    const when = local ? g.at : new Date(g.created_at).toLocaleString('ko-KR');
+    const id = local ? g.id : g.id;
+    return `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">1200×1200</span><span class="tag">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))}</span></div>
+      <div class="muted">${esc(when)}</div>
+      ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
+      ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
+      ${g.analysis ? `<div class="copy"><span>참고 위너 공통점</span>${esc(g.analysis)}</div>` : ''}
+      ${refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
+      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${String(id).slice(0, 8)}.jpg">내려받기 (1200×1200)</a>${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
+  };
   app.innerHTML = `<h1>소재 만들기</h1>
-  <p class="sub" style="margin-bottom:12px">제품을 고르면 그 제품의 위너 소재가 구매 ROAS 순으로 나옵니다. 참고할 위너를 골라 새 문구와 이미지 시안을 만듭니다. 만든 시안은 광고에 올리기 전에 사람이 확인해 주세요.</p>
-  ${hasKey ? '' : `<div class="notice" style="margin-bottom:14px">AI가 아직 연결되지 않았습니다. 지금도 <b>시안 요청문 만들기</b>로 위너 문구·특징을 담은 요청문을 복사해 다른 이미지 도구에 붙여 쓸 수 있습니다. 사이트 안에서 바로 이미지를 만들려면 <button class="lnk" id="setk2">AI 연결</button>을 해 주세요.</div>`}
+  <p class="sub" style="margin-bottom:12px">제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 요청을 받아 1200×1200 시안(새 문구 + 이미지)을 만들어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.</p>
   <div class="two">
     <div class="box">
       <div class="row" style="margin-bottom:10px"><label>제품 <select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></label>
       <span class="tag p">크기 1200 × 1200 (GFA 피드형)</span>
-      <span class="muted">참고 위너 <b id="rc">${createState.refs.length}</b>개 선택</span></div>
-      ${pinfo ? `<div class="pmini"><img src="${pinfo.img}"><div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">이 제품 이미지를 시안에 그대로 넣도록 AI에 함께 보냅니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
+      <span class="muted">참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)</span></div>
+      ${pinfo ? `<div class="pmini"><img src="${pinfo.img}"><div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
       ${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
       <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span><img src="${THUMB(w.n)}"><div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
       <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
-      <textarea id="cd" rows="3" placeholder="예) 겨울 느낌, 후기형 말투, 비포/애프터 구도, 고양이 대신 강아지"></textarea>
-      <div class="row" style="margin-top:10px"><button id="mkprompt">시안 요청문 만들기</button><button class="pri" id="mkai" ${hasKey ? '' : 'disabled'}>AI로 문구(Claude) + 이미지(GPT) 만들기</button></div>
+      <textarea id="cd" rows="3" placeholder="예) 겨울 느낌, 후기형 말투, 비포/애프터 구도, 할인 문구 없이"></textarea>
+      <div class="row" style="margin-top:10px">
+        <label>장수 <select id="cn"><option>1</option><option>2</option><option>3</option></select></label>
+        <button class="pri" id="mkreq" ${sb ? '' : 'disabled'}>Aside에게 제작 요청</button>
+        <button id="mkprompt">시안 요청문 복사용</button>
+      </div>
+      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">내 AI 키로 바로 만들기 (OpenRouter 크레딧 필요)</summary>
+        <div class="row" style="margin-top:8px"><button id="mkai" ${hasKey ? '' : 'disabled'}>문구(Claude) + 이미지(GPT) 바로 만들기</button>${hasKey ? '' : '<button class="lnk" id="setk2">AI 키 연결</button>'}</div>
+      </details>
     </div>
-    <div class="box" id="cout"><p class="muted">여기에 결과가 나옵니다.</p></div>
+    <div class="box" id="cout">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0">제작 요청 ${pending ? `<span class="tag off">진행 중 ${pending}건</span>` : ''}</h2><button id="rfq">새로고침</button></div>
+      <p class="muted" style="margin:6px 0 10px">요청이 들어오면 Aside가 순서대로 만듭니다. 급하면 Aside 채팅에 「GFA 소재 요청 처리해줘」라고 말해 주세요.</p>
+      ${reqs.length ? reqs.map(r => `<div class="qa" style="padding:8px 0"><div class="row" style="justify-content:space-between"><span><span class="tag ${STATUS_TAG[r.status] || ''}">${esc(r.status)}</span> <b>${esc(r.product)}</b> · ${r.count}장</span><span class="muted">${new Date(r.created_at).toLocaleString('ko-KR')}</span></div>
+        <div class="muted">${esc(r.requester_name || '')}${r.direction ? ' · ' + esc(r.direction) : ''}</div>
+        ${r.note ? `<div style="font-size:12px">${esc(r.note)}</div>` : ''}
+        ${r.status === '대기' && (r.requester === myId || isAdmin) ? `<button class="lnk" data-cancel="${r.id}">요청 취소</button>` : ''}</div>`).join('') : '<p class="muted">아직 요청이 없습니다.</p>'}
+    </div>
   </div>
-  <section style="margin-top:28px"><h2>만든 시안 ${gens.length}개</h2><p class="muted" style="margin-bottom:10px">시안은 이 브라우저(IndexedDB)에 저장됩니다. 팀과 나누려면 이미지를 내려받아 공유해 주세요.</p>
-  <div class="grid">${gens.map(g => `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">1200×1200</span><span class="muted">${esc(g.at)}</span></div>
-    ${g.copies?.length ? `<div class="copy"><span>제안 문구</span>${g.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
-    <div class="muted">참고: ${g.refs.map(n => esc(C.get(n)?.nm || n)).join(', ')}</div>
-    ${g.imageModel ? `<div class="muted">문구 ${esc(modelName(g.textModel))} · 이미지 ${esc(modelName(g.imageModel))}</div>` : ''}
-    <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${g.id.slice(0, 10)}.jpg">내려받기 (1200×1200)</a><button class="lnk" data-del="${g.id}">지우기</button></div></div></div>`).join('') || '<p class="muted">아직 없습니다.</p>'}</div></section>`;
+  <section style="margin-top:28px"><h2>팀 시안 갤러리 ${gens.length}개</h2><p class="muted" style="margin-bottom:10px">로그인한 팀원 모두가 같이 봅니다. 광고에 올리기 전에 문구·제품 표기를 꼭 확인해 주세요.</p>
+  <div class="grid">${gens.map(g => genCard(g, false)).join('') || '<p class="muted">아직 없습니다.</p>'}</div></section>
+  ${locals.length ? `<section><h2>이 브라우저에만 있는 시안 ${locals.length}개</h2><div class="grid">${locals.map(g => genCard(g, true)).join('')}</div></section>` : ''}`;
   if ($('#setk2')) $('#setk2').onclick = openSettings;
+  $('#rfq').onclick = () => createPage();
   $('#cp').onchange = e => { createState.product = e.target.value; createState.refs = null; createPage(); };
   document.querySelectorAll('.ref').forEach(el => el.onclick = () => { const n = +el.dataset.n; const i = createState.refs.indexOf(n); if (i >= 0) createState.refs.splice(i, 1); else if (createState.refs.length < 4) createState.refs.push(n); el.classList.toggle('sel', createState.refs.includes(n)); $('#rc').textContent = createState.refs.length; });
-  document.querySelectorAll('[data-del]').forEach(el => el.onclick = async () => { if (confirm('이 시안을 지울까요?')) { await idb.del(el.dataset.del); createPage(); } });
+  document.querySelectorAll('[data-ldel]').forEach(el => el.onclick = async () => { if (confirm('이 시안을 지울까요?')) { await idb.del(el.dataset.ldel); createPage(); } });
+  document.querySelectorAll('[data-gdel]').forEach(el => el.onclick = async () => { if (!confirm('팀 갤러리에서 이 시안을 지울까요?')) return; const { error } = await sb.from('generations').delete().eq('id', el.dataset.gdel); if (error) alert(error.message); createPage(); });
+  document.querySelectorAll('[data-cancel]').forEach(el => el.onclick = async () => { const { error } = await sb.from('creative_requests').update({ status: '취소' }).eq('id', el.dataset.cancel); if (error) alert(error.message); createPage(); });
   const refsSel = () => createState.refs.map(n => refsAll.find(w => w.n === n)).filter(Boolean);
+  $('#mkreq').onclick = async () => {
+    if (!createState.refs.length) return alert('참고할 위너를 1개 이상 골라 주세요.');
+    $('#mkreq').disabled = true;
+    const { error } = await sb.from('creative_requests').insert({ product: createState.product, direction: $('#cd').value.trim(), refs: createState.refs, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
+    if (error) { alert('요청 실패: ' + error.message); $('#mkreq').disabled = false; return; }
+    await createPage();
+    const box = document.getElementById('cout'); box.insertAdjacentHTML('afterbegin', '<p class="notice" style="padding:8px 10px">요청을 넣었습니다. Aside가 만들면 아래 갤러리에 올라옵니다.</p>');
+  };
   $('#mkprompt').onclick = () => {
     const t = manualPrompt(createState.product, refsSel(), $('#cd').value.trim());
-    $('#cout').innerHTML = `<h2>시안 요청문</h2><pre class="prompt" id="pt">${esc(t)}</pre><div class="row"><button class="pri" id="cpy">복사</button><span class="muted">제품 이미지와 참고 위너 이미지를 함께 넣으면 결이 더 잘 살아납니다.</span></div>`;
+    openModal(`<h2>시안 요청문</h2><p class="sub">ChatGPT·Gemini 같은 무료 이미지 도구에 붙여 넣을 때 쓰세요. 제품 이미지와 참고 위너 이미지를 함께 올리면 결이 더 잘 살아납니다.</p><pre class="prompt">${esc(t)}</pre><div class="row"><button class="pri" id="cpy">복사</button>${pinfo ? `<a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a>` : ''}</div>`);
     $('#cpy').onclick = () => navigator.clipboard.writeText(t).then(() => $('#cpy').textContent = '복사됨');
   };
   $('#mkai').onclick = async () => {
     const refs = refsSel(); if (!refs.length) return alert('참고할 위너를 1개 이상 골라 주세요.');
     const dir = $('#cd').value.trim(), ratio = '1:1', p = createState.product, pi = productInfo(p);
     $('#mkai').disabled = true;
-    $('#cout').innerHTML = `<p><span class="spin"></span>1/2 위너 소재를 읽고 문구와 요청문을 짜는 중...</p>`;
+    const out = document.getElementById('cout');
+    out.innerHTML = `<p><span class="spin"></span>1/2 위너 소재를 읽고 문구와 요청문을 짜는 중...</p>`;
     try {
       const plannerSys = `너는 반려동물 브랜드 바이랩의 네이버 피드 광고 소재 디자이너다. 주어진 위너 소재(실제로 구매 광고수익률이 높았던 이미지와 문구)의 공통된 결(구도, 색, 인물/반려동물, 제품 노출, 문구 말투와 길이)을 짚고, 그 결을 살린 새 소재를 기획한다.
 규칙: 위너를 그대로 베끼지 않는다. 효능을 과장하거나 의학적으로 단정하지 않는다. 이미지 속 문구는 2줄 이내로 짧게. JSON으로만 답한다:
@@ -598,18 +642,18 @@ async function createPage() {
       const m1 = await orChat({ model: TEXT_MODEL(), max_tokens: 2000, messages: [{ role: 'system', content: plannerSys }, { role: 'user', content }] });
       const txt = (m1.content || '').replace(/^```json\s*|\s*```$/g, '');
       const plan = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
-      $('#cout').innerHTML = `<p><b>위너 공통점</b> <span class="muted">(${esc(modelName(TEXT_MODEL()))})</span><br>${esc(plan.analysis)}</p><p><b>제안 문구</b><br>${plan.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</p><p><span class="spin"></span>2/2 ${esc(modelName(IMAGE_MODEL()))}가 이미지를 만드는 중... (30초~2분)</p>`;
+      out.innerHTML = `<p><b>위너 공통점</b> <span class="muted">(${esc(modelName(TEXT_MODEL()))})</span><br>${esc(plan.analysis)}</p><p><b>제안 문구</b><br>${plan.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</p><p><span class="spin"></span>2/2 ${esc(modelName(IMAGE_MODEL()))}가 이미지를 만드는 중... (30초~2분)</p>`;
       const m2 = await orChat({ model: IMAGE_MODEL(), modalities: ['image', 'text'], image_config: { aspect_ratio: ratio },
         messages: [{ role: 'user', content: [{ type: 'text', text: plan.imagePrompt + `\nSquare 1:1 image for a 1200x1200 Naver GFA feed ad.${pi ? ` The FIRST attached image is the real product packaging (${pi.label}). Show this exact product: same container shape, colors, cap and label. Do not redesign, relabel or invent another package.` : ''} Use the other attached winning ads only as style references (layout, color, tone). Photorealistic pet photo, product clearly visible, bold Korean headline text exactly: "${plan.copies[0].imageText}". No extra logos, no prices.` }].concat(pi ? [{ type: 'image_url', image_url: { url: pi.img } }] : []).concat(refs.map(w => ({ type: 'image_url', image_url: { url: THUMB(w.n) } }))) }] });
       const raw = m2.images?.[0]?.image_url?.url;
       if (!raw) throw new Error('이미지가 돌아오지 않았습니다. ' + (m2.content || ''));
       const img = await toGfaSize(raw);
-      const g = { id: new Date().toISOString(), at: new Date().toLocaleString('ko-KR'), product: p, ratio, direction: dir, textModel: TEXT_MODEL(), imageModel: IMAGE_MODEL(), refs: refs.map(w => w.n), analysis: plan.analysis, copies: plan.copies, prompt: plan.imagePrompt, image: img };
-      await idb.put(g);
+      const rec = { product: p, direction: dir, refs: refs.map(w => w.n), analysis: plan.analysis, copies: plan.copies, prompt: plan.imagePrompt, maker: `${modelName(TEXT_MODEL())} + ${modelName(IMAGE_MODEL())}`, image: img };
+      if (sb) { const { error } = await sb.from('generations').insert(rec); if (error) throw error; }
+      else await idb.put({ ...rec, id: new Date().toISOString(), at: new Date().toLocaleString('ko-KR') });
       await createPage();
-      $('#cout').innerHTML = `<img src="${img}" style="width:100%;border-radius:10px"><p><b>위너 공통점</b><br>${esc(plan.analysis)}</p><p><b>제안 문구</b><br>${plan.copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</p><p class="muted">아래 갤러리에 저장했습니다.</p>`;
     } catch (e) {
-      $('#cout').innerHTML = `<p style="color:#b91c1c">만들기 실패: ${esc(e.message)}</p>`; $('#mkai').disabled = false;
+      out.innerHTML = `<p style="color:#b91c1c">만들기 실패: ${esc(e.message)}</p>`; $('#mkai').disabled = false;
     }
   };
 }
