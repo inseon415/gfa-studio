@@ -100,47 +100,48 @@ pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style id="studio-theme">
-/* ===== 바이랩 GFA 광고 스튜디오 · 프로 테마 (네이비 + 브랜드 코랄 포인트) ===== */
+/* ===== 바이랩 GFA 광고 스튜디오 · 브랜드 테마 (BY LAB 블루 #318CDD) ===== */
 :root{
   --bg:#f4f5f7; --card:#fff; --line:#e3e6eb; --ink:#0f172a; --sub:#526072; --mute:#8a96a8;
-  --navy:#1b2433; --navy2:#27324a; --acc:#d9653b; --acc-d:#bf532c; --acc2:#fdece4;
-  --pos:#0f8a5f; --pos2:#e3f5ec; --neg:#b4232f; --neg2:#fde8ea; --blue:#2c5fd6; --warn:#8a5a00; --warnbg:#fff7e6;
+  --navy:#1e6fc0; --navy2:#185fa6; --acc:#318cdd; --acc-d:#1e6fc0; --acc2:#e6f1fc; --brand:#318cdd; --deep:#123a66;
+  --pos:#1e6fc0; --pos2:#e6f1fc; --neg:#b4232f; --neg2:#fde8ea; --blue:#2c5fd6; --warn:#8a5a00; --warnbg:#fff7e6;
 }
 body{background:var(--bg);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}
 h1,h2,h3{font-family:Pretendard,sans-serif;letter-spacing:-.02em}
 h1{font-size:26px;font-weight:800}h2{font-size:18px;font-weight:700}
 a{color:var(--blue)}
 /* 헤더 */
-header.top{background:var(--navy);border-bottom:1px solid #0e1522;box-shadow:none}
+header.top{background:var(--brand);border-bottom:none;box-shadow:0 2px 10px rgba(18,58,102,.18)}
 .topin{padding:10px 20px;gap:18px;flex-wrap:nowrap}
 .brand{color:#fff;font-size:16px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;white-space:nowrap}
 .brand small{display:none}
-.brand .logo{width:32px;height:32px;border-radius:8px;background:var(--acc);display:grid;place-items:center}
+.brand .brandlogo{height:22px;width:auto;display:block}
+.brand .brandname{padding-left:12px;border-left:1px solid rgba(255,255,255,.45);font-size:15px;font-weight:700;color:#fff}
 nav.tabs{flex-wrap:nowrap;gap:2px}
-nav.tabs a{color:#b7c0cf;font-weight:600;font-size:14px;padding:8px 12px;border-radius:6px;white-space:nowrap}
-nav.tabs a:hover:not(.on){background:rgba(255,255,255,.06);color:#fff}
-nav.tabs a.on{background:rgba(255,255,255,.1);color:#fff;box-shadow:inset 0 -2px 0 var(--acc)}
-.keybadge{background:transparent;color:#b7c0cf;border:1px solid #3a4660;border-radius:6px}
-.keybadge.ok{background:rgba(15,138,95,.15);color:#7fe0b5;border-color:#1f6b4f}
-header.top .userbox,header.top .userbox span{color:#b7c0cf !important}
-header.top .userbox button{color:#dfe5ee !important;background:transparent !important;border:1px solid #3a4660 !important;border-radius:6px !important}
+nav.tabs a{color:rgba(255,255,255,.82);font-weight:600;font-size:14px;padding:8px 12px;border-radius:6px;white-space:nowrap}
+nav.tabs a:hover:not(.on){background:rgba(255,255,255,.14);color:#fff}
+nav.tabs a.on{background:#fff;color:var(--deep);box-shadow:none}
+.keybadge{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:6px}
+.keybadge.ok{background:#fff;color:var(--deep);border-color:#fff}
+header.top .userbox,header.top .userbox span{color:rgba(255,255,255,.9) !important}
+header.top .userbox button{color:#fff !important;background:transparent !important;border:1px solid rgba(255,255,255,.5) !important;border-radius:6px !important}
 @media(max-width:1360px){.topin{flex-wrap:wrap;row-gap:6px}nav.tabs{order:3;flex-basis:100%}}
 main{padding-top:28px}
 /* 홈 배너 */
-.studio-hero{position:relative;border-radius:14px;padding:28px 30px;margin-bottom:22px;background:var(--navy);color:#fff;border:none;overflow:hidden}
-.studio-hero:after{content:"";position:absolute;right:0;top:0;bottom:0;width:38%;background:linear-gradient(135deg,rgba(217,101,59,.0) 0%,rgba(217,101,59,.22) 100%);clip-path:polygon(30% 0,100% 0,100% 100%,0 100%)}
-.studio-hero .eyebrow{display:inline-block;color:#f3a98c;font-size:12px;font-weight:700;letter-spacing:.06em;margin-bottom:8px;background:none;padding:0}
+.studio-hero{position:relative;border-radius:14px;padding:28px 30px;margin-bottom:22px;background:linear-gradient(120deg,var(--deep) 0%,#1e6fc0 55%,#318cdd 100%);color:#fff;border:none;overflow:hidden}
+.studio-hero:after{content:"+";position:absolute;right:34px;top:-18px;font-size:170px;font-weight:900;line-height:1;color:rgba(255,255,255,.10)}
+.studio-hero .eyebrow{display:inline-block;color:#bfe0ff;font-size:12px;font-weight:700;letter-spacing:.06em;margin-bottom:8px;background:none;padding:0}
 .studio-hero h1{font-size:28px;color:#fff;margin:0 0 6px;position:relative;z-index:1}
-.studio-hero .sub{color:#b7c0cf;position:relative;z-index:1}
+.studio-hero .sub{color:#d6e8fa;position:relative;z-index:1}
 .filmstrip{display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;align-items:center;position:relative;z-index:1}
 .filmstrip span{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#e6ebf2;border-radius:6px;padding:4px 10px;font-size:12px}
-.filmstrip span:first-child{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
-.fs-link{color:#f3a98c;font-size:12px;margin-left:6px}
+.filmstrip span:first-child{background:#fff;border-color:#fff;color:var(--deep);font-weight:700}
+.fs-link{color:#fff;text-decoration:underline;font-size:12px;margin-left:6px}
 .bulb{display:none}
 /* KPI */
 .stats{gap:12px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;border-top:3px solid var(--navy)}
-.stat:nth-child(2){border-top-color:var(--acc)}.stat:nth-child(3){border-top-color:var(--pos)}.stat:nth-child(4){border-top-color:#6b7fa6}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;border-top:3px solid var(--brand)}
+.stat:nth-child(2){border-top-color:#7ab6ec}.stat:nth-child(3){border-top-color:var(--deep)}.stat:nth-child(4){border-top-color:#a9cdf2}
 .stat dt{color:var(--sub);font-size:12px;font-weight:600}
 .stat dd{font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
 /* 카드 */
@@ -182,7 +183,7 @@ tr.win td{background:#f2faf6}
 .galtabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
 .galtab{padding:6px 12px;border-radius:6px;border:1px solid #d7dce3;background:#fff;color:#475569;font-weight:600;font-size:13px}
 .galtab b{color:var(--acc-d);margin-left:2px}
-.galtab.on{background:var(--navy);border-color:var(--navy);color:#fff}.galtab.on b{color:#f3a98c}
+.galtab.on{background:var(--navy);border-color:var(--navy);color:#fff}.galtab.on b{color:#bfe0ff}
 /* 섹션 제목 */
 section>h2,.row>h2{display:flex;align-items:center;gap:8px}
 section>h2:before,.row>h2:before{content:"";width:4px;height:16px;border-radius:2px;background:var(--acc);display:inline-block}
@@ -191,12 +192,18 @@ section>h2:before,.row>h2:before{content:"";width:4px;height:16px;border-radius:
 .rulebox{margin-bottom:24px;border-left:4px solid var(--acc)}
 .rulebox .rec{background:#f7f8fa;border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:260px}
 .rule-edit label{font-size:12px;color:var(--sub);font-weight:600;display:flex;align-items:center;gap:6px}
+.kv .sales{font-weight:700;color:var(--deep)}
+.kv b{color:var(--brand)}
+tr.win td{background:#eef6fe}
+.bar i{background:#b9d6f3}
+button.pri{background:var(--brand);border-color:var(--brand)}button.pri:hover{background:var(--navy2)}
+@media(max-width:1360px){.brand .brandname{font-size:14px}}
 </style>
 
 </head>
 <body>
 <header class="top"><div class="topin">
-  <div class="brand"><span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9" rx="1" fill="#fff"/><rect x="10" y="7" width="4" height="14" rx="1" fill="#fff"/><rect x="17" y="3" width="4" height="18" rx="1" fill="#fff"/></svg></span><span>바이랩 GFA 광고 스튜디오</span></div>
+  <div class="brand"><img class="brandlogo" src="data:image/png;base64,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" alt="BY LAB"><span class="brandname">GFA 광고 스튜디오</span></div>
   <nav class="tabs" id="tabs">
     <a href="#home">홈</a><a href="#winners">월별 위너</a><a href="#analysis">위너 분석</a><a href="#ask">질문하기</a><a href="#create">소재 만들기</a><a href="#products">제품</a>
   </nav>
@@ -212,7 +219,7 @@ const C = new Map(D.creatives.map(c => [c.n, c]));
 const STATS = D.stats.map(([month, n, cost, proas, psales, pc, imp, click, roas]) => ({ month, n, cost, proas, psales, pc, imp, click, roas }));
 const RULE = D.rule;
 const isWin = s => s.cost >= RULE.minCost && s.proas >= RULE.minPurchaseRoas && s.pc >= (RULE.minPurchases || 0);
-const ruleText = (r = RULE) => `한 달 총 비용 ${Math.round(r.minCost).toLocaleString('ko-KR')}원 이상 · 구매완료 광고수익률 ${r.minPurchaseRoas}% 이상${r.minPurchases ? ` · 구매 ${r.minPurchases}건 이상` : ''}`;
+const ruleText = (r = RULE) => `한 달 총 비용 ${Math.round(r.minCost).toLocaleString('ko-KR')}원 이상 · 구매완료 광고수익률 ${r.minPurchaseRoas}% 이상${r.minPurchases ? ` · 구매완료 수 ${r.minPurchases}건 이상` : ''}`;
 const SEASONS = ['봄', '여름', '가을', '겨울'];
 const seasonOf = m => { const k = +m.slice(5, 7); return k >= 3 && k <= 5 ? '봄' : k >= 6 && k <= 8 ? '여름' : k >= 9 && k <= 11 ? '가을' : '겨울'; };
 const W = STATS.filter(isWin).map(s => {
@@ -293,8 +300,10 @@ function card(w) {
     <div class="cb">
       <div class="row"><span class="tag p">${esc(w.p)}</span><span class="tag">${w.month}</span><span class="tag">${esc(w.a)}</span><span class="tag ${w.on ? 'on' : 'off'}">${w.on ? 'ON' : 'OFF'}</span></div>
       <div class="nm">${esc(w.nm)}</div>
-      <div class="kv"><span>구매 ROAS</span><b>${pct(w.proas)}</b></div>
+      <div class="kv"><span>구매완료 광고수익률</span><b>${pct(w.proas)}</b></div>
+      <div class="kv"><span>구매완료 전환매출액</span><span class="sales">${won(w.psales)}</span></div>
       <div class="kv"><span>총 비용</span><span>${won(w.cost)}</span></div>
+      <div class="kv"><span>구매완료 수</span><span>${w.pc.toLocaleString()}건</span></div>
       <div class="copy"><span>광고 문구</span>${esc(w.m) || '<i class="muted">없음</i>'}</div>
       <div class="copy"><span>이미지 속 문구</span>${esc(w.it) || '<i class="muted">없음</i>'}</div>
     </div></article>`;
@@ -308,8 +317,10 @@ function groupCard(g) {
       <div class="row"><span class="tag p">${esc(g.p)}</span><span class="tag">${esc(g.a)}</span><span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span>${g.nos.length > 1 ? `<span class="tag" title="같은 이미지·문구로 다시 올린 소재">재업로드 ${g.nos.length}개 합침</span>` : ''}</div>
       <div class="nm">${esc(g.nm)}</div>
       <div class="row" style="gap:4px"><span class="muted">위너 ${ms.length}개월</span>${ms.length > 8 ? '<span class="muted">…</span>' : ''}${shown.map(m => `<span class="tag">${m.slice(2).replace('-', '.')}</span>`).join('')}</div>
-      <div class="kv"><span>구매 ROAS${many ? ' <span class="muted">(합산)</span>' : ''}</span><b>${pct(g.proasSum)}</b></div>
+      <div class="kv"><span>구매완료 광고수익률${many ? ' <span class="muted">(합산)</span>' : ''}</span><b>${pct(g.proasSum)}</b></div>
+      <div class="kv"><span>구매완료 전환매출액${many ? ' <span class="muted">(합계)</span>' : ''}</span><span class="sales">${won(g.salesSum)}</span></div>
       <div class="kv"><span>총 비용${many ? ' <span class="muted">(합계)</span>' : ''}</span><span>${won(g.costSum)}</span></div>
+      <div class="kv"><span>구매완료 수${many ? ' <span class="muted">(합계)</span>' : ''}</span><span>${g.rows.reduce((a, r) => a + r.pc, 0).toLocaleString()}건</span></div>
       ${many ? `<div class="kv"><span class="muted">최고 달 ROAS</span><span class="muted">${pct(g.best)}</span></div>` : ''}
       <div class="copy"><span>광고 문구</span>${esc(g.m) || '<i class="muted">없음</i>'}</div>
       <div class="copy"><span>이미지 속 문구</span>${esc(g.it) || '<i class="muted">없음</i>'}</div>
@@ -338,7 +349,7 @@ function detail(n) {
       <button class="pri" id="mkfrom">이 소재를 참고해 시안 만들기</button>
     </div></div>
     <h2 style="margin-top:18px">월별 성과</h2>
-    <div class="tbl"><table><thead><tr><th>월</th>${multi ? '<th>소재</th>' : ''}<th class="n">총 비용</th><th class="n">구매완료 광고수익률</th><th class="n">구매 매출</th><th class="n">구매 수</th><th class="n">노출</th><th class="n">클릭</th><th>위너</th></tr></thead><tbody>
+    <div class="tbl"><table><thead><tr><th>월</th>${multi ? '<th>소재</th>' : ''}<th class="n">총 비용</th><th class="n">구매완료 광고수익률</th><th class="n">구매완료 전환매출액</th><th class="n">구매완료 수</th><th class="n">노출</th><th class="n">클릭</th><th>위너</th></tr></thead><tbody>
     ${hist.map(s => `<tr class="${isWin(s) ? 'win' : ''}"><td>${s.month}</td>${multi ? `<td style="font-size:12px">${esc(C.get(s.n).nm)}</td>` : ''}<td class="n">${won(s.cost)}</td><td class="n">${pct(s.proas)}</td><td class="n">${won(s.psales)}</td><td class="n">${s.pc}</td><td class="n">${s.imp.toLocaleString()}</td><td class="n">${s.click.toLocaleString()}</td><td>${isWin(s) ? '위너' : ''}</td></tr>`).join('')}
     </tbody></table></div>`);
   $('#mkfrom').onclick = () => { closeModal(); createState.product = c.p; createState.refs = [n]; location.hash = '#create'; };
@@ -354,7 +365,7 @@ function home() {
     <span class="eyebrow">NAVER GFA · 디스플레이 · 웹사이트 전환</span>
     <h1>성과로 검증된 위너 소재를 한눈에</h1>
     <p class="sub">바이랩 · 바이랩 2 계정의 「피드」 캠페인 소재(ON/OFF 전체)를 월별 성과로 누적 관리합니다.</p>
-    <div class="filmstrip"><span>위너 기준</span><span>한 달 총 비용 ${won(RULE.minCost)} 이상</span><span>구매완료 광고수익률 ${RULE.minPurchaseRoas}% 이상</span>${RULE.minPurchases ? `<span>구매 ${RULE.minPurchases}건 이상</span>` : ''}<a href="#analysis" class="fs-link">기준 자세히 보기</a></div>
+    <div class="filmstrip"><span>위너 기준</span><span>한 달 총 비용 ${won(RULE.minCost)} 이상</span><span>구매완료 광고수익률 ${RULE.minPurchaseRoas}% 이상</span>${RULE.minPurchases ? `<span>구매완료 수 ${RULE.minPurchases}건 이상</span>` : ''}<a href="#analysis" class="fs-link">기준 자세히 보기</a></div>
   </section>
   <dl class="stats">
     <div class="stat"><dt>보관 중인 기간</dt><dd>${MONTHS[0]} ~ ${LATEST}</dd></div>
@@ -415,7 +426,7 @@ function winnersPage() {
   apply();
 }
 function downloadCsv(list) {
-  const head = ['월', '계절', '계정', '캠페인', '광고 그룹', '제품', '소재 이름', 'ON/OFF', '총 비용', '구매완료 광고수익률(%)', '구매 매출', '구매 수', '광고 문구', '이미지 속 문구', '이미지 특징', '이미지 주소'];
+  const head = ['월', '계절', '계정', '캠페인', '광고 그룹', '제품', '소재 이름', 'ON/OFF', '총 비용', '구매완료 광고수익률(%)', '구매완료 전환매출액', '구매완료 수', '광고 문구', '이미지 속 문구', '이미지 특징', '이미지 주소'];
   const rows = list.map(w => [w.month, w.season, w.a, w.cp, w.as, w.p, w.nm, w.on ? 'ON' : 'OFF', w.cost, w.proas, w.psales, w.pc, w.m, w.it, w.vis, w.img]);
   const csv = '\ufeff' + [head, ...rows].map(r => r.map(x => '"' + String(x ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `GFA_위너소재_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
@@ -441,7 +452,7 @@ function ruleBox() {
     ${isAdmin ? `<div class="row rule-edit" style="margin-top:12px">
       <label>총 비용(원) <input type="number" id="rc1" step="10000" min="0" value="${RULE.minCost}" style="width:110px"></label>
       <label>구매 ROAS(%) <input type="number" id="rc2" step="5" min="0" value="${RULE.minPurchaseRoas}" style="width:80px"></label>
-      <label>구매 건수 <input type="number" id="rc3" step="1" min="0" value="${RULE.minPurchases || 0}" style="width:64px"></label>
+      <label>구매완료 수(건) <input type="number" id="rc3" step="1" min="0" value="${RULE.minPurchases || 0}" style="width:64px"></label>
       <span class="muted" id="rcprev"></span>
       <button id="rcrec">추천 기준 넣기</button><button class="pri" id="rcsave">기준 저장</button></div>` : ''}
   </section>`;
@@ -483,8 +494,8 @@ function analysis() {
   app.innerHTML = `<h1>위너 분석</h1>
   <p class="sub" style="margin-bottom:16px">${MONTHS[0]} ~ ${LATEST} · 계절: 봄 3~5월, 여름 6~8월, 가을 9~11월, 겨울 12~2월 · 위너율 = 위너 수 ÷ 한 달 비용 ${won(RULE.minCost)} 이상 쓴 소재-월 수</p>
   ${ruleBox()}
-  <section><h2>제품별</h2><div class="tbl"><table><thead><tr><th>제품</th><th class="n">위너</th><th class="n">위너 소재</th><th class="n">위너율</th><th class="n">위너 총 비용</th><th class="n">위너 구매 ROAS(합산)</th><th class="n">봄</th><th class="n">여름</th><th class="n">가을</th><th class="n">겨울</th></tr></thead><tbody>
-  ${rows.map(r => `<tr><td><a href="#winners?product=${encodeURIComponent(r.p)}">${esc(r.p)}</a></td><td class="n">${r.win}</td><td class="n">${r.cre.size}</td><td class="n">${pct(r.win / r.act * 100)}</td><td class="n">${man(r.cost)}</td><td class="n">${pct(r.sales / r.cost * 100)}</td>${SEASONS.map(s => `<td class="n" style="background:rgba(22,163,74,${(r.seasons[s] / heatMax * .45).toFixed(2)})">${r.seasons[s] || ''}</td>`).join('')}</tr>`).join('')}
+  <section><h2>제품별</h2><div class="tbl"><table><thead><tr><th>제품</th><th class="n">위너</th><th class="n">위너 소재</th><th class="n">위너율</th><th class="n">위너 총 비용</th><th class="n">위너 구매완료 전환매출액</th><th class="n">위너 구매 ROAS(합산)</th><th class="n">봄</th><th class="n">여름</th><th class="n">가을</th><th class="n">겨울</th></tr></thead><tbody>
+  ${rows.map(r => `<tr><td><a href="#winners?product=${encodeURIComponent(r.p)}">${esc(r.p)}</a></td><td class="n">${r.win}</td><td class="n">${r.cre.size}</td><td class="n">${pct(r.win / r.act * 100)}</td><td class="n">${man(r.cost)}</td><td class="n">${man(r.sales)}</td><td class="n">${pct(r.sales / r.cost * 100)}</td>${SEASONS.map(s => `<td class="n" style="background:rgba(22,163,74,${(r.seasons[s] / heatMax * .45).toFixed(2)})">${r.seasons[s] || ''}</td>`).join('')}</tr>`).join('')}
   </tbody></table></div></section>
   <section><h2>달마다 위너 수</h2><div class="bars">
   ${byMonth.map(x => `<a class="bar" href="#winners?month=${x.m}" title="${x.m} · 위너 ${x.n}건 / ${won(RULE.minCost)} 이상 소재 ${x.a}개"><s>${x.n || ''}</s><i style="height:${x.n / maxN * 110}px"></i><u>${x.m.slice(2).replace('-', '.')}</u></a>`).join('')}
@@ -564,14 +575,14 @@ function renderRuleAnswer(r) {
   if (!r.g.length) return `<p>조건에 맞는 위너가 자료에 없습니다.</p>`;
   const top = r.g[0];
   return `<p><b>위너 소재 ${r.total}개</b>${r.g.length < r.total ? ` 중 ${r.g.length}개` : ''} (소재 × 월 ${r.list.length}건). 구매 ROAS가 가장 높았던 건 「${esc(top.m || top.nm)}」(${esc(top.nm)}, ${pct(top.best)})입니다.</p>
-  <div class="tbl"><table><thead><tr><th></th><th>광고 문구 / 이미지 속 문구</th><th>제품 · 소재</th><th>위너 달</th><th class="n">최고 구매 ROAS</th><th class="n">위너 달 총 비용</th></tr></thead><tbody>
-  ${r.g.map(x => `<tr style="cursor:pointer" onclick="detail(${x.n})"><td><img src="${THUMB(x.n)}" style="width:52px;height:52px;object-fit:cover;border-radius:6px"></td><td><b>「${esc(x.m) || '-'}」</b><div class="sub">${esc(x.it) || '-'}</div></td><td>${esc(x.p)}<div class="muted">${esc(x.nm)} · ${esc(x.a)}</div></td><td>${x.months.join(', ')}</td><td class="n">${pct(x.best)}</td><td class="n">${won(x.costSum)}</td></tr>`).join('')}
+  <div class="tbl"><table><thead><tr><th></th><th>광고 문구 / 이미지 속 문구</th><th>제품 · 소재</th><th>위너 달</th><th class="n">최고 구매 ROAS</th><th class="n">위너 달 구매완료 전환매출액</th><th class="n">위너 달 총 비용</th></tr></thead><tbody>
+  ${r.g.map(x => `<tr style="cursor:pointer" onclick="detail(${x.n})"><td><img src="${THUMB(x.n)}" style="width:52px;height:52px;object-fit:cover;border-radius:6px"></td><td><b>「${esc(x.m) || '-'}」</b><div class="sub">${esc(x.it) || '-'}</div></td><td>${esc(x.p)}<div class="muted">${esc(x.nm)} · ${esc(x.a)}</div></td><td>${x.months.join(', ')}</td><td class="n">${pct(x.best)}</td><td class="n">${won(x.salesSum)}</td><td class="n">${won(x.costSum)}</td></tr>`).join('')}
   </tbody></table></div>`;
 }
 function loadQA() { try { return JSON.parse(localStorage.getItem(LS.qa) || '[]'); } catch { return []; } }
 function saveQA(x) { const l = loadQA(); l.unshift(x); localStorage.setItem(LS.qa, JSON.stringify(l.slice(0, 100))); }
 function winnersTsv(list) {
-  return ['월\t계정\t제품\t소재 이름\tON\t총 비용\t구매 ROAS(%)\t구매 매출\t광고 문구\t이미지 속 문구\t이미지 특징']
+  return ['월\t계정\t제품\t소재 이름\tON\t총 비용\t구매 ROAS(%)\t구매완료 전환매출액\t광고 문구\t이미지 속 문구\t이미지 특징']
     .concat(list.map(w => [w.month, w.a, w.p, w.nm, w.on ? 'ON' : 'OFF', w.cost, w.proas, w.psales, w.m, w.it, w.vis].map(x => String(x).replace(/\s+/g, ' ')).join('\t'))).join('\n');
 }
 async function aiAnswer(q, r) {
@@ -816,9 +827,9 @@ window.addEventListener('hashchange', route);
 refreshKeyBadge(); route();
 </script>
 <style>
-#auth{position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#1b2433 0%,#1b2433 38%,#f4f5f7 38%);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;font-family:Pretendard,"Malgun Gothic",sans-serif;color:#3b2a20}
+#auth{position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#1e6fc0 0%,#318cdd 38%,#f4f7fb 38%);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;font-family:Pretendard,"Malgun Gothic",sans-serif;color:#3b2a20}
 #auth .ab{position:relative;background:#fff;border-radius:14px;padding:32px 28px 26px;width:380px;max-width:100%;border:1px solid #e3e6eb;box-shadow:0 20px 48px rgba(15,23,42,.10)}
-#auth .alogo{width:48px;height:48px;border-radius:12px;background:#1b2433;display:grid;place-items:center;margin-bottom:12px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.15)}
+#auth .alogo{width:auto;height:auto;border-radius:0;background:none;box-shadow:none !important;display:grid;place-items:center;margin-bottom:12px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.15)}
 #auth h1{font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 6px}#auth .lead{color:#64748b;font-size:13px;margin:0 0 18px}
 #auth .sign{display:none}
 #auth .at{display:flex;background:#f1f3f6;border-radius:999px;padding:4px;margin-bottom:16px}
@@ -826,9 +837,9 @@ refreshKeyBadge(); route();
 #auth .at button.on{background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(15,23,42,.12)}
 #auth label{display:block;font-size:12px;color:#475569;font-weight:600;margin:0 0 4px}
 #auth input{width:100%;box-sizing:border-box;font:inherit;padding:10px 12px;border:1px solid #d7dce3;border-radius:8px;margin-bottom:12px;background:#fff}
-#auth .go{width:100%;padding:12px;border:none;border-radius:8px;background:#1b2433;color:#fff;font-weight:700;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
+#auth .go{width:100%;padding:12px;border:none;border-radius:8px;background:#318cdd;color:#fff;font-weight:700;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
 #auth .go:disabled{opacity:.5}
-#auth .lk{display:block;text-align:center;margin-top:12px;font-size:13px;color:#d9653b;background:none;border:none;width:100%}
+#auth .lk{display:block;text-align:center;margin-top:12px;font-size:13px;color:#1e6fc0;background:none;border:none;width:100%}
 #auth .msg{font-size:13px;min-height:18px;margin-top:10px}#auth .msg.err{color:#a4442b}#auth .msg.ok{color:#2f6b4c}
 #auth .hint{font-size:12px;color:#a8927f;margin:-8px 0 12px}
 .userbox{display:flex;align-items:center;gap:8px;font-size:12px;color:#374151;white-space:nowrap}
@@ -866,7 +877,7 @@ function busy(b) { const g = box.querySelector('.go'); if (g) g.disabled = b; }
 
 function loginView(tab = 'login', note = '') {
   show(true);
-  box.innerHTML = `<div class="alogo">${document.querySelector('.brand .logo')?.innerHTML || ''}</div><h1>바이랩 GFA 광고 스튜디오</h1><div class="sign">오신 걸 환영해요!</div><p class="lead">바이랩 마케팅팀 전용입니다. 가입 후 관리자가 승인하면 볼 수 있습니다.</p>
+  box.innerHTML = `<div class="alogo"><img src="data:image/png;base64,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" alt="BY LAB" style="height:30px;display:block"></div><h1>바이랩 GFA 광고 스튜디오</h1><div class="sign">오신 걸 환영해요!</div><p class="lead">바이랩 마케팅팀 전용입니다. 가입 후 관리자가 승인하면 볼 수 있습니다.</p>
   <div class="at"><button data-t="login" class="${tab === 'login' ? 'on' : ''}">로그인</button><button data-t="signup" class="${tab === 'signup' ? 'on' : ''}">회원가입</button></div>
   <form id="af">${tab === 'login' ? `
     <label>이메일</label><input type="email" id="em" autocomplete="username" required>
