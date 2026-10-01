@@ -228,6 +228,7 @@ button.pri{background:var(--brand);border-color:var(--brand)}button.pri:hover{ba
 .revbtn{font-size:12px;padding:5px 10px;border-color:var(--brand);color:var(--deep);background:#fff}.revbtn:hover{background:var(--acc2)}
 .revgrid{display:grid;grid-template-columns:320px 1fr;gap:18px}.revgrid>img{width:100%;border-radius:10px}@media(max-width:760px){.revgrid{grid-template-columns:1fr}}
 .revlabel{display:block;font-size:12px;font-weight:700;color:var(--sub);margin:10px 0 4px}.revgrid textarea{width:100%}
+.histgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.histitem img{width:100%;border-radius:10px;border:1px solid var(--line)}
 </style>
 
 </head>
@@ -849,7 +850,13 @@ async function createPage() {
     sb ? sb.from('generations').select('*').order('created_at', { ascending: false }).limit(60) : { data: [] },
     idb.all().catch(() => [])
   ]);
-  const reqs = reqRes.data || []; const gens = genRes.data || [];
+  const reqs = reqRes.data || []; const allGens = genRes.data || [];
+  // 같은 원본에서 나온 버전 중 가장 최신만 갤러리에 보여 주고, 이전 버전은 카드 안 「이전 버전」으로
+  const rootOf = g => g.parent_id || g.id;
+  const byRoot = new Map(); for (const g of allGens) { const k = rootOf(g); (byRoot.get(k) || byRoot.set(k, []).get(k)).push(g); }
+  for (const arr of byRoot.values()) arr.sort((a, b) => (b.version || 1) - (a.version || 1) || String(b.created_at).localeCompare(String(a.created_at)));
+  const gens = [...byRoot.values()].map(arr => arr[0]).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  const olderOf = g => (byRoot.get(rootOf(g)) || []).filter(x => x.id !== g.id);
   const locals = localGens.sort((a, b) => b.id.localeCompare(a.id));
   const myId = window.ME?.id; const isAdmin = !!window.ME?.is_admin;
   const pending = reqs.filter(r => r.status === '대기' || r.status === '제작중').length;
@@ -864,7 +871,7 @@ async function createPage() {
       ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
       ${g.analysis ? `<div class="copy"><span>참고 위너 공통점</span>${esc(g.analysis)}</div>` : ''}
       ${refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
-      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${String(id).slice(0, 8)}.${String(g.image).startsWith('data:image/png') ? 'png' : 'jpg'}">내려받기 (1200×1200)</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && g.parent_id && gens.some(x => x.id === g.parent_id) ? `<button class="lnk" data-orig="${g.parent_id}">원본 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
+      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${String(id).slice(0, 8)}.${String(g.image).startsWith('data:image/png') ? 'png' : 'jpg'}">내려받기 (1200×1200)</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && olderOf(g).length ? `<button class="lnk" data-hist="${g.id}">이전 버전 ${olderOf(g).length}개 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
   };
   app.innerHTML = `<h1>소재 만들기</h1>
   <p class="sub" style="margin-bottom:12px">제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 자동으로 받아 1200×1200 시안(새 문구 + 이미지)을 찍어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.</p>
@@ -905,7 +912,7 @@ async function createPage() {
     const list = createState.gal ? gens.filter(g => g.product === createState.gal) : gens;
     $('#galgrid').innerHTML = list.map(g => genCard(g, false)).join('') || '<p class="muted">아직 없습니다.</p>';
     document.querySelectorAll('#galtabs .galtab').forEach(b => b.classList.toggle('on', b.dataset.gal === (createState.gal || '')));
-    $('#galgrid').querySelectorAll('[data-orig]').forEach(el => el.onclick = () => { const o = gens.find(x => x.id === el.dataset.orig); if (o) openModal(`<h2>원본 시안</h2><img src="${o.image}" style="width:100%;max-width:600px;border-radius:10px"><p class="muted">${new Date(o.created_at).toLocaleString('ko-KR')} · 「${esc(o.copies?.[0]?.imageText || '')}」</p>`); });
+    $('#galgrid').querySelectorAll('[data-hist]').forEach(el => el.onclick = () => { const g = gens.find(x => x.id === el.dataset.hist); const old = olderOf(g); openModal(`<h2>이전 버전</h2><p class="sub">지금 갤러리에는 최신 버전(v${g.version || 1})만 보여요. 이전 버전은 여기서만 볼 수 있어요.</p><div class="histgrid">${old.map(o => `<div class="histitem"><img src="${o.image}"><div class="row" style="gap:6px;margin-top:6px"><span class="tag ${(o.version || 1) === 1 ? '' : 'on'}">${(o.version || 1) === 1 ? '원본' : '수정본 v' + o.version}</span><span class="muted">${new Date(o.created_at).toLocaleString('ko-KR')}</span></div>${o.revision_note ? `<div class="muted" style="margin-top:4px">수정안: ${esc(o.revision_note)}</div>` : ''}<a href="${o.image}" download="GFA시안_${esc(o.product)}_v${o.version || 1}_${String(o.id).slice(0, 8)}.jpg">내려받기</a></div>`).join('')}</div>`); });
     $('#galgrid').querySelectorAll('[data-rev]').forEach(el => el.onclick = () => openRevision(gens.find(x => x.id === el.dataset.rev)));
     $('#galgrid').querySelectorAll('[data-gdel]').forEach(el => el.onclick = async () => { if (!confirm('팀 갤러리에서 이 시안을 지울까요?')) return; const { error } = await sb.from('generations').delete().eq('id', el.dataset.gdel); if (error) alert(error.message); createPage(); });
   };
