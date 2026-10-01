@@ -225,6 +225,9 @@ button.pri{background:var(--brand);border-color:var(--brand)}button.pri:hover{ba
 .mkalt{flex:none;font-size:12px;padding:6px 10px;white-space:nowrap}
 .tag.warnt{background:#fde8e1;color:#c2410c}.tag.cautt{background:#fff4d6;color:#8a5a00}
 .htwo>*{min-width:0;overflow:hidden}.sboard>*{min-width:0}.hbox .row{flex-wrap:wrap}
+.revbtn{font-size:12px;padding:5px 10px;border-color:var(--brand);color:var(--deep);background:#fff}.revbtn:hover{background:var(--acc2)}
+.revgrid{display:grid;grid-template-columns:320px 1fr;gap:18px}.revgrid>img{width:100%;border-radius:10px}@media(max-width:760px){.revgrid{grid-template-columns:1fr}}
+.revlabel{display:block;font-size:12px;font-weight:700;color:var(--sub);margin:10px 0 4px}.revgrid textarea{width:100%}
 </style>
 
 </head>
@@ -810,6 +813,29 @@ ${refs.map((w, i) => `${i + 1}. 이미지 속 문구: ${w.it || '-'} / 광고 �
 ${dir ? '추가 방향: ' + dir + '\n' : ''}규칙: 반려동물 실사 느낌, 제품이 분명히 보일 것, 한글 문구는 짧고 굵게 2줄 이내, 효능을 과장하거나 의학적으로 단정하는 표현 금지, 로고·가격은 넣지 않기.`;
 }
 const STATUS_TAG = { '대기': 'off', '제작중': 'p', '완료': 'on', '실패': 'off', '취소': '' };
+function openRevision(g) {
+  if (!g || !window.sbClient) return;
+  const cur = (g.copies && g.copies[0]) ? g.copies[0] : {};
+  openModal(`<h2>시안 수정 요청</h2>
+    <div class="revgrid"><img src="${g.image}" alt="">
+    <div><p class="sub" style="margin-top:0">고칠 부분만 적어 주세요. Aside가 이 시안을 그대로 두고 수정안만 반영해 <b>새 버전(수정본)</b>으로 갤러리에 올립니다. 원본은 지워지지 않아요.</p>
+      <label class="revlabel">이미지 속 문구를 이렇게 바꿔 주세요 <span class="muted">(줄바꿈은 그대로 엔터)</span></label>
+      <textarea id="rv1" rows="3" placeholder="예) 털 만져 본 사람마다&#10;트리트먼트 쓰냐던데?"></textarea>
+      <label class="revlabel">그 밖에 고칠 점 <span class="muted">(선택)</span></label>
+      <textarea id="rv2" rows="3" placeholder="예) 물음표 크기 줄이기, 강아지 표정 더 밝게, 제품을 조금 더 크게"></textarea>
+      <label class="revlabel">광고 문구도 바꾸려면 <span class="muted">(선택 · 지금: ${esc(cur.adMessage || '-')})</span></label>
+      <input type="text" id="rv3" style="width:100%" placeholder="비워 두면 그대로">
+      <div class="row" style="margin-top:12px"><button class="pri" id="rvgo">수정 요청 보내기</button><span class="muted" id="rvmsg"></span></div></div></div>`);
+  document.getElementById('rvgo').onclick = async () => {
+    const a = document.getElementById('rv1').value.trim(), b = document.getElementById('rv2').value.trim(), c = document.getElementById('rv3').value.trim();
+    if (!a && !b && !c) { document.getElementById('rvmsg').textContent = '고칠 내용을 하나 이상 적어 주세요.'; return; }
+    const note = [a && `이미지 속 문구 → ${a.replace(/\n+/g, ' / ')}`, c && `광고 문구 → ${c}`, b && `기타: ${b}`].filter(Boolean).join('\n');
+    document.getElementById('rvgo').disabled = true;
+    const { error } = await window.sbClient.from('creative_requests').insert({ product: g.product, kind: '수정', source_generation: g.id, revision_note: note, refs: g.refs || [], count: 1, direction: '', requester_name: window.ME?.name || window.ME?.email || '' });
+    if (error) { document.getElementById('rvgo').disabled = false; document.getElementById('rvmsg').textContent = '요청 실패: ' + error.message; return; }
+    closeModal(); createPage();
+  };
+}
 async function createPage() {
   const hasKey = !!getKey();
   const sb = window.sbClient;
@@ -831,13 +857,14 @@ async function createPage() {
     const copies = g.copies || []; const refs = g.refs || [];
     const when = local ? g.at : new Date(g.created_at).toLocaleString('ko-KR');
     const id = local ? g.id : g.id;
-    return `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">1200×1200 · ${imgKB(g.image)}KB</span><span class="tag">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))}</span></div>
+    return `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">1200×1200 · ${imgKB(g.image)}KB</span><span class="tag">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
       <div class="muted">${esc(when)}</div>
+      ${g.revision_note ? `<div class="copy"><span>반영한 수정안</span>${esc(g.revision_note)}</div>` : ''}
       ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
       ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
       ${g.analysis ? `<div class="copy"><span>참고 위너 공통점</span>${esc(g.analysis)}</div>` : ''}
       ${refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
-      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${String(id).slice(0, 8)}.${String(g.image).startsWith('data:image/png') ? 'png' : 'jpg'}">내려받기 (1200×1200)</a>${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
+      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${String(id).slice(0, 8)}.${String(g.image).startsWith('data:image/png') ? 'png' : 'jpg'}">내려받기 (1200×1200)</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && g.parent_id && gens.some(x => x.id === g.parent_id) ? `<button class="lnk" data-orig="${g.parent_id}">원본 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
   };
   app.innerHTML = `<h1>소재 만들기</h1>
   <p class="sub" style="margin-bottom:12px">제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 자동으로 받아 1200×1200 시안(새 문구 + 이미지)을 찍어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.</p>
@@ -863,8 +890,8 @@ async function createPage() {
     <div class="box" id="cout">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">제작 요청 ${pending ? `<span class="tag off">진행 중 ${pending}건</span>` : ''}</h2><button id="rfq">새로고침</button></div>
       <p class="muted" style="margin:6px 0 10px">요청은 Aside가 자동으로 받아 만듭니다. 보통 5~10분 안에 갤러리에 올라오고, 이 목록은 저절로 새로고침됩니다.</p>
-      ${reqs.length ? reqs.map(r => `<div class="qa" style="padding:8px 0"><div class="row" style="justify-content:space-between"><span><span class="tag ${STATUS_TAG[r.status] || ''}">${esc(r.status)}</span> <b>${esc(r.product)}</b> · ${r.count}장</span><span class="muted">${new Date(r.created_at).toLocaleString('ko-KR')}</span></div>
-        <div class="muted">${esc(r.requester_name || '')}${r.direction ? ' · ' + esc(r.direction) : ''}</div>
+      ${reqs.length ? reqs.map(r => `<div class="qa" style="padding:8px 0"><div class="row" style="justify-content:space-between"><span><span class="tag ${STATUS_TAG[r.status] || ''}">${esc(r.status)}</span> ${r.kind === '수정' ? '<span class="tag p">수정</span> ' : ''}<b>${esc(r.product)}</b> · ${r.kind === '수정' ? '재제작' : r.count + '장'}</span><span class="muted">${new Date(r.created_at).toLocaleString('ko-KR')}</span></div>
+        <div class="muted">${esc(r.requester_name || '')}${r.kind === '수정' ? ' · 수정안: ' + esc(r.revision_note) : (r.direction ? ' · ' + esc(r.direction) : '')}</div>
         ${r.note ? `<div style="font-size:12px">${esc(r.note)}</div>` : ''}
         ${r.status === '대기' && (r.requester === myId || isAdmin) ? `<button class="lnk" data-cancel="${r.id}">요청 취소</button>` : ''}</div>`).join('') : '<p class="muted">아직 요청이 없습니다.</p>'}
     </div>
@@ -878,6 +905,8 @@ async function createPage() {
     const list = createState.gal ? gens.filter(g => g.product === createState.gal) : gens;
     $('#galgrid').innerHTML = list.map(g => genCard(g, false)).join('') || '<p class="muted">아직 없습니다.</p>';
     document.querySelectorAll('#galtabs .galtab').forEach(b => b.classList.toggle('on', b.dataset.gal === (createState.gal || '')));
+    $('#galgrid').querySelectorAll('[data-orig]').forEach(el => el.onclick = () => { const o = gens.find(x => x.id === el.dataset.orig); if (o) openModal(`<h2>원본 시안</h2><img src="${o.image}" style="width:100%;max-width:600px;border-radius:10px"><p class="muted">${new Date(o.created_at).toLocaleString('ko-KR')} · 「${esc(o.copies?.[0]?.imageText || '')}」</p>`); });
+    $('#galgrid').querySelectorAll('[data-rev]').forEach(el => el.onclick = () => openRevision(gens.find(x => x.id === el.dataset.rev)));
     $('#galgrid').querySelectorAll('[data-gdel]').forEach(el => el.onclick = async () => { if (!confirm('팀 갤러리에서 이 시안을 지울까요?')) return; const { error } = await sb.from('generations').delete().eq('id', el.dataset.gdel); if (error) alert(error.message); createPage(); });
   };
   drawGal();
