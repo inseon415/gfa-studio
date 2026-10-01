@@ -274,8 +274,8 @@ const ordP = arr => [...arr].sort((a, b) => ((REG_ORDER.indexOf(a) + 1) || 999) 
 const PRODUCTS = ordP(new Set(W.map(w => w.p))).filter(p => p !== '[확인필요]');
 const productInfo = name => PRODUCT_LIST.find(p => p.name === name);
 const GFA_SIZE = 1200;
-const GFA_MAX_BYTES = 800 * 1024 * 0.98; // GFA 피드형 800KB 이하
-const imgKB = u => Math.round((String(u).length - 23) * 3 / 4 / 1024);
+const GFA_MAX_BYTES = 800 * 1024 * 0.98, GFA_MIN_BYTES = 80 * 1024 * 1.02; // GFA 피드형 80KB 이상 800KB 이하
+const imgKB = u => { u = String(u); return Math.round((u.length - u.indexOf(',') - 1) * 3 / 4 / 1024); };
 const ALL_PRODUCTS = [...new Set(D.creatives.map(c => c.p))].sort();
 const THUMB = n => D.thumbs[n] || '';
 const won = x => Math.round(x).toLocaleString('ko-KR') + '원';
@@ -770,7 +770,7 @@ function toGfaSize(src) {
     const cv = document.createElement('canvas'); cv.width = GFA_SIZE; cv.height = GFA_SIZE; const x = cv.getContext('2d');
     x.fillStyle = '#fff'; x.fillRect(0, 0, GFA_SIZE, GFA_SIZE);
     const s = Math.max(GFA_SIZE / img.width, GFA_SIZE / img.height); const w = img.width * s, h = img.height * s;
-    x.drawImage(img, (GFA_SIZE - w) / 2, (GFA_SIZE - h) / 2, w, h); let q = 0.92, u = cv.toDataURL('image/jpeg', q); while ((u.length - 23) * 3 / 4 > GFA_MAX_BYTES && q > 0.4) { q -= 0.06; u = cv.toDataURL('image/jpeg', q); } res(u); }; img.onerror = rej; img.src = src; });
+    x.drawImage(img, (GFA_SIZE - w) / 2, (GFA_SIZE - h) / 2, w, h); const sz = v => (v.length - v.indexOf(',') - 1) * 3 / 4; let q = 0.92, u = cv.toDataURL('image/jpeg', q); while (sz(u) > GFA_MAX_BYTES && q > 0.4) { q -= 0.06; u = cv.toDataURL('image/jpeg', q); } while (sz(u) < GFA_MIN_BYTES && q < 1) { q = Math.min(1, q + 0.03); u = cv.toDataURL('image/jpeg', q); } if (sz(u) < GFA_MIN_BYTES) { const p = cv.toDataURL('image/png'); if (sz(p) >= GFA_MIN_BYTES && sz(p) <= GFA_MAX_BYTES) u = p; } for (let amp = 1; sz(u) < GFA_MIN_BYTES && amp <= 6; amp++) { const d = x.getImageData(0, 0, GFA_SIZE, GFA_SIZE), pp = d.data; for (let i = 0; i < pp.length; i += 4) { const n = (Math.random() * 2 - 1) * amp; pp[i] = Math.max(0, Math.min(255, pp[i] + n)); pp[i + 1] = Math.max(0, Math.min(255, pp[i + 1] + n)); pp[i + 2] = Math.max(0, Math.min(255, pp[i + 2] + n)); } x.putImageData(d, 0, 0); u = cv.toDataURL('image/jpeg', 0.95); } res(u); }; img.onerror = rej; img.src = src; });
 }
 function productsPage() {
   const isAdmin = !!(window.ME && window.ME.is_admin);
@@ -837,14 +837,14 @@ async function createPage() {
       ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
       ${g.analysis ? `<div class="copy"><span>참고 위너 공통점</span>${esc(g.analysis)}</div>` : ''}
       ${refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
-      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${String(id).slice(0, 8)}.jpg">내려받기 (1200×1200)</a>${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
+      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_1200x1200_${String(id).slice(0, 8)}.${String(g.image).startsWith('data:image/png') ? 'png' : 'jpg'}">내려받기 (1200×1200)</a>${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
   };
   app.innerHTML = `<h1>소재 만들기</h1>
   <p class="sub" style="margin-bottom:12px">제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 자동으로 받아 1200×1200 시안(새 문구 + 이미지)을 찍어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.</p>
   <div class="two">
     <div class="box">
       <div class="row" style="margin-bottom:10px"><label>제품 <select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></label>
-      <span class="tag p">1200 × 1200 · 800KB 이하 (GFA 피드형)</span>
+      <span class="tag p" title="JPG·PNG / RGB">GFA 피드형 · 1200×1200 · 80~800KB · JPG/RGB</span>
       <span class="muted">참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)</span></div>
       ${pinfo ? `<div class="pmini"><img src="${pinfo.img}"><div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
       ${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
