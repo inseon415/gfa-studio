@@ -274,6 +274,8 @@ const ordP = arr => [...arr].sort((a, b) => ((REG_ORDER.indexOf(a) + 1) || 999) 
 const PRODUCTS = ordP(new Set(W.map(w => w.p))).filter(p => p !== '[확인필요]');
 const productInfo = name => PRODUCT_LIST.find(p => p.name === name);
 const GFA_SIZE = 1200;
+const GFA_MAX_BYTES = 800 * 1024 * 0.98; // GFA 피드형 800KB 이하
+const imgKB = u => Math.round((String(u).length - 23) * 3 / 4 / 1024);
 const ALL_PRODUCTS = [...new Set(D.creatives.map(c => c.p))].sort();
 const THUMB = n => D.thumbs[n] || '';
 const won = x => Math.round(x).toLocaleString('ko-KR') + '원';
@@ -768,7 +770,7 @@ function toGfaSize(src) {
     const cv = document.createElement('canvas'); cv.width = GFA_SIZE; cv.height = GFA_SIZE; const x = cv.getContext('2d');
     x.fillStyle = '#fff'; x.fillRect(0, 0, GFA_SIZE, GFA_SIZE);
     const s = Math.max(GFA_SIZE / img.width, GFA_SIZE / img.height); const w = img.width * s, h = img.height * s;
-    x.drawImage(img, (GFA_SIZE - w) / 2, (GFA_SIZE - h) / 2, w, h); res(cv.toDataURL('image/jpeg', 0.92)); }; img.onerror = rej; img.src = src; });
+    x.drawImage(img, (GFA_SIZE - w) / 2, (GFA_SIZE - h) / 2, w, h); let q = 0.92, u = cv.toDataURL('image/jpeg', q); while ((u.length - 23) * 3 / 4 > GFA_MAX_BYTES && q > 0.4) { q -= 0.06; u = cv.toDataURL('image/jpeg', q); } res(u); }; img.onerror = rej; img.src = src; });
 }
 function productsPage() {
   const isAdmin = !!(window.ME && window.ME.is_admin);
@@ -829,7 +831,7 @@ async function createPage() {
     const copies = g.copies || []; const refs = g.refs || [];
     const when = local ? g.at : new Date(g.created_at).toLocaleString('ko-KR');
     const id = local ? g.id : g.id;
-    return `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">1200×1200</span><span class="tag">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))}</span></div>
+    return `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">1200×1200 · ${imgKB(g.image)}KB</span><span class="tag">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))}</span></div>
       <div class="muted">${esc(when)}</div>
       ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
       ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
@@ -842,7 +844,7 @@ async function createPage() {
   <div class="two">
     <div class="box">
       <div class="row" style="margin-bottom:10px"><label>제품 <select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></label>
-      <span class="tag p">크기 1200 × 1200 (GFA 피드형)</span>
+      <span class="tag p">1200 × 1200 · 800KB 이하 (GFA 피드형)</span>
       <span class="muted">참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)</span></div>
       ${pinfo ? `<div class="pmini"><img src="${pinfo.img}"><div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
       ${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
