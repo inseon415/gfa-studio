@@ -198,6 +198,16 @@ tr.win td{background:#eef6fe}
 .bar i{background:#b9d6f3}
 button.pri{background:var(--brand);border-color:var(--brand)}button.pri:hover{background:var(--navy2)}
 @media(max-width:1360px){.brand .brandname{font-size:14px}}
+.topgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin-top:14px}
+@media(max-width:1200px){.topgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:760px){.topgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.topcard .timg{position:relative}.topcard .timg img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#eef0f3}
+.rank{position:absolute;left:10px;top:10px;min-width:34px;height:34px;padding:0 8px;border-radius:9px;background:rgba(15,23,42,.78);color:#fff;font-weight:800;font-size:17px;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.rank.r1{background:var(--brand);font-size:20px;min-width:40px;height:40px}.rank.r2,.rank.r3{background:var(--navy2)}
+.topcard.podium{border:1.5px solid #b9d6f3}
+.hero-metric{background:var(--acc2);border-radius:8px;padding:8px 10px;margin:4px 0 2px;display:flex;flex-direction:column}
+.hero-metric span{font-size:11px;color:var(--sub);font-weight:600}.hero-metric b{font-size:19px;font-weight:800;color:var(--deep);letter-spacing:-.02em}
+.copy.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.topcard .kv{font-size:12px;gap:6px;align-items:baseline}.topcard .kv>span:first-child{white-space:nowrap;color:var(--sub)}.topcard .kv>*:last-child{white-space:nowrap;text-align:right}.topcard .kv b{font-size:14px}
 </style>
 
 </head>
@@ -356,10 +366,28 @@ function detail(n) {
 }
 
 // ---------- HOME ----------
+function topWinners(k = 10) {
+  return groupWinners(W).map(g => ({ ...g, extra: g.salesSum - g.costSum, mc: g.months.length })).sort((a, b) => b.extra - a.extra).slice(0, k);
+}
+function topCard(g, i) {
+  const span = g.months.length > 1 ? `${g.months[0].slice(2).replace('-', '.')} ~ ${g.months.at(-1).slice(2).replace('-', '.')}` : g.months[0].slice(2).replace('-', '.');
+  return `<article class="card topcard ${i < 3 ? 'podium' : ''}" data-n="${g.n}">
+    <div class="timg"><img src="${THUMB(g.n)}" alt="${esc(g.nm)}" loading="lazy"><span class="rank r${i + 1}">${i + 1}</span></div>
+    <div class="cb">
+      <div class="row"><span class="tag p">${esc(g.p)}</span><span class="tag">${esc(g.a)}</span><span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span></div>
+      <div class="nm">${esc(g.nm)}</div>
+      <div class="hero-metric"><span>광고비 대비 추가 매출</span><b>+${won(g.extra)}</b></div>
+      <div class="kv"><span>구매완료 광고수익률</span><b>${pct(g.proasSum)}</b></div>
+      <div class="kv"><span>구매완료 전환매출액</span><span class="sales">${won(g.salesSum)}</span></div>
+      <div class="kv"><span>총 비용</span><span>${won(g.costSum)}</span></div>
+      <div class="kv"><span>위너 기간</span><span>${g.mc}개월 · ${span}</span></div>
+      <div class="copy clamp"><span>광고 문구</span>${esc(g.m) || '<i class="muted">없음</i>'}</div>
+      <div class="copy clamp"><span>이미지 속 문구</span>${esc(g.it) || '<i class="muted">없음</i>'}</div>
+    </div></article>`;
+}
 function home() {
-  const latestW = groupWinners(W.filter(w => w.month === LATEST)).sort((a, b) => b.proasSum - a.proasSum);
-  const prevMonth = MONTHS[MONTHS.length - 2];
   const bestProd = Object.entries(W.reduce((o, w) => (o[w.p] = (o[w.p] || 0) + 1, o), {})).sort((a, b) => b[1] - a[1])[0];
+  const top = topWinners(10);
   app.innerHTML = `
   <section class="studio-hero">
     <span class="eyebrow">NAVER GFA · 디스플레이 · 웹사이트 전환</span>
@@ -375,14 +403,12 @@ function home() {
     <div class="stat"><dt>위너 최다 제품</dt><dd>${esc(bestProd[0])} ${bestProd[1]}건</dd></div>
   </dl>
   <section style="margin-top:28px">
-    <div class="row" style="justify-content:space-between"><h2>${LATEST} 위너 소재 ${latestW.length}개 <span class="muted">(오늘까지 집계, 달이 끝나면 바뀔 수 있음)</span></h2><a href="#winners?month=${LATEST}">전체 보기</a></div>
-    <div class="grid" id="hg">${latestW.slice(0, 8).map(groupCard).join('')}</div>
+    <div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2>역대 최고 위너 TOP 10</h2>
+      <p class="muted" style="margin:4px 0 0">순위 기준: 위너였던 달들의 <b>구매완료 전환매출액 − 총 비용</b> (광고비보다 더 벌어들인 매출). 효율과 규모를 함께 봅니다.</p></div>
+      <a href="#winners">월별 위너는 「위너 소재」 탭에서 보기 →</a></div>
+    <div class="topgrid" id="hg">${top.map(topCard).join('')}</div>
   </section>
-  <section>
-    <div class="row" style="justify-content:space-between"><h2>${prevMonth} 위너 소재</h2><a href="#winners?month=${prevMonth}">전체 보기</a></div>
-    <div class="grid" id="hg2">${groupWinners(W.filter(w => w.month === prevMonth)).sort((a, b) => b.proasSum - a.proasSum).slice(0, 4).map(groupCard).join('')}</div>
-  </section>
-  <p class="muted">마지막 수집: ${new Date(D.collectedAt).toLocaleString('ko-KR')} · GFA는 2년이 지나면 자료를 볼 수 없지만, 이 사이트는 ${MONTHS[0]}부터 모은 달을 지우지 않고 계속 보관합니다 (매주 월요일 자동 수집). 이미지 속 문구는 위너 이미지 ${Object.keys(D.imgText).length}장을 Aside가 읽어 옮겼습니다.</p>`;
+  <p class="muted">마지막 수집: ${new Date(D.collectedAt).toLocaleString('ko-KR')} · GFA는 2년이 지나면 자료를 볼 수 없지만, 이 사이트는 ${MONTHS[0]}부터 모은 달을 지우지 않고 계속 보관합니다 (매주 월요일 자동 수집).</p>`;
   bindCards(app);
 }
 
