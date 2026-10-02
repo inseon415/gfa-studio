@@ -466,7 +466,7 @@ function card(w) {
       <div class="kv"><span>총 비용</span><span>${won(w.cost)}</span></div>
       <div class="kv"><span>구매완료 수</span><span>${w.pc.toLocaleString()}건</span></div>
       <div class="copy"><span>광고 문구</span>${esc(w.m) || '<i class="muted">없음</i>'}</div>
-      <div class="copy"><span>이미지 속 문구</span>${esc(w.it) || '<i class="muted">아직 안 읽었어요 (자동으로 채우는 중)</i>'}</div>
+      <div class="copy"><span>이미지 속 문구</span>${esc(w.it) || (w.fmt === 'catalog' || w.fmt === 'advoost' ? '<i class="muted">자동 상품 이미지라 문구 없음</i>' : '<i class="muted">아직 안 읽었어요 (자동으로 채우는 중)</i>')}</div>
     </div></article>`;
 }
 function groupCard(g) {
@@ -484,7 +484,7 @@ function groupCard(g) {
       <div class="kv"><span>구매완료 수${many ? ' <span class="muted">(합계)</span>' : ''}</span><span>${g.rows.reduce((a, r) => a + r.pc, 0).toLocaleString()}건</span></div>
       ${many ? `<div class="kv"><span class="muted">최고 달 ROAS</span><span class="muted">${pct(g.best)}</span></div>` : ''}
       <div class="copy"><span>광고 문구</span>${esc(g.m) || '<i class="muted">없음</i>'}</div>
-      <div class="copy"><span>이미지 속 문구</span>${esc(g.it) || '<i class="muted">아직 안 읽었어요 (자동으로 채우는 중)</i>'}</div>
+      <div class="copy"><span>이미지 속 문구</span>${esc(g.it) || (g.fmt === 'catalog' || g.fmt === 'advoost' ? '<i class="muted">자동 상품 이미지라 문구 없음</i>' : '<i class="muted">아직 안 읽었어요 (자동으로 채우는 중)</i>')}</div>
     </div></article>`;
 }
 function bindCards(root) { root.querySelectorAll('.card[data-n]').forEach(el => el.onclick = () => detail(+el.dataset.n)); }
@@ -618,7 +618,7 @@ function topCard(g, i) {
       <div class="kv"><span>총 비용</span><span>${won(g.costSum)}</span></div>
       <div class="kv"><span>위너 기간</span><span>${g.mc}개월 · ${span}</span></div>
       <div class="copy clamp"><span>광고 문구</span>${esc(g.m) || '<i class="muted">없음</i>'}</div>
-      <div class="copy clamp"><span>이미지 속 문구</span>${esc(g.it) || '<i class="muted">아직 안 읽었어요 (자동으로 채우는 중)</i>'}</div>
+      <div class="copy clamp"><span>이미지 속 문구</span>${esc(g.it) || (g.fmt === 'catalog' || g.fmt === 'advoost' ? '<i class="muted">자동 상품 이미지라 문구 없음</i>' : '<i class="muted">아직 안 읽었어요 (자동으로 채우는 중)</i>')}</div>
     </div></article>`;
 }
 function home() {
