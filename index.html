@@ -295,6 +295,16 @@ img.zoomable{cursor:zoom-in}
 .frow .fl{flex:0 0 66px;font-weight:600;font-size:14px}
 .frow select{width:300px;max-width:100%}
 .gen .gspec{font-size:13px;font-weight:600;color:#334155}
+.unkbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0 4px;font-size:13px}
+#unkbarBot{margin:12px 0 0}
+.unkbar .pgsize{display:flex;align-items:center;gap:6px;color:#475569}
+.unkbar .pgsize select{height:32px;padding:0 8px}
+.unkbar .pgrange{color:#64748b;font-variant-numeric:tabular-nums}
+.unkbar .pgnav{display:flex;align-items:center;gap:4px;margin-left:auto}
+.unkbar .pg{min-width:32px;height:32px;padding:0 10px;border:1px solid #d7dce3;border-radius:6px;background:#fff;color:#334155;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.unkbar .pg.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.unkbar .pg:disabled{opacity:.4;cursor:default}
+.unkbar .pgdots{color:#94a3b8;padding:0 2px}
 </style>
 
 </head>
@@ -923,31 +933,58 @@ async function saveProductOverrides(map) {
   const { error } = await window.sbClient.from('app_data').upsert({ key: 'product_overrides', payload: next, updated_at: new Date().toISOString() });
   if (error) throw error;
 }
-function unknownBox(isAdmin) {
+const unkState = { size: 50, page: 0, changed: {} };
+const UNK_SIZES = [10, 50, 100, 200, 300, 500, 1000];
+function unkRows() {
   const list = D.creatives.filter(c => c.p === '[확인필요]');
-  if (!list.length) return '<section class="box" style="margin-bottom:22px"><h2 style="margin:0">제품 확인이 필요한 소재</h2><p class="muted" style="margin:6px 0 0">모두 지정됐어요. 👍</p></section>';
-  const spend = n => STATS.filter(s => s.n === n).reduce((a, s) => a + s.cost, 0);
-  const rows = list.map(c => ({ c, sp: spend(c.n) })).sort((a, b) => b.sp - a.sp);
-  const opts = '<option value="">제품 선택</option>' + productChoices().map(p => `<option>${esc(p)}</option>`).join('');
-  return `<section class="box unkbox" style="margin-bottom:22px"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2 style="margin:0">제품 확인이 필요한 소재 ${list.length}개</h2>
-    <p class="muted" style="margin:4px 0 0">소재 이름·광고 그룹 이름만으로 제품을 알 수 없었던 소재예요. 광고비가 많이 쓰인 순서예요.${isAdmin ? ' 제품을 고르고 「저장」을 누르면 사이트 전체(위너·분석·질문하기)에 바로 반영돼요.' : ' 제품 지정은 관리자만 할 수 있어요.'}</p></div>
+  const sp = new Map(); for (const s of STATS) sp.set(s.n, (sp.get(s.n) || 0) + s.cost);
+  return list.map(c => ({ c, sp: sp.get(c.n) || 0 })).sort((a, b) => b.sp - a.sp);
+}
+function unknownBox(isAdmin) {
+  const rows = unkRows();
+  if (!rows.length) return '<section class="box" style="margin-bottom:22px"><h2 style="margin:0">제품 확인이 필요한 소재</h2><p class="muted" style="margin:6px 0 0">모두 지정됐어요.</p></section>';
+  return `<section class="box unkbox" id="unkbox" style="margin-bottom:22px"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2 style="margin:0">제품 확인이 필요한 소재 ${rows.length.toLocaleString()}개</h2>
+    <p class="muted" style="margin:4px 0 0">소재 이름·광고 그룹 이름만으로 제품을 알 수 없었던 소재예요. 광고비가 많이 쓰인 순서예요.${isAdmin ? ' 제품을 고르고 「저장」을 누르면 사이트 전체(위너·분석·질문하기)에 바로 반영돼요. 다른 쪽으로 넘어가도 고른 값은 저장 전까지 남아 있어요.' : ' 제품 지정은 관리자만 할 수 있어요.'}</p></div>
     ${isAdmin ? '<div class="row"><label class="row" style="gap:4px;font-size:13px"><input type="checkbox" id="unkSame" checked> 같은 광고 그룹 소재도 같은 제품으로</label><button class="pri" id="unkSave" disabled>저장</button></div>' : ''}</div>
-    <div class="unklist">${rows.map(({ c, sp }) => `<div class="unkrow" data-n="${c.n}" data-as="${esc(c.as)}">
-      <img src="${esc(c.img || '')}" onerror="this.onerror=null;this.src='${THUMB(c.n)}'" alt="">
-      <div class="ur-main"><div class="row" style="gap:6px">${fmtTag(c)}<span class="tag">${esc(c.a)}</span><span class="tag ${c.on ? 'on' : 'off'}">${c.on ? 'ON' : 'OFF'}</span>${sp ? `<span class="tag">광고비 ${man(sp)}</span>` : ''}</div>
-        <div class="fr-nm">${esc(c.nm)}</div><div class="muted">${esc(c.cp)} › ${esc(c.as)}</div>${c.m ? `<div style="font-size:12px">「${esc(c.m)}」</div>` : ''}</div>
-      ${isAdmin ? `<select class="unksel">${opts}</select>` : ''}</div>`).join('')}</div></section>`;
+    <div class="unkbar" id="unkbarTop"></div><div class="unklist" id="unklist"></div><div class="unkbar" id="unkbarBot"></div></section>`;
 }
 function bindUnknownBox() {
-  const save = document.getElementById('unkSave'); if (!save) return;
-  const changed = {};
-  document.querySelectorAll('.unksel').forEach(sel => sel.onchange = () => {
-    const row = sel.closest('.unkrow'), v = sel.value;
-    const targets = document.getElementById('unkSame').checked ? [...document.querySelectorAll('.unkrow')].filter(r => r.dataset.as === row.dataset.as) : [row];
-    for (const r of targets) { const s = r.querySelector('.unksel'); s.value = v; r.classList.toggle('picked', !!v); if (v) changed[r.dataset.n] = v; else delete changed[r.dataset.n]; }
-    save.disabled = !Object.keys(changed).length; save.textContent = Object.keys(changed).length ? `${Object.keys(changed).length}개 저장` : '저장';
-  });
-  save.onclick = async () => { save.disabled = true; save.textContent = '저장 중...'; try { await saveProductOverrides(changed); location.hash = '#products'; location.reload(); } catch (e) { alert('저장 실패: ' + e.message); save.disabled = false; save.textContent = '저장'; } };
+  const box = document.getElementById('unkbox'); if (!box) return;
+  const isAdmin = !!(window.ME && window.ME.is_admin);
+  const rows = unkRows(); const byN = new Map(rows.map(r => [String(r.c.n), r.c]));
+  const opts = '<option value="">제품 선택</option>' + productChoices().map(p => `<option>${esc(p)}</option>`).join('');
+  const save = document.getElementById('unkSave'); const ch = unkState.changed;
+  const updSave = () => { if (!save) return; const k = Object.keys(ch).length; save.disabled = !k; save.textContent = k ? `${k.toLocaleString()}개 저장` : '저장'; };
+  const pages = () => Math.max(1, Math.ceil(rows.length / unkState.size));
+  const bar = () => { const P = pages(), p = unkState.page, from = p * unkState.size + 1, to = Math.min(rows.length, (p + 1) * unkState.size);
+    const nums = []; const add = i => nums.push(i); for (let i = 0; i < P; i++) if (i < 2 || i >= P - 2 || Math.abs(i - p) <= 2) add(i);
+    let html = '', prev = -1; for (const i of nums) { if (i - prev > 1) html += '<span class="pgdots">…</span>'; html += `<button class="pg ${i === p ? 'on' : ''}" data-pg="${i}">${i + 1}</button>`; prev = i; }
+    return `<label class="pgsize">한 번에 <select class="unksize">${UNK_SIZES.map(s => `<option value="${s}" ${s === unkState.size ? 'selected' : ''}>${s}개</option>`).join('')}</select> 보기</label>
+      <span class="pgrange">${from.toLocaleString()}~${to.toLocaleString()} / ${rows.length.toLocaleString()}개</span>
+      <span class="pgnav"><button class="pg" data-pg="${p - 1}" ${p === 0 ? 'disabled' : ''}>이전</button>${html}<button class="pg" data-pg="${p + 1}" ${p >= P - 1 ? 'disabled' : ''}>다음</button></span>`; };
+  const draw = (scroll) => {
+    if (unkState.page >= pages()) unkState.page = pages() - 1;
+    const part = rows.slice(unkState.page * unkState.size, (unkState.page + 1) * unkState.size);
+    document.getElementById('unklist').innerHTML = part.map(({ c, sp }) => `<div class="unkrow ${ch[c.n] ? 'picked' : ''}" data-n="${c.n}" data-as="${esc(c.as)}">
+      <img src="${esc(c.img || '')}" loading="lazy" onerror="this.onerror=null;this.src='${THUMB(c.n)}'" alt="">
+      <div class="ur-main"><div class="row" style="gap:6px">${fmtTag(c)}<span class="tag">${esc(c.a)}</span><span class="tag ${c.on ? 'on' : 'off'}">${c.on ? 'ON' : 'OFF'}</span>${sp ? `<span class="tag">광고비 ${man(sp)}</span>` : ''}</div>
+        <div class="fr-nm">${esc(c.nm)}</div><div class="muted">${esc(c.cp)} › ${esc(c.as)}</div>${c.m ? `<div style="font-size:12px">「${esc(c.m)}」</div>` : ''}</div>
+      ${isAdmin ? `<select class="unksel">${opts}</select>` : ''}</div>`).join('');
+    document.querySelectorAll('#unklist .unkrow').forEach(r => { const s = r.querySelector('.unksel'); if (s && ch[r.dataset.n]) s.value = ch[r.dataset.n]; });
+    for (const id of ['unkbarTop', 'unkbarBot']) document.getElementById(id).innerHTML = bar();
+    box.querySelectorAll('.unksize').forEach(s => s.onchange = () => { const first = unkState.page * unkState.size; unkState.size = +s.value; unkState.page = Math.floor(first / unkState.size); draw(true); });
+    box.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => { unkState.page = +b.dataset.pg; draw(true); });
+    document.querySelectorAll('#unklist .unksel').forEach(sel => sel.onchange = () => {
+      const row = sel.closest('.unkrow'), v = sel.value;
+      const ns = document.getElementById('unkSame').checked ? rows.filter(r => r.c.as === row.dataset.as).map(r => String(r.c.n)) : [row.dataset.n];
+      for (const n of ns) { if (v) ch[n] = v; else delete ch[n]; }
+      document.querySelectorAll('#unklist .unkrow').forEach(r => { if (ns.includes(r.dataset.n)) { const s = r.querySelector('.unksel'); s.value = v; r.classList.toggle('picked', !!v); } });
+      updSave();
+    });
+    if (scroll) box.scrollIntoView({ block: 'start' });
+  };
+  draw(false); updSave();
+  if (save) save.onclick = async () => { save.disabled = true; save.textContent = '저장 중...'; try { await saveProductOverrides({ ...ch }); unkState.changed = {}; location.hash = '#products'; location.reload(); } catch (e) { alert('저장 실패: ' + e.message); updSave(); } };
 }
 function productsPage() {
   const isAdmin = !!(window.ME && window.ME.is_admin);
