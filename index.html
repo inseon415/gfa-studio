@@ -230,6 +230,8 @@ button.pri{background:var(--brand);border-color:var(--brand)}button.pri:hover{ba
 .revlabel{display:block;font-size:12px;font-weight:700;color:var(--sub);margin:10px 0 4px}.revgrid textarea{width:100%}
 .histgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.histitem img{width:100%;border-radius:10px;border:1px solid var(--line)}
 .plinfo{margin-top:10px;background:var(--acc2);border-radius:8px;padding:8px 12px;font-size:13px}
+.unklist{display:flex;flex-direction:column;margin-top:10px}.unkrow{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #eef0f3}.unkrow.picked{background:var(--acc2)}
+.unkrow>img{width:96px;height:64px;object-fit:contain;background:#f3f5f8;border-radius:6px;flex:none}.ur-main{flex:1;min-width:0}.unksel{flex:none;min-width:170px}
 </style>
 
 </head>
@@ -247,6 +249,8 @@ button.pri{background:var(--brand);border-color:var(--brand)}button.pri:hover{ba
 <script type="text/plain" id="appsrc">
 "use strict";
 const D = window.__GFA_DATA__;
+const OVR = D.productOverrides || {};
+for (const c of D.creatives) if (OVR[c.n]) c.p = OVR[c.n];
 const C = new Map(D.creatives.map(c => [c.n, c]));
 const STATS = D.stats.map(([month, n, cost, proas, psales, pc, imp, click, roas]) => ({ month, n, cost, proas, psales, pc, imp, click, roas }));
 const RULE = D.rule;
@@ -406,12 +410,14 @@ function detail(n) {
       <p><b>이미지 특징</b><br>${esc(t.visual) || '-'}</p>
       ${multi ? `<p class="notice" style="padding:8px 10px">같은 이미지·문구로 다시 올린 소재 ${nos.length}개를 합쳐 보여 줍니다: ${nos.map(x => esc(C.get(x).nm) + ' (' + esc(C.get(x).as) + ')').join(', ')}</p>` : ''}
       ${c.link ? `<p><a href="${esc(c.link)}" target="_blank" rel="noopener">연결된 상품 페이지 열기</a></p>` : ''}
+      ${window.ME && window.ME.is_admin ? `<p class="row" style="gap:6px"><span class="muted">제품 바꾸기</span><select id="dprod"><option value="">${esc(c.p)} (지금)</option>${productChoices().filter(p => p !== c.p).map(p => `<option>${esc(p)}</option>`).join('')}</select><button id="dprodsave" disabled>저장</button></p>` : ''}
       <button class="pri" id="mkfrom">이 소재를 참고해 시안 만들기</button>
     </div></div>
     <h2 style="margin-top:18px">월별 성과</h2>
     <div class="tbl"><table><thead><tr><th>월</th>${multi ? '<th>소재</th>' : ''}<th class="n">총 비용</th><th class="n">구매완료 광고수익률</th><th class="n">구매완료 전환매출액</th><th class="n">구매완료 수</th><th class="n">노출</th><th class="n">클릭</th><th>위너</th></tr></thead><tbody>
     ${hist.map(s => `<tr class="${isWin(s) ? 'win' : ''}"><td>${s.month}</td>${multi ? `<td style="font-size:12px">${esc(C.get(s.n).nm)}</td>` : ''}<td class="n">${won(s.cost)}</td><td class="n">${pct(s.proas)}</td><td class="n">${won(s.psales)}</td><td class="n">${s.pc}</td><td class="n">${s.imp.toLocaleString()}</td><td class="n">${s.click.toLocaleString()}</td><td>${isWin(s) ? '위너' : ''}</td></tr>`).join('')}
     </tbody></table></div>`);
+  if ($('#dprod')) { $('#dprod').onchange = () => { $('#dprodsave').disabled = !$('#dprod').value; }; $('#dprodsave').onclick = async () => { const v = $('#dprod').value; if (!v) return; $('#dprodsave').disabled = true; try { await saveProductOverrides(Object.fromEntries(nos.map(x => [x, v]))); location.reload(); } catch (e) { alert('저장 실패: ' + e.message); $('#dprodsave').disabled = false; } }; }
   $('#mkfrom').onclick = () => { closeModal(); createState.product = c.p; createState.refs = [n]; location.hash = '#create'; };
 }
 
@@ -821,9 +827,45 @@ function toGfaSize(src, pk) {
     const s = Math.max(GW / img.width, GH / img.height); const w = img.width * s, h = img.height * s;
     x.drawImage(img, (GW - w) / 2, (GH - h) / 2, w, h); const sz = v => (v.length - v.indexOf(',') - 1) * 3 / 4; let q = 0.92, u = cv.toDataURL('image/jpeg', q); while (sz(u) > GMAX && q > 0.4) { q -= 0.06; u = cv.toDataURL('image/jpeg', q); } while (sz(u) < GMIN && q < 1) { q = Math.min(1, q + 0.03); u = cv.toDataURL('image/jpeg', q); } if (sz(u) < GMIN) { const p = cv.toDataURL('image/png'); if (sz(p) >= GMIN && sz(p) <= GMAX) u = p; } for (let amp = 1; sz(u) < GMIN && amp <= 6; amp++) { const d = x.getImageData(0, 0, GW, GH), pp = d.data; for (let i = 0; i < pp.length; i += 4) { const n = (Math.random() * 2 - 1) * amp; pp[i] = Math.max(0, Math.min(255, pp[i] + n)); pp[i + 1] = Math.max(0, Math.min(255, pp[i + 1] + n)); pp[i + 2] = Math.max(0, Math.min(255, pp[i + 2] + n)); } x.putImageData(d, 0, 0); u = cv.toDataURL('image/jpeg', 0.95); } res(u); }; img.onerror = rej; img.src = src; });
 }
+const EXTRA_PRODUCTS = ['고양이모래(종류 구분 없음)', '캣피지클리너', '캣버블샴푸', '여러 제품 묶음', '행사·프로모션'];
+const productChoices = () => [...REG_ORDER, ...EXTRA_PRODUCTS.filter(p => !REG_ORDER.includes(p))];
+async function saveProductOverrides(map) {
+  if (!window.sbClient) throw new Error('로그인 상태에서만 저장할 수 있습니다.');
+  const cur = (await window.sbClient.from('app_data').select('payload').eq('key', 'product_overrides').maybeSingle()).data?.payload || {};
+  const next = { ...cur, ...map };
+  const { error } = await window.sbClient.from('app_data').upsert({ key: 'product_overrides', payload: next, updated_at: new Date().toISOString() });
+  if (error) throw error;
+}
+function unknownBox(isAdmin) {
+  const list = D.creatives.filter(c => c.p === '[확인필요]');
+  if (!list.length) return '<section class="box" style="margin-bottom:22px"><h2 style="margin:0">제품 확인이 필요한 소재</h2><p class="muted" style="margin:6px 0 0">모두 지정됐어요. 👍</p></section>';
+  const spend = n => STATS.filter(s => s.n === n).reduce((a, s) => a + s.cost, 0);
+  const rows = list.map(c => ({ c, sp: spend(c.n) })).sort((a, b) => b.sp - a.sp);
+  const opts = '<option value="">제품 선택</option>' + productChoices().map(p => `<option>${esc(p)}</option>`).join('');
+  return `<section class="box unkbox" style="margin-bottom:22px"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2 style="margin:0">제품 확인이 필요한 소재 ${list.length}개</h2>
+    <p class="muted" style="margin:4px 0 0">소재 이름·광고 그룹 이름만으로 제품을 알 수 없었던 소재예요. 광고비가 많이 쓰인 순서예요.${isAdmin ? ' 제품을 고르고 「저장」을 누르면 사이트 전체(위너·분석·질문하기)에 바로 반영돼요.' : ' 제품 지정은 관리자만 할 수 있어요.'}</p></div>
+    ${isAdmin ? '<div class="row"><label class="row" style="gap:4px;font-size:13px"><input type="checkbox" id="unkSame" checked> 같은 광고 그룹 소재도 같은 제품으로</label><button class="pri" id="unkSave" disabled>저장</button></div>' : ''}</div>
+    <div class="unklist">${rows.map(({ c, sp }) => `<div class="unkrow" data-n="${c.n}" data-as="${esc(c.as)}">
+      <img src="${esc(c.img || '')}" onerror="this.onerror=null;this.src='${THUMB(c.n)}'" alt="">
+      <div class="ur-main"><div class="row" style="gap:6px">${fmtTag(c)}<span class="tag">${esc(c.a)}</span><span class="tag ${c.on ? 'on' : 'off'}">${c.on ? 'ON' : 'OFF'}</span>${sp ? `<span class="tag">광고비 ${man(sp)}</span>` : ''}</div>
+        <div class="fr-nm">${esc(c.nm)}</div><div class="muted">${esc(c.cp)} › ${esc(c.as)}</div>${c.m ? `<div style="font-size:12px">「${esc(c.m)}」</div>` : ''}</div>
+      ${isAdmin ? `<select class="unksel">${opts}</select>` : ''}</div>`).join('')}</div></section>`;
+}
+function bindUnknownBox() {
+  const save = document.getElementById('unkSave'); if (!save) return;
+  const changed = {};
+  document.querySelectorAll('.unksel').forEach(sel => sel.onchange = () => {
+    const row = sel.closest('.unkrow'), v = sel.value;
+    const targets = document.getElementById('unkSame').checked ? [...document.querySelectorAll('.unkrow')].filter(r => r.dataset.as === row.dataset.as) : [row];
+    for (const r of targets) { const s = r.querySelector('.unksel'); s.value = v; r.classList.toggle('picked', !!v); if (v) changed[r.dataset.n] = v; else delete changed[r.dataset.n]; }
+    save.disabled = !Object.keys(changed).length; save.textContent = Object.keys(changed).length ? `${Object.keys(changed).length}개 저장` : '저장';
+  });
+  save.onclick = async () => { save.disabled = true; save.textContent = '저장 중...'; try { await saveProductOverrides(changed); location.hash = '#products'; location.reload(); } catch (e) { alert('저장 실패: ' + e.message); save.disabled = false; save.textContent = '저장'; } };
+}
 function productsPage() {
   const isAdmin = !!(window.ME && window.ME.is_admin);
   app.innerHTML = `<h1>제품</h1><p class="sub" style="margin-bottom:14px">바이랩 제품 ${PRODUCT_LIST.length}개. 단상자·용기 이미지는 소재 만들기에서 제품 모습을 그대로 살리는 참고 이미지로 씁니다.${isAdmin ? ' 용기가 바뀌면 「이미지 바꾸기」로 올려 주세요.' : ''}</p>
+  ${unknownBox(isAdmin)}
   ${PRODUCT_LIST.length ? '' : '<p class="notice">등록된 제품이 없습니다.</p>'}
   <div class="grid">${PRODUCT_LIST.map((p, i) => {
     const wc = new Set(W.filter(w => w.p === p.name).map(w => w.g)).size; const cc = D.creatives.filter(c => c.p === p.name).length;
@@ -835,6 +877,7 @@ function productsPage() {
       <div class="row" style="margin-top:4px"><button class="pri" data-mk="${i}">이 제품으로 소재 만들기</button><a download="${esc(p.name)}.webp" href="${p.img}">이미지 받기</a>${isAdmin ? `<button data-rep="${i}">이미지 바꾸기</button>` : ''}</div>
       ${p.updatedAt ? `<div class="muted">이미지 등록 ${new Date(p.updatedAt).toLocaleDateString('ko-KR')}</div>` : ''}</div></div>`;
   }).join('')}</div>`;
+  bindUnknownBox();
   document.querySelectorAll('[data-mk]').forEach(b => b.onclick = () => { createState.product = PRODUCT_LIST[+b.dataset.mk].name; createState.refs = null; location.hash = '#create'; });
   document.querySelectorAll('[data-rep]').forEach(b => b.onclick = () => {
     const i = +b.dataset.rep; const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
@@ -1170,7 +1213,8 @@ async function loadData() {
   const thumbs = {}; data.filter(r => r.key.startsWith('thumbs')).forEach(r => Object.assign(thumbs, r.payload));
   const products = data.find(r => r.key === 'products')?.payload || [];
   const rule = data.find(r => r.key === 'rule')?.payload;
-  return { ...main, rule: rule || main.rule, thumbs, products };
+  const productOverrides = data.find(r => r.key === 'product_overrides')?.payload || {};
+  return { ...main, rule: rule || main.rule, thumbs, products, productOverrides };
 }
 let loginRun = null;
 function afterLogin() { if (!loginRun) loginRun = afterLoginInner().finally(() => { loginRun = null; }); return loginRun; }
