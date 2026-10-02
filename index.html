@@ -270,6 +270,29 @@ body.brand-drby main a{color:#0d6b4f}body.brand-drby .studio-hero a.fs-link{colo
 body.brand-drby .keybadge.ok{color:#083a2c}
 /* 두 로고 글자 높이 맞춤: BY LAB 은 위에 + 가 있어 글자가 이미지 높이의 66%, Dr.BY 는 거의 100% */
 .brand .bl img.lg-by{height:24px;transform:translateY(-4px)}.brand .bl img.lg-dr{height:16px}
+/* 시안 갤러리: 이미지 전체 보기 + 확대 */
+.gen .gimg{position:relative;aspect-ratio:1/1;background:#f1f3f6;display:flex;align-items:center;justify-content:center;cursor:zoom-in;overflow:hidden;border-bottom:1px solid var(--line)}
+.gen .gimg img{width:100%;height:100%;object-fit:contain;aspect-ratio:auto;background:transparent;display:block}
+.gen .gimg .zhint{position:absolute;right:10px;bottom:10px;background:rgba(15,23,42,.72);color:#fff;font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;opacity:0;transition:opacity .15s}
+.gen .gimg:hover .zhint{opacity:1}
+img.zoomable{cursor:zoom-in}
+#zoombox{position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.78);display:none;align-items:center;justify-content:center;padding:32px}
+#zoombox.show{display:flex}
+#zoombox .zin{position:relative;background:#fff;border-radius:14px;padding:18px 18px 12px;max-width:calc(100vw - 64px);max-height:calc(100vh - 64px);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+#zoombox .zimg{background:repeating-conic-gradient(#f1f3f6 0 25%,#fff 0 50%) 0 0/16px 16px;border-radius:8px;overflow:auto;display:flex;align-items:center;justify-content:center}
+#zoombox .zimg img{display:block;max-width:calc(100vw - 100px);max-height:calc(100vh - 140px);width:auto;height:auto}
+#zoombox .zcap{margin-top:10px;font-size:13px;color:#475569;text-align:center}
+#zoombox .zx{position:absolute;top:-14px;right:-14px;width:32px;height:32px;border-radius:50%;border:0;background:#fff;color:#0f172a;font-size:15px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.25);cursor:pointer;padding:0}
+/* 갤러리 필터 2줄 (제품 / 지면) */
+.galfilter{display:flex;align-items:flex-start;gap:10px;margin:0 0 8px}
+.galfilter .gfl{flex:0 0 36px;font-size:13px;font-weight:700;color:#475569;line-height:32px}
+.galfilter .galtabs{margin:0}
+.galfilter+.galfilter{margin-bottom:16px}
+.galtab.zero{opacity:.45}
+/* 소재 만들기 폼: 라벨 폭 고정으로 선택 칸 왼쪽선 맞춤 */
+.frow{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.frow .fl{flex:0 0 66px;font-weight:600;font-size:14px}
+.frow select{width:300px;max-width:100%}
 </style>
 
 </head>
@@ -358,7 +381,7 @@ const PLACEMENTS = {
   endcard: { label: '풀스크린 비디오 엔드카드', group: '기타', w: 828, h: 1472, min: 1, max: 400, where: '시리즈 앱 보상형 풀스크린 비디오', tip: '' },
 };
 const plOf = k => PLACEMENTS[k] || PLACEMENTS.feed_1x1;
-const plTag = k => { const p = plOf(k); return `${p.label} · ${p.w}×${p.h}`; };
+const plTag = k => { const p = plOf(k); return p.label.includes(p.w + '×' + p.h) ? p.label : `${p.label} · ${p.w}×${p.h}`; };
 const GFA_SIZE = 1200;
 const GFA_MAX_BYTES = 800 * 1024 * 0.98, GFA_MIN_BYTES = 80 * 1024 * 1.02; // GFA 피드형 80KB 이상 800KB 이하
 const imgKB = u => { u = String(u); return Math.round((u.length - u.indexOf(',') - 1) * 3 / 4 / 1024); };
@@ -403,6 +426,16 @@ async function orChat(body) {
 }
 
 // ---------- modal ----------
+function openZoom(src, cap) {
+  let z = document.getElementById('zoombox');
+  if (!z) { z = document.createElement('div'); z.id = 'zoombox'; z.innerHTML = '<div class="zin"><button class="zx" title="닫기 (Esc)">✕</button><div class="zimg"><img alt=""></div><div class="zcap"></div></div>'; document.body.appendChild(z);
+    z.onclick = e => { if (e.target === z || e.target.classList.contains('zx')) z.classList.remove('show'); };
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') z.classList.remove('show'); }); }
+  const im = z.querySelector('.zimg img'); z.querySelector('.zcap').textContent = cap || '';
+  im.onload = () => { z.querySelector('.zcap').textContent = (cap ? cap + ' · ' : '') + '원본 ' + im.naturalWidth + '×' + im.naturalHeight + 'px'; };
+  im.src = src; z.classList.add('show');
+}
+document.addEventListener('click', e => { const t = e.target.closest && e.target.closest('img.zoomable'); if (t) openZoom(t.src, t.dataset.cap || ''); });
 function openModal(html) { $('#mbody').innerHTML = html; $('#modal').classList.add('show'); }
 function closeModal() { $('#modal').classList.remove('show'); }
 $('#mclose').onclick = closeModal; $('#modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
@@ -1004,7 +1037,7 @@ async function createPage() {
     const copies = g.copies || []; const refs = g.refs || [];
     const when = local ? g.at : new Date(g.created_at).toLocaleString('ko-KR');
     const id = local ? g.id : g.id;
-    return `<div class="card gen" style="cursor:default"><img src="${g.image}"><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">${plTag(g.placement)} · ${imgKB(g.image)}KB</span><span class="tag">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
+    return `<div class="card gen" style="cursor:default"><div class="gimg" data-zoom="${g.id}" title="클릭하면 크게 봅니다"><img src="${g.image}" alt=""><span class="zhint">크게 보기</span></div><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">${plTag(g.placement)} · ${imgKB(g.image)}KB</span><span class="tag">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
       <div class="muted">${esc(when)}</div>
       ${g.revision_note ? `<div class="copy"><span>반영한 수정안</span>${esc(g.revision_note)}</div>` : ''}
       ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
@@ -1014,24 +1047,23 @@ async function createPage() {
       <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_${plOf(g.placement).w}x${plOf(g.placement).h}_${String(id).slice(0, 8)}.${String(g.image).startsWith('data:image/png') ? 'png' : 'jpg'}">내려받기 (${plOf(g.placement).w}×${plOf(g.placement).h})</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && olderOf(g).length ? `<button class="lnk" data-hist="${g.id}">이전 버전 ${olderOf(g).length}개 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
   };
   app.innerHTML = `<h1>소재 만들기</h1>
-  <p class="sub" style="margin-bottom:12px">제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 자동으로 받아 1200×1200 시안(새 문구 + 이미지)을 찍어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.</p>
+  <p class="sub" style="margin-bottom:12px">제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 자동으로 받아 고른 지면 규격에 맞는 시안(새 문구 + 이미지)을 찍어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.</p>
   <div class="two">
     <div class="box">
-      <div class="row" style="margin-bottom:10px"><label>제품 <select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></label>
-      
+      <div class="frow"><span class="fl">제품</span><select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
       <span class="muted">참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)</span></div>
+      <div class="frow"><span class="fl">광고 지면</span><select id="cpl">${['피드', '배너', '기타'].map(gp => `<optgroup label="${gp}">${Object.entries(PLACEMENTS).filter(([, p]) => p.group === gp).map(([k, p]) => `<option value="${k}" ${(createState.placement || 'feed_1x1') === k ? 'selected' : ''}>${p.label} (${p.w}×${p.h})</option>`).join('')}</optgroup>`).join('')}</select></div>
+      <div class="plinfo" id="plinfo" style="margin:0 0 12px 76px"></div>
       ${pinfo ? `<div class="pmini">${pinfo.img ? `<img src="${pinfo.img}">` : ""}<div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
       ${pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 지면 형태로는 아직 위너가 없어서, 다른 형태의 위너를 참고로 보여 드립니다.</p>`}${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
       <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w)}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
       <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
       <textarea id="cd" rows="3" placeholder="예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이"></textarea>
       <div class="row" style="margin-top:10px">
-        <label>광고 지면 <select id="cpl">${['피드', '배너', '기타'].map(gp => `<optgroup label="${gp}">${Object.entries(PLACEMENTS).filter(([, p]) => p.group === gp).map(([k, p]) => `<option value="${k}" ${(createState.placement || 'feed_1x1') === k ? 'selected' : ''}>${p.label} (${p.w}×${p.h})</option>`).join('')}</optgroup>`).join('')}</select></label>
         <label>장수 <select id="cn"><option>1</option><option>2</option><option>3</option></select></label>
         <button class="pri" id="mkreq" ${sb ? '' : 'disabled'}>Aside에게 제작 요청</button>
         <button id="mkprompt">시안 요청문 복사용</button>
       </div>
-      <div class="plinfo" id="plinfo"></div>
       <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">내 AI 키로 바로 만들기 (OpenRouter 크레딧 필요)</summary>
         <div class="row" style="margin-top:8px"><button id="mkai" ${hasKey ? '' : 'disabled'}>문구(Claude) + 이미지(GPT) 바로 만들기</button>${hasKey ? '' : '<button class="lnk" id="setk2">AI 키 연결</button>'}</div>
       </details>
@@ -1046,21 +1078,32 @@ async function createPage() {
     </div>
   </div>
   <section style="margin-top:28px"><h2>팀 시안 갤러리 ${gens.length}개</h2><p class="muted" style="margin-bottom:10px">로그인한 팀원 모두가 같이 봅니다. 광고에 올리기 전에 문구·제품 표기를 꼭 확인해 주세요.</p>
-  ${gens.length ? `<div class="galtabs" id="galtabs">${[['', '전체', gens.length]].concat(ordP(new Set(gens.map(g => g.product))).map(p => [p, p, gens.filter(g => g.product === p).length])).map(([v, label, n]) => `<button class="galtab ${(createState.gal || '') === v ? 'on' : ''}" data-gal="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('')}</div>` : ''}
+  ${gens.length ? `<div class="galfilter"><span class="gfl">제품</span><div class="galtabs" id="galtabs"></div></div><div class="galfilter"><span class="gfl">지면</span><div class="galtabs" id="galpltabs"></div></div>` : ''}
   <div class="grid" id="galgrid"></div></section>
   ${locals.length ? `<section><h2>이 브라우저에만 있는 시안 ${locals.length}개</h2><div class="grid">${locals.map(g => genCard(g, true)).join('')}</div></section>` : ''}`;
   if (createState.gal && !gens.some(g => g.product === createState.gal)) createState.gal = '';
+  if (createState.galPl && !gens.some(g => (g.placement || 'feed_1x1') === createState.galPl)) createState.galPl = '';
+  const gPl = g => g.placement || 'feed_1x1';
+  const plOrder = Object.keys(PLACEMENTS);
+  const plShort = k => { const p = plOf(k); return p.label.includes(p.w + '×' + p.h) ? p.label : p.label + ' ' + p.w + '×' + p.h; };
   const drawGal = () => {
-    const list = createState.gal ? gens.filter(g => g.product === createState.gal) : gens;
-    $('#galgrid').innerHTML = list.map(g => genCard(g, false)).join('') || '<p class="muted">아직 없습니다.</p>';
-    document.querySelectorAll('#galtabs .galtab').forEach(b => b.classList.toggle('on', b.dataset.gal === (createState.gal || '')));
-    $('#galgrid').querySelectorAll('[data-hist]').forEach(el => el.onclick = () => { const g = gens.find(x => x.id === el.dataset.hist); const old = olderOf(g); openModal(`<h2>이전 버전</h2><p class="sub">지금 갤러리에는 최신 버전(v${g.version || 1})만 보여요. 이전 버전은 여기서만 볼 수 있어요.</p><div class="histgrid">${old.map(o => `<div class="histitem"><img src="${o.image}"><div class="row" style="gap:6px;margin-top:6px"><span class="tag ${(o.version || 1) === 1 ? '' : 'on'}">${(o.version || 1) === 1 ? '원본' : '수정본 v' + o.version}</span><span class="muted">${new Date(o.created_at).toLocaleString('ko-KR')}</span></div>${o.revision_note ? `<div class="muted" style="margin-top:4px">수정안: ${esc(o.revision_note)}</div>` : ''}<a href="${o.image}" download="GFA시안_${esc(o.product)}_v${o.version || 1}_${String(o.id).slice(0, 8)}.jpg">내려받기</a></div>`).join('')}</div>`); });
+    const byPl = createState.galPl ? gens.filter(g => gPl(g) === createState.galPl) : gens;
+    const byPr = createState.gal ? gens.filter(g => g.product === createState.gal) : gens;
+    const list = byPl.filter(g => !createState.gal || g.product === createState.gal);
+    if ($('#galtabs')) {
+      $('#galtabs').innerHTML = [['', '전체', byPl.length]].concat(ordP(new Set(gens.map(g => g.product))).map(p => [p, p, byPl.filter(g => g.product === p).length])).map(([v, label, n]) => `<button class="galtab ${(createState.gal || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-gal="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
+      $('#galpltabs').innerHTML = [['', '전체', byPr.length]].concat([...new Set(gens.map(gPl))].sort((a, b) => plOrder.indexOf(a) - plOrder.indexOf(b)).map(k => [k, plShort(k), byPr.filter(g => gPl(g) === k).length])).map(([v, label, n]) => `<button class="galtab ${(createState.galPl || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-galpl="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
+      document.querySelectorAll('#galtabs .galtab').forEach(b => b.onclick = () => { createState.gal = b.dataset.gal; drawGal(); });
+      document.querySelectorAll('#galpltabs .galtab').forEach(b => b.onclick = () => { createState.galPl = b.dataset.galpl; drawGal(); });
+    }
+    $('#galgrid').innerHTML = list.map(g => genCard(g, false)).join('') || '<p class="muted">이 조건의 시안이 없습니다.</p>';
+    $('#galgrid').querySelectorAll('[data-zoom]').forEach(el => el.onclick = () => { const g = gens.find(x => x.id === el.dataset.zoom); openZoom(g.image, g.product + ' · ' + plTag(g.placement) + (g.version > 1 ? ' · 수정본 v' + g.version : '')); });
+    $('#galgrid').querySelectorAll('[data-hist]').forEach(el => el.onclick = () => { const g = gens.find(x => x.id === el.dataset.hist); const old = olderOf(g); openModal(`<h2>이전 버전</h2><p class="sub">지금 갤러리에는 최신 버전(v${g.version || 1})만 보여요. 이전 버전은 여기서만 볼 수 있어요.</p><div class="histgrid">${old.map(o => `<div class="histitem"><img src="${o.image}" class="zoomable" title="클릭하면 크게 봅니다"><div class="row" style="gap:6px;margin-top:6px"><span class="tag ${(o.version || 1) === 1 ? '' : 'on'}">${(o.version || 1) === 1 ? '원본' : '수정본 v' + o.version}</span><span class="muted">${new Date(o.created_at).toLocaleString('ko-KR')}</span></div>${o.revision_note ? `<div class="muted" style="margin-top:4px">수정안: ${esc(o.revision_note)}</div>` : ''}<a href="${o.image}" download="GFA시안_${esc(o.product)}_v${o.version || 1}_${String(o.id).slice(0, 8)}.jpg">내려받기</a></div>`).join('')}</div>`); });
     $('#galgrid').querySelectorAll('[data-rev]').forEach(el => el.onclick = () => openRevision(gens.find(x => x.id === el.dataset.rev)));
     $('#galgrid').querySelectorAll('[data-gdel]').forEach(el => el.onclick = async () => { if (!confirm('팀 갤러리에서 이 시안을 지울까요?')) return; const { error } = await sb.from('generations').delete().eq('id', el.dataset.gdel); if (error) alert(error.message); createPage(); });
   };
   drawGal();
-  document.querySelectorAll('#galtabs .galtab').forEach(b => b.onclick = () => { createState.gal = b.dataset.gal; drawGal(); });
-  const drawPl = () => { const k = $('#cpl').value; createState.placement = k; const p = plOf(k); $('#plinfo').innerHTML = `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.min > 1 ? p.min + 'KB 이상 ' : ''}${p.max >= 1000 ? (p.max / 1000).toFixed(1) + 'MB' : p.max + 'KB'} 이하 · JPG/RGB<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>`; };
+  const drawPl = () => { const k = $('#cpl').value; createState.placement = k; const p = plOf(k); $('#plinfo').innerHTML = `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.min > 1 ? p.min + 'KB 이상 ' : ''}${p.max >= 1000 ? (p.max / 1000).toFixed(1) + 'MB' : p.max + 'KB'} 이하 · ${/^smartchannel/.test(k) ? 'PNG(투명 배경)' : 'JPG/RGB'}<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>`; };
   $('#cpl').onchange = () => { drawPl(); createState.refs = null; createPage(); }; drawPl();
   if ($('#setk2')) $('#setk2').onclick = openSettings;
   $('#rfq').onclick = () => createPage();
