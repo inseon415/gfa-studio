@@ -100,6 +100,7 @@ tr.win td{background:#f0fdf4}
 .pmini{display:flex;gap:12px;align-items:center;background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
 .pmini img{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:8px}
 pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;max-height:260px;overflow:auto}
+.fbadge{position:absolute;left:6px;bottom:6px;background:rgba(15,23,42,.72);color:#fff;font-size:11px;font-weight:600;line-height:1;padding:4px 6px;border-radius:4px;pointer-events:none}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style id="studio-theme">
@@ -465,7 +466,7 @@ function card(w) {
       <div class="kv"><span>총 비용</span><span>${won(w.cost)}</span></div>
       <div class="kv"><span>구매완료 수</span><span>${w.pc.toLocaleString()}건</span></div>
       <div class="copy"><span>광고 문구</span>${esc(w.m) || '<i class="muted">없음</i>'}</div>
-      <div class="copy"><span>이미지 속 문구</span>${esc(w.it) || '<i class="muted">없음</i>'}</div>
+      <div class="copy"><span>이미지 속 문구</span>${esc(w.it) || '<i class="muted">아직 안 읽었어요 (자동으로 채우는 중)</i>'}</div>
     </div></article>`;
 }
 function groupCard(g) {
@@ -483,7 +484,7 @@ function groupCard(g) {
       <div class="kv"><span>구매완료 수${many ? ' <span class="muted">(합계)</span>' : ''}</span><span>${g.rows.reduce((a, r) => a + r.pc, 0).toLocaleString()}건</span></div>
       ${many ? `<div class="kv"><span class="muted">최고 달 ROAS</span><span class="muted">${pct(g.best)}</span></div>` : ''}
       <div class="copy"><span>광고 문구</span>${esc(g.m) || '<i class="muted">없음</i>'}</div>
-      <div class="copy"><span>이미지 속 문구</span>${esc(g.it) || '<i class="muted">없음</i>'}</div>
+      <div class="copy"><span>이미지 속 문구</span>${esc(g.it) || '<i class="muted">아직 안 읽었어요 (자동으로 채우는 중)</i>'}</div>
     </div></article>`;
 }
 function bindCards(root) { root.querySelectorAll('.card[data-n]').forEach(el => el.onclick = () => detail(+el.dataset.n)); }
@@ -617,7 +618,7 @@ function topCard(g, i) {
       <div class="kv"><span>총 비용</span><span>${won(g.costSum)}</span></div>
       <div class="kv"><span>위너 기간</span><span>${g.mc}개월 · ${span}</span></div>
       <div class="copy clamp"><span>광고 문구</span>${esc(g.m) || '<i class="muted">없음</i>'}</div>
-      <div class="copy clamp"><span>이미지 속 문구</span>${esc(g.it) || '<i class="muted">없음</i>'}</div>
+      <div class="copy clamp"><span>이미지 속 문구</span>${esc(g.it) || '<i class="muted">아직 안 읽었어요 (자동으로 채우는 중)</i>'}</div>
     </div></article>`;
 }
 function home() {
@@ -901,11 +902,19 @@ const idb = (() => {
   const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction('gen', mode); const s = t.objectStore('gen'); const out = fn(s); t.oncomplete = () => res(out.result ?? out); t.onerror = () => rej(t.error); }); };
   return { all: () => tx('readonly', s => s.getAll()), put: v => tx('readwrite', s => s.put(v)), del: id => tx('readwrite', s => s.delete(id)) };
 })();
-const PL_FMT = { feed_1x1: ['feed_1x1'], feed_16x9: ['feed_16x9', 'feed_1x1'], feed_2x3: ['feed_2x3', 'feed_1x1'], collection: ['collection', 'feed_1x1'], mda_banner: ['mda_banner'], native_thumb: ['native_pc', 'native_mo'], shopping: ['shopping'], smartchannel: ['smartchannel'], smartchannel_160: ['smartchannel'], smartchannel_280: ['smartchannel'], webtoon_big: ['feed_1x1'], video_916: ['feed_video', 'feed_1x1'] };
+// 지면별 참고 위너: 같은 지면 위너가 먼저, 없으면 가장 비슷한 지면(2번째 묶음)으로 대신
+const PL_REF = { feed_1x1: [['feed_1x1']], feed_16x9: [['feed_16x9'], ['feed_1x1']], feed_2x3: [['feed_2x3'], ['feed_1x1']], collection: [['collection'], ['feed_1x1']], mda_banner: [['mda_banner']], native_thumb: [['native_pc', 'native_mo']], shopping: [['shopping']], smartchannel: [['smartchannel']], smartchannel_160: [['smartchannel']], smartchannel_280: [['smartchannel']], webtoon_big: [['webtoon_big'], ['feed_1x1']], video_916: [['feed_video'], ['feed_1x1']] };
+const PL_FMT = Object.fromEntries(Object.entries(PL_REF).map(([k, t]) => [k, t.flat()]));
+const PROMO = '행사·프로모션';
 function productRefs(p, pk) {
-  const fm = PL_FMT[pk || createState.placement || 'feed_1x1'];
-  if (fm) { const base = productRefsAll(p, W.filter(w => fm.includes(w.fmt))); if (base.list.length) return { ...base, fmtMatch: true }; }
-  return { ...productRefsAll(p, W), fmtMatch: !fm };
+  const tiers = PL_REF[pk || createState.placement || 'feed_1x1'];
+  if (!tiers) return { ...productRefsAll(p, W), fmtMatch: true, tier: 0 };
+  const inT = t => W.filter(w => t.includes(w.fmt));
+  // 1) 이 제품의 위너를 같은 지면 → 비슷한 지면 순으로
+  for (let i = 0; i < tiers.length; i++) { const own = productRefsAll(p, inT(tiers[i])); if (own.own) return { ...own, fmtMatch: i === 0, tier: i, used: tiers[i] }; }
+  // 2) 이 제품 위너가 없으면 다른 제품 위너를 같은 지면 → 비슷한 지면 순으로
+  for (let i = 0; i < tiers.length; i++) { const any = productRefsAll(p, inT(tiers[i])); if (any.list.length) return { ...any, fmtMatch: i === 0, tier: i, used: tiers[i] }; }
+  return { ...productRefsAll(p, W), fmtMatch: false, tier: 9 };
 }
 function productRefsAll(p, WW) {
   const W = WW;
@@ -1052,7 +1061,8 @@ function openRevision(g) {
 async function createPage() {
   const hasKey = !!getKey();
   const sb = window.sbClient;
-  const CREATE_PRODUCTS = REG_ORDER.length ? REG_ORDER : PRODUCTS;
+  const CREATE_PRODUCTS = (REG_ORDER.length ? REG_ORDER : PRODUCTS).filter(p => p !== PROMO).concat([PROMO]);
+  const isPromo = createState.product === PROMO;
   if (!createState.product || !CREATE_PRODUCTS.includes(createState.product)) createState.product = CREATE_PRODUCTS.includes('페이스클렌징') ? '페이스클렌징' : CREATE_PRODUCTS[0];
   const pr = productRefs(createState.product, createState.placement); const refsAll = pr.list;
   const pinfo = productInfo(createState.product);
@@ -1095,10 +1105,11 @@ async function createPage() {
       <div class="frow"><span class="fl">광고 지면</span><select id="cpl">${['피드', '배너', '기타'].map(gp => `<optgroup label="${gp}">${Object.entries(PLACEMENTS).filter(([, p]) => p.group === gp).map(([k, p]) => `<option value="${k}" ${(createState.placement || 'feed_1x1') === k ? 'selected' : ''}>${p.label} (${p.w}×${p.h})</option>`).join('')}</optgroup>`).join('')}</select></div>
       <div class="plinfo" id="plinfo" style="margin:0 0 12px 76px"></div>
       ${pinfo ? `<div class="pmini">${pinfo.img ? `<img src="${pinfo.img}">` : ""}<div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
-      ${pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 지면 형태로는 아직 위너가 없어서, 다른 형태의 위너를 참고로 보여 드립니다.</p>`}${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
-      <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w)}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
+      ${isPromo ? `<div class="pmini"><div><b>행사·프로모션</b> <span class="muted">브랜드데이·쿠폰·기획전 같은 행사 소재</span><div style="font-size:12px">아래 「방향」 칸에 <b>행사 이름 · 기간 · 혜택</b>을 적어 주세요. 함께 보여 줄 제품이 있으면 제품 이름도 적어 주시면 그 제품 사진을 그대로 넣습니다.</div></div></div>` : ''}
+      ${pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">${esc(plOf(createState.placement).label)} 지면은 아직 위너 기준을 넘은 소재가 없어요. 그래서 ${pr.used ? `가장 비슷한 <b>${esc(FMT[pr.used[0]] || pr.used[0])}</b>` : '다른 지면의'} 위너를 대신 보여 드려요. 문구·분위기만 참고하고 시안은 ${plOf(createState.placement).w}×${plOf(createState.placement).h} 크기로 만듭니다.</p>`}${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
+      <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`)}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
       <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
-      <textarea id="cd" rows="3" placeholder="예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이"></textarea>
+      <textarea id="cd" rows="3" placeholder="${isPromo ? '예) 10월 브랜드데이, 10/15~10/17, 전 제품 쿠폰. 아이즈·조인트 같이 보여 주기' : '예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이'}"></textarea>
       <div class="row" style="margin-top:10px">
         <label>장수 <select id="cn"><option>1</option><option>2</option><option>3</option></select></label>
         <button class="pri" id="mkreq" ${sb ? '' : 'disabled'}>Aside에게 제작 요청</button>
@@ -1163,6 +1174,7 @@ async function createPage() {
   const refsSel = () => createState.refs.map(n => refsAll.find(w => w.n === n)).filter(Boolean);
   $('#mkreq').onclick = async () => {
     if (!createState.refs.length) return alert('참고할 위너를 1개 이상 골라 주세요.');
+    if (isPromo && !$('#cd').value.trim()) { $('#cd').focus(); return alert('행사 소재는 「방향」 칸에 행사 이름·기간·혜택을 적어 주세요.'); }
     $('#mkreq').disabled = true;
     const { error } = await sb.from('creative_requests').insert({ brand: BRAND, placement: createState.placement || 'feed_1x1', product: createState.product, direction: $('#cd').value.trim(), refs: createState.refs, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
     if (error) { alert('요청 실패: ' + error.message); $('#mkreq').disabled = false; return; }
