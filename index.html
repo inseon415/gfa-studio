@@ -326,7 +326,9 @@ const D = window.__GFA_DATA__;
 const BRAND = window.__GFA_BRAND__ || 'bylab';
 const BRANDS = { bylab: { name: '바이랩', accounts: ['바이랩', '바이랩 2'] }, drby: { name: '닥터바이', en: 'Dr.BY', accounts: ['Dr 강아지', 'Dr 강아지2', 'Dr 고양이'] } };
 const BN = BRANDS[BRAND].name;
-const DR_PRODUCT_NAMES = ["캣엔자임","캣브레스","캣카밍","캣실크더마","카밍 프로바이오틱스","스킨 프로바이오틱스","힙앤조인트","브레스","하트업","아이즈","스킨앤코트","이뮤가드","초유단백질","오메가3","지중해 오븐베이크","레날","비타징크","리퀴드밀","리버스에이징"];
+const DR_PRODUCT_NAMES = ["바다&우주트릿","캣시크릿밸런스","GI케어","베지케어","키토치카츄"];
+// 닥터바이 질문용 별칭 (긴 말 먼저). 힙앤조인트 = 힙앤조인트 스위프트, 조인트(유리병)와 다른 제품
+const DR_ALIAS = [["힙앤조인트스위프트","힙앤조인트 스위프트"],["힙&조인트스위프트","힙앤조인트 스위프트"],["힙앤조인트","힙앤조인트 스위프트"],["힙&조인트","힙앤조인트 스위프트"],["힙조인트","힙앤조인트 스위프트"],["조인트스위프트","힙앤조인트 스위프트"],["캣엔자임스위프트","캣엔자임 스위프트"],["캣엔자임","캣엔자임 스위프트"],["캣밸러스핏","캣밸런스핏"],["밸런스핏","캣밸런스핏"],["카밍프바","카밍 프로바이오틱스"],["스킨프바","스킨 프로바이오틱스"],["캣프바","캣프로바이오틱스"],["스앤코","스킨앤코트"],["치카볼메가","캣치카볼 메가"],["액티브오메가","액티브 오메가 리솔브"],["아이즈케어","아이즈 케어 플러스"],["오븐베이크","지중해 오븐베이크"]];
 D.creatives = D.creatives.filter(c => (c.b || 'bylab') === BRAND);
 { const keep = new Set(D.creatives.map(c => c.n)); D.stats = D.stats.filter(s => keep.has(s[1])); }
 if (BRAND === 'drby') { D.rule = D.ruleDr || D.rule; D.products = (D.productsDr && D.productsDr.length) ? D.productsDr : DR_PRODUCT_NAMES.map(name => ({ name, label: '', size: '', look: '', img: '' })); }
@@ -786,9 +788,10 @@ function parseQ(q) {
   const now = new Date(); const cy = now.getFullYear();
   const f = { products: [], months: null, accounts: [], seasons: [], top: null, notes: [] };
   // products: exact names first, then hints
-  const nq = q.replace(/\s+/g, '');
-  const exact = [...new Set([...ALL_PRODUCTS, ...REG_ORDER])].filter(p => p !== '[확인필요]' && nq.includes(p.replace(/\s+/g, '')));
-  const exactClean = exact.filter(p => !exact.some(o => o !== p && o.includes(p)));
+  let nq = q.replace(/\s+/g, '');
+  const exactClean = [];
+  if (BRAND === 'drby') for (const [w, p] of DR_ALIAS) if (nq.includes(w)) { if (!exactClean.includes(p)) exactClean.push(p); nq = nq.split(w).join('|'); }
+  for (const p of [...new Set([...ALL_PRODUCTS, ...REG_ORDER])].filter(p => p !== '[확인필요]').sort((a, b) => b.replace(/\s+/g, '').length - a.replace(/\s+/g, '').length)) { const k = p.replace(/\s+/g, ''); if (nq.includes(k)) { if (!exactClean.includes(p)) exactClean.push(p); nq = nq.split(k).join('|'); } }
   if (exactClean.length) f.products = exactClean; else { const h = PWORDS.find(([w]) => q.includes(w)); if (h) { f.products = [].concat(h[1]); f.notes.push(`「${h[0]}」 → ${[].concat(h[1]).join(', ')}`); } }
   if (/바이랩\s*2/.test(q)) f.accounts.push('바이랩 2'); else if (/바이랩(?!\s*2)/.test(q) && /계정/.test(q)) f.accounts.push('바이랩'); for (const a of BRANDS[BRAND].accounts) if (q.replace(/\s+/g, '').includes(a.replace(/\s+/g, ''))) f.accounts.push(a);
   f.seasons = SEASONS.filter(s => q.includes(s));
@@ -918,7 +921,8 @@ function productRefs(p, pk) {
 }
 function productRefsAll(p, WW) {
   const W = WW;
-  const pick = list => { const best = new Map(); for (const w of list) { const b = best.get(w.g); if (!b || w.proas > b.proas) best.set(w.g, w); } return [...best.values()].sort((a, b) => b.proas - a.proas); };
+  const simKey = w => { const s = String(w.it || '').replace(/[^가-힣A-Za-z0-9]/g, ''); return w.it && w.it !== '(글자 없음)' && s.length >= 8 ? 's:' + w.fmt + '|' + s.slice(0, 24) : w.g; };
+  const pick = list => { const best = new Map(), cnt = new Map(); for (const w of list) { const k = simKey(w); if (!cnt.has(k)) cnt.set(k, new Set()); cnt.get(k).add(w.n); const b = best.get(k); if (!b || w.proas > b.proas) best.set(k, w); } return [...best.values()].map(w => ({ ...w, sim: cnt.get(simKey(w)).size })).sort((a, b) => b.proas - a.proas); };
   const own = pick(W.filter(w => w.p === p));
   if (own.length) return { list: own, own: true };
   const fam = [LITTERS, ['스킨테라피 샴푸', '스킨테라피 트리트먼트', '스킨밸런스샴푸']].find(f => f.includes(p));
@@ -1107,7 +1111,7 @@ async function createPage() {
       ${pinfo ? `<div class="pmini">${pinfo.img ? `<img src="${pinfo.img}">` : ""}<div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
       ${isPromo ? `<div class="pmini"><div><b>행사·프로모션</b> <span class="muted">브랜드데이·쿠폰·기획전 같은 행사 소재</span><div style="font-size:12px">아래 「방향」 칸에 <b>행사 이름 · 기간 · 혜택</b>을 적어 주세요. 함께 보여 줄 제품이 있으면 제품 이름도 적어 주시면 그 제품 사진을 그대로 넣습니다.</div></div></div>` : ''}
       ${pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">${esc(plOf(createState.placement).label)} 지면은 아직 위너 기준을 넘은 소재가 없어요. 그래서 ${pr.used ? `가장 비슷한 <b>${esc(FMT[pr.used[0]] || pr.used[0])}</b>` : '다른 지면의'} 위너를 대신 보여 드려요. 문구·분위기만 참고하고 시안은 ${plOf(createState.placement).w}×${plOf(createState.placement).h} 크기로 만듭니다.</p>`}${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
-      <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`)}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
+      <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`)}<div>${w.sim > 1 ? `<span class="muted" style="font-size:11px">같은 이미지 소재 ${w.sim}개 중 최고</span><br>` : ''}<b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
       <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
       <textarea id="cd" rows="3" placeholder="${isPromo ? '예) 10월 브랜드데이, 10/15~10/17, 전 제품 쿠폰. 아이즈·조인트 같이 보여 주기' : '예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이'}"></textarea>
       <div class="row" style="margin-top:10px">
