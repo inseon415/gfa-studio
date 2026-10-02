@@ -294,6 +294,7 @@ img.zoomable{cursor:zoom-in}
 .frow{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .frow .fl{flex:0 0 66px;font-weight:600;font-size:14px}
 .frow select{width:300px;max-width:100%}
+.gen .gspec{font-size:13px;font-weight:600;color:#334155}
 </style>
 
 </head>
@@ -1038,8 +1039,9 @@ async function createPage() {
     const copies = g.copies || []; const refs = g.refs || [];
     const when = local ? g.at : new Date(g.created_at).toLocaleString('ko-KR');
     const id = local ? g.id : g.id;
-    return `<div class="card gen" style="cursor:default"><div class="gimg" data-zoom="${g.id}" title="클릭하면 크게 봅니다"><img src="${g.image}" alt=""><span class="zhint">크게 보기</span></div><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span><span class="tag">${plTag(g.placement)} · ${imgKB(g.image)}KB</span><span class="tag">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
-      <div class="muted">${esc(when)}</div>
+    return `<div class="card gen" style="cursor:default"><div class="gimg" data-zoom="${g.id}" title="클릭하면 크게 봅니다"><img src="${g.image}" alt=""><span class="zhint">크게 보기</span></div><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
+      <div class="gspec">${plTag(g.placement)} · ${imgKB(g.image)}KB</div>
+      <div class="muted">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))} · ${esc(when)}</div>
       ${g.revision_note ? `<div class="copy"><span>반영한 수정안</span>${esc(g.revision_note)}</div>` : ''}
       ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
       ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
@@ -1088,12 +1090,16 @@ async function createPage() {
   const plOrder = Object.keys(PLACEMENTS);
   const plShort = k => { const p = plOf(k); return p.label.includes(p.w + '×' + p.h) ? p.label : p.label + ' ' + p.w + '×' + p.h; };
   const drawGal = () => {
+    let byPr = createState.gal ? gens.filter(g => g.product === createState.gal) : gens;
+    const plKeys = [...new Set(byPr.map(gPl))];
+    if (createState.galPl && !plKeys.includes(createState.galPl)) createState.galPl = '';
+    if (plKeys.length < 2) createState.galPl = '';
     const byPl = createState.galPl ? gens.filter(g => gPl(g) === createState.galPl) : gens;
-    const byPr = createState.gal ? gens.filter(g => g.product === createState.gal) : gens;
     const list = byPl.filter(g => !createState.gal || g.product === createState.gal);
     if ($('#galtabs')) {
-      $('#galtabs').innerHTML = [['', '전체', byPl.length]].concat(ordP(new Set(gens.map(g => g.product))).map(p => [p, p, byPl.filter(g => g.product === p).length])).map(([v, label, n]) => `<button class="galtab ${(createState.gal || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-gal="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
-      $('#galpltabs').innerHTML = [['', '전체', byPr.length]].concat([...new Set(gens.map(gPl))].sort((a, b) => plOrder.indexOf(a) - plOrder.indexOf(b)).map(k => [k, plShort(k), byPr.filter(g => gPl(g) === k).length])).map(([v, label, n]) => `<button class="galtab ${(createState.galPl || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-galpl="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
+      $('#galtabs').innerHTML = [['', '전체', byPl.length]].concat(ordP(new Set(gens.map(g => g.product))).map(p => [p, p, byPl.filter(g => g.product === p).length])).filter(([v, , n]) => v === '' || n > 0 || v === createState.gal).map(([v, label, n]) => `<button class="galtab ${(createState.gal || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-gal="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
+      $('#galpltabs').closest('.galfilter').style.display = plKeys.length < 2 ? 'none' : '';
+      $('#galpltabs').innerHTML = [['', '전체', byPr.length]].concat(plKeys.sort((a, b) => plOrder.indexOf(a) - plOrder.indexOf(b)).map(k => [k, plShort(k), byPr.filter(g => gPl(g) === k).length])).map(([v, label, n]) => `<button class="galtab ${(createState.galPl || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-galpl="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
       document.querySelectorAll('#galtabs .galtab').forEach(b => b.onclick = () => { createState.gal = b.dataset.gal; drawGal(); });
       document.querySelectorAll('#galpltabs .galtab').forEach(b => b.onclick = () => { createState.galPl = b.dataset.galpl; drawGal(); });
     }
