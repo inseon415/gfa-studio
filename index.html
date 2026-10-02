@@ -258,8 +258,14 @@ const W = STATS.filter(isWin).map(s => {
   const c = C.get(s.n); const t = D.imgText[s.n] || {};
   return { ...c, ...s, season: seasonOf(s.month), year: +s.month.slice(0, 4), it: t.imageText || '', vis: t.visual || '' };
 }).sort((a, b) => b.month.localeCompare(a.month) || b.proas - a.proas);
-// 같은 소재 = 같은 소재 번호, 또는 이미지 속 문구·광고 문구가 같은 재업로드
-W.forEach(w => { w.g = w.it ? 'c:' + w.it + '|' + w.m : 'n:' + w.n; });
+const FMT = { feed_1x1: '피드 1:1', feed_16x9: '피드 16:9', feed_2x3: '피드 2:3', collection: '컬렉션형', feed_video: '피드 동영상', mda_banner: '모바일 DA 배너', smartchannel: '스마트채널', native_pc: 'PC 네이티브', native_mo: '모바일 네이티브', shopping: '쇼핑소식', communication: '커뮤니케이션 애드', webtoon_big: '웹툰 빅배너', video: '동영상', catalog: '카탈로그(다이나믹)', advoost: 'ADVoost', other: '기타' };
+const FMT_ORDER = Object.keys(FMT);
+const AREAS = ['피드', '네이버 메인', '서비스 통합', '스마트채널', '쇼핑', '커뮤니케이션', '동영상'];
+const dvName = d => d === 'PC' ? 'PC' : '모바일';
+const fmtTag = w => `<span class="tag fm" title="${esc((w.ar || []).join(' · '))}">${FMT[w.fmt] || '피드 1:1'} · ${dvName(w.dv)}</span>`;
+W.forEach(w => { w.fmt = w.fmt || 'feed_1x1'; w.dv = w.dv || 'MO'; w.ar = w.ar || ['피드']; });
+// 같은 소재 = 같은 소재 번호, 또는 같은 형태에서 이미지 속 문구·광고 문구가 같은 재업로드
+W.forEach(w => { w.g = w.it && w.it !== '(글자 없음)' ? 'c:' + w.fmt + '|' + w.it + '|' + w.m : 'n:' + w.n; });
 function groupWinners(list) {
   const m = new Map();
   for (const w of list) {
@@ -284,7 +290,10 @@ const PLACEMENTS = {
   feed_2x3: { label: '피드 2:3 세로형', group: '피드', w: 1200, h: 1800, min: 100, max: 1200, where: '피드 스크롤형·전면형', tip: '중요 요소는 정중앙 1080×1200, 단색 배경 금지' },
   collection: { label: '컬렉션형 상품 이미지', group: '피드', w: 600, h: 600, min: 20, max: 500, where: '피드 컬렉션형(2단·1+N·슬라이드), 광고 1개에 4~10장', tip: '540×540 안에 글자' },
   mda_banner: { label: '모바일 DA 배너', group: '배너', w: 1250, h: 560, min: 50, max: 250, where: '네이버 메인·서비스 통합(뉴스·카페·지식인 등) 배너', tip: '글자는 좌우 240px 안쪽, 우상단 AD 표시 자리 비움' },
-  native_thumb: { label: '네이티브 DA 썸네일', group: '배너', w: 342, h: 228, min: 10, max: 130, where: '모바일 M통합 네이티브·PC 네이티브(검색창·로그인 하단, 주제판, 기사 하단)·퍼포먼스 네트워크', tip: '글자 거의 없이, 사방 20px' },
+  smartchannel: { label: '스마트채널 750×200', group: '배너', w: 750, h: 200, min: 1, max: 300, where: '모바일 네이버 메인 상단 띠 배너, 메일·카페·블로그 등 (750×160·750×280도 함께 등록)', tip: '왼쪽 둥근 사진 + 오른쪽 2줄 카피 구성이 많아요' },
+  smartchannel_160: { label: '스마트채널 750×160', group: '배너', w: 750, h: 160, min: 1, max: 300, where: '스마트채널 (작은 화면용)', tip: '' },
+  smartchannel_280: { label: '스마트채널 750×280', group: '배너', w: 750, h: 280, min: 1, max: 300, where: '스마트채널 (큰 화면용)', tip: '' },
+  native_thumb: { label: '네이티브 썸네일 (PC·모바일)', group: '배너', w: 342, h: 228, min: 10, max: 130, where: '모바일 M통합 네이티브·PC 네이티브(검색창·로그인 하단, 주제판, 기사 하단)·퍼포먼스 네트워크', tip: '글자 거의 없이, 사방 20px' },
   shopping: { label: '쇼핑소식광고', group: '배너', w: 750, h: 500, min: 20, max: 500, where: '네이버플러스스토어 홈·장바구니·쇼핑 검색 (캠페인 목적: 쇼핑 프로모션)', tip: '텍스트 20% 이하' },
   webtoon_big: { label: '웹툰 빅배너', group: '배너', w: 1200, h: 1200, min: 80, max: 799, where: '웹툰 뷰어 엔딩컷·최하단', tip: '배경 필수, 그라데이션은 투톤만' },
   profile: { label: '프로필 이미지', group: '기타', w: 300, h: 300, min: 1, max: 200, where: '피드·네이티브 광고 공통 프로필', tip: '로고는 가운데 246×246' },
@@ -298,7 +307,7 @@ const GFA_SIZE = 1200;
 const GFA_MAX_BYTES = 800 * 1024 * 0.98, GFA_MIN_BYTES = 80 * 1024 * 1.02; // GFA 피드형 80KB 이상 800KB 이하
 const imgKB = u => { u = String(u); return Math.round((u.length - u.indexOf(',') - 1) * 3 / 4 / 1024); };
 const ALL_PRODUCTS = [...new Set(D.creatives.map(c => c.p))].sort();
-const THUMB = n => D.thumbs[n] || '';
+const THUMB = n => D.thumbs[n] || 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480"><rect width="100%" height="100%" fill="#eef3f9"/><text x="50%" y="50%" text-anchor="middle" font-family="sans-serif" font-size="26" fill="#6b7f99">자동 상품 이미지</text></svg>');
 const won = x => Math.round(x).toLocaleString('ko-KR') + '원';
 const man = x => (x >= 1e8 ? (x / 1e8).toFixed(1) + '억' : Math.round(x / 1e4).toLocaleString('ko-KR') + '만') + '원';
 const pct = x => (Math.round(x * 10) / 10).toLocaleString('ko-KR') + '%';
@@ -348,7 +357,7 @@ function card(w) {
   return `<article class="card" data-n="${w.n}">
     <img src="${THUMB(w.n)}" alt="${esc(w.nm)}" loading="lazy">
     <div class="cb">
-      <div class="row"><span class="tag p">${esc(w.p)}</span><span class="tag">${w.month}</span><span class="tag">${esc(w.a)}</span><span class="tag ${w.on ? 'on' : 'off'}">${w.on ? 'ON' : 'OFF'}</span></div>
+      <div class="row"><span class="tag p">${esc(w.p)}</span>${fmtTag(w)}<span class="tag">${w.month}</span><span class="tag">${esc(w.a)}</span><span class="tag ${w.on ? 'on' : 'off'}">${w.on ? 'ON' : 'OFF'}</span></div>
       <div class="nm">${esc(w.nm)}</div>
       <div class="kv"><span>구매완료 광고수익률</span><b>${pct(w.proas)}</b></div>
       <div class="kv"><span>구매완료 전환매출액</span><span class="sales">${won(w.psales)}</span></div>
@@ -364,7 +373,7 @@ function groupCard(g) {
   return `<article class="card" data-n="${g.n}">
     <img src="${THUMB(g.n)}" alt="${esc(g.nm)}" loading="lazy">
     <div class="cb">
-      <div class="row"><span class="tag p">${esc(g.p)}</span><span class="tag">${esc(g.a)}</span><span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span>${g.nos.length > 1 ? `<span class="tag" title="같은 이미지·문구로 다시 올린 소재">재업로드 ${g.nos.length}개 합침</span>` : ''}</div>
+      <div class="row"><span class="tag p">${esc(g.p)}</span>${fmtTag(g)}<span class="tag">${esc(g.a)}</span><span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span>${g.nos.length > 1 ? `<span class="tag" title="같은 이미지·문구로 다시 올린 소재">재업로드 ${g.nos.length}개 합침</span>` : ''}</div>
       <div class="nm">${esc(g.nm)}</div>
       <div class="row" style="gap:4px"><span class="muted">위너 ${ms.length}개월</span>${ms.length > 8 ? '<span class="muted">…</span>' : ''}${shown.map(m => `<span class="tag">${m.slice(2).replace('-', '.')}</span>`).join('')}</div>
       <div class="kv"><span>구매완료 광고수익률${many ? ' <span class="muted">(합산)</span>' : ''}</span><b>${pct(g.proasSum)}</b></div>
@@ -388,7 +397,8 @@ function detail(n) {
     <div><img src="${esc(c.img || '')}" onerror="this.onerror=null;this.src='${THUMB(n)}'" alt="">
       <p class="muted">원본 이미지는 네이버 서버에서 불러옵니다. 안 보이면 저장된 작은 이미지로 바뀝니다.</p></div>
     <div>
-      <div class="row"><span class="tag p">${esc(c.p)}</span><span class="tag">${esc(c.a)}</span><span class="tag ${c.on ? 'on' : 'off'}">${c.on ? 'ON' : 'OFF'}</span><span class="tag">위너 ${wins}개월</span></div>
+      <div class="row"><span class="tag p">${esc(c.p)}</span>${fmtTag({ fmt: c.fmt || 'feed_1x1', dv: c.dv || 'MO', ar: c.ar })}<span class="tag">${esc(c.a)}</span><span class="tag ${c.on ? 'on' : 'off'}">${c.on ? 'ON' : 'OFF'}</span><span class="tag">위너 ${wins}개월</span></div>
+      <p class="muted" style="margin:6px 0 0">노출 가능 게재위치: ${esc((c.ar || ['피드']).join(' · '))}${c.obj ? ' · 캠페인 목적 ' + esc({ CONVERSION: '웹사이트 전환', WEB_SITE_TRAFFIC: '인지도 및 트래픽', SHOPPING: '쇼핑 프로모션', WATCH_VIDEO: '동영상 조회', CATALOG: '카탈로그 판매', INSTALL_APP: '앱 전환', LEAD: '참여 유도', PMAX: 'ADVoost 쇼핑' }[c.obj] || c.obj) : ''}</p>
       <h2 style="margin-top:8px">${esc(c.nm)}</h2>
       <p class="muted">${esc(c.cp)} › ${esc(c.as)}${c.at ? ' · 만든 날 ' + c.at : ''}</p>
       <p><b>광고 문구</b><br>${esc(c.m) || '-'}</p>
@@ -487,15 +497,16 @@ function nextMonthBox() {
       ${REG_ORDER.includes(g.p) ? `<button class="mkalt" data-p="${esc(g.p)}" data-n="${g.n}">이걸로 소재 만들기</button>` : ''}</div>`).join('') || '<p class="muted">작년 같은 달 위너가 없어요.</p>'}
   </section>`;
 }
-function topWinners(k = 10) {
-  return groupWinners(W).map(g => ({ ...g, extra: g.salesSum - g.costSum, mc: g.months.length })).sort((a, b) => b.extra - a.extra).slice(0, k);
+const AUTO_FMT = ['catalog', 'advoost'];
+function topWinners(k = 10, fmt = '') {
+  return groupWinners(fmt ? W.filter(w => w.fmt === fmt) : W.filter(w => !AUTO_FMT.includes(w.fmt))).map(g => ({ ...g, extra: g.salesSum - g.costSum, mc: g.months.length })).sort((a, b) => b.extra - a.extra).slice(0, k);
 }
 function topCard(g, i) {
   const span = g.months.length > 1 ? `${g.months[0].slice(2).replace('-', '.')} ~ ${g.months.at(-1).slice(2).replace('-', '.')}` : g.months[0].slice(2).replace('-', '.');
   return `<article class="card topcard ${i < 3 ? 'podium' : ''}" data-n="${g.n}">
     <div class="timg"><img src="${THUMB(g.n)}" alt="${esc(g.nm)}" loading="lazy"><span class="rank r${i + 1}">${i + 1}</span></div>
     <div class="cb">
-      <div class="row"><span class="tag p">${esc(g.p)}</span><span class="tag">${esc(g.a)}</span><span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span></div>
+      <div class="row"><span class="tag p">${esc(g.p)}</span>${fmtTag(g)}<span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span></div>
       <div class="nm">${esc(g.nm)}</div>
       <div class="hero-metric"><span>광고비 대비 추가 매출</span><b>+${won(g.extra)}</b></div>
       <div class="kv"><span>구매완료 광고수익률</span><b>${pct(g.proasSum)}</b></div>
@@ -510,21 +521,23 @@ function home() {
   const top = topWinners(10);
   app.innerHTML = `
   <section class="studio-hero">
-    <span class="eyebrow">NAVER GFA · 디스플레이 · 웹사이트 전환</span>
+    <span class="eyebrow">NAVER GFA · 디스플레이 광고 · 광고 관리 전체</span>
     <h1>성과로 검증된 위너 소재를 한눈에</h1>
-    <p class="sub">바이랩 · 바이랩 2 계정의 「피드」 캠페인 소재(ON/OFF 전체)를 월별 성과로 누적 관리합니다.</p>
+    <p class="sub">바이랩 · 바이랩 2 계정의 모든 캠페인(웹사이트 전환·트래픽·쇼핑 프로모션 등) 소재를 게재 위치·디바이스별 월별 성과로 누적 관리합니다.</p>
     <div class="filmstrip"><span>위너 기준</span><span>한 달 총 비용 ${won(RULE.minCost)} 이상</span><span>구매완료 광고수익률 ${RULE.minPurchaseRoas}% 이상</span>${RULE.minPurchases ? `<span>구매완료 수 ${RULE.minPurchases}건 이상</span>` : ''}<a href="#analysis" class="fs-link">기준 자세히 보기</a></div>
   </section>
   ${statusBoard()}
   <div class="htwo">${fatigueBox()}${nextMonthBox()}</div>
   <section style="margin-top:28px">
     <div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2>역대 최고 위너 TOP 10</h2>
-      <p class="muted" style="margin:4px 0 0">순위 기준: 위너였던 달들의 <b>구매완료 전환매출액 − 총 비용</b> (광고비보다 더 벌어들인 매출). 효율과 규모를 함께 봅니다.</p></div>
+      <p class="muted" style="margin:4px 0 0">순위 기준: 위너였던 달들의 <b>구매완료 전환매출액 − 총 비용</b> (광고비보다 더 벌어들인 매출). 효율과 규모를 함께 봅니다. 「전체」는 직접 만든 소재만이고, 상품이 자동으로 나가는 카탈로그(다이나믹)는 따로 봅니다.</p></div>
       <a href="#winners">월별 위너는 「위너 소재」 탭에서 보기 →</a></div>
+    <div class="galtabs" id="toptabs" style="margin-top:12px">${[['', '전체']].concat(FMT_ORDER.filter(k => W.some(w => w.fmt === k)).map(k => [k, FMT[k]])).map(([k, l]) => `<button class="galtab ${k === '' ? 'on' : ''}" data-tf="${k}">${l}</button>`).join('')}</div>
     <div class="topgrid" id="hg">${top.map(topCard).join('')}</div>
   </section>
   <p class="muted">보관 중인 기간 ${MONTHS[0]} ~ ${LATEST} · 소재 ${D.creatives.length.toLocaleString()}개 · 위너 ${W.length}건(소재 ${new Set(W.map(w => w.g)).size}개) · 마지막 수집: ${new Date(D.collectedAt).toLocaleString('ko-KR')} · GFA는 2년이 지나면 자료를 볼 수 없지만, 이 사이트는 모은 달을 지우지 않고 계속 보관합니다 (매주 월요일 자동 수집).</p>`;
   bindCards(app);
+  app.querySelectorAll('[data-tf]').forEach(b => b.onclick = () => { app.querySelectorAll('[data-tf]').forEach(x => x.classList.toggle('on', x === b)); $('#hg').innerHTML = topWinners(10, b.dataset.tf).map(topCard).join('') || '<p class="muted">이 형태의 위너가 없어요.</p>'; bindCards($('#hg')); });
   app.querySelectorAll('.fat-row').forEach(el => el.onclick = e => { if (e.target.closest('.mkalt')) return; detail(+el.dataset.n); });
   app.querySelectorAll('.mkalt').forEach(b => b.onclick = e => { e.stopPropagation(); createState.product = b.dataset.p; createState.refs = [+b.dataset.n]; location.hash = '#create'; });
 }
@@ -532,7 +545,8 @@ function home() {
 // ---------- WINNERS ----------
 function qsParams() { const q = location.hash.split('?')[1] || ''; return Object.fromEntries(new URLSearchParams(q)); }
 function winnersPage() {
-  const f = Object.assign({ month: '', year: '', season: '', account: '', product: '', on: '', q: '', sort: 'recent' }, qsParams());
+  const f = Object.assign({ month: '', year: '', season: '', account: '', product: '', fmt: '', dv: '', area: '', on: '', q: '', sort: 'recent' }, qsParams());
+  const fmtsW = FMT_ORDER.filter(k => W.some(w => w.fmt === k));
   const years = [...new Set(MONTHS.map(m => m.slice(0, 4)))];
   const opt = (arr, v, all) => `<option value="">${all}</option>` + arr.map(x => `<option ${x === v ? 'selected' : ''}>${x}</option>`).join('');
   app.innerHTML = `<h1>위너 소재</h1><p class="sub" style="margin-bottom:12px">카드를 누르면 큰 이미지와 달마다 성과가 나옵니다.</p>
@@ -542,6 +556,9 @@ function winnersPage() {
     <select name="season">${opt(SEASONS, f.season, '계절 전체')}</select>
     <select name="account">${opt(['바이랩', '바이랩 2'], f.account, '계정 전체')}</select>
     <select name="product">${opt(PRODUCTS, f.product, '제품 전체')}</select>
+    <select name="fmt"><option value="">소재 형태 전체</option>${fmtsW.map(k => `<option value="${k}" ${f.fmt === k ? 'selected' : ''}>${FMT[k]} (${new Set(W.filter(w => w.fmt === k).map(w => w.g)).size})</option>`).join('')}</select>
+    <select name="area"><option value="">게재 위치 전체</option>${AREAS.map(a => `<option ${f.area === a ? 'selected' : ''}>${a}</option>`).join('')}</select>
+    <select name="dv"><option value="">디바이스 전체</option><option value="MO" ${f.dv === 'MO' ? 'selected' : ''}>모바일</option><option value="PC" ${f.dv === 'PC' ? 'selected' : ''}>PC</option></select>
     <select name="on"><option value="">ON/OFF 전체</option><option value="1" ${f.on === '1' ? 'selected' : ''}>지금 ON</option><option value="0" ${f.on === '0' ? 'selected' : ''}>지금 OFF</option></select>
     <input type="text" name="q" placeholder="문구·소재 이름 검색" value="${esc(f.q)}">
     <select name="sort"><option value="recent" ${f.sort === 'recent' ? 'selected' : ''}>최근에 위너된 순</option><option value="roas" ${f.sort === 'roas' ? 'selected' : ''}>구매 ROAS 높은 순</option><option value="cost" ${f.sort === 'cost' ? 'selected' : ''}>총 비용 큰 순</option></select>
@@ -551,7 +568,7 @@ function winnersPage() {
   <div class="grid" id="wg"></div>`;
   const apply = () => {
     const v = Object.fromEntries([...$('#wf').querySelectorAll('select,input')].map(e => [e.name, e.value]));
-    let list = W.filter(w => (!v.month || w.month === v.month) && (!v.year || String(w.year) === v.year) && (!v.season || w.season === v.season) && (!v.account || w.a === v.account) && (!v.product || w.p === v.product) && (v.on === '' || String(+w.on) === v.on)
+    let list = W.filter(w => (!v.month || w.month === v.month) && (!v.year || String(w.year) === v.year) && (!v.season || w.season === v.season) && (!v.account || w.a === v.account) && (!v.product || w.p === v.product) && (v.on === '' || String(+w.on) === v.on) && (!v.fmt || w.fmt === v.fmt) && (!v.dv || w.dv === v.dv) && (!v.area || (w.ar || []).includes(v.area))
       && (!v.q || (w.m + ' ' + w.it + ' ' + w.nm).toLowerCase().includes(v.q.toLowerCase())));
     let groups = groupWinners(list);
     if (v.sort === 'roas') groups.sort((a, b) => b.proasSum - a.proasSum); else if (v.sort === 'cost') groups.sort((a, b) => b.costSum - a.costSum); else groups.sort((a, b) => b.latest.localeCompare(a.latest) || b.proasSum - a.proasSum);
@@ -637,6 +654,9 @@ function analysis() {
   app.innerHTML = `<h1>위너 분석</h1>
   <p class="sub" style="margin-bottom:16px">${MONTHS[0]} ~ ${LATEST} · 계절: 봄 3~5월, 여름 6~8월, 가을 9~11월, 겨울 12~2월 · 위너율 = 위너 수 ÷ 한 달 비용 ${won(RULE.minCost)} 이상 쓴 소재-월 수</p>
   ${ruleBox()}
+  <section><h2>게재 위치 · 소재 형태별</h2><p class="muted" style="margin:-6px 0 8px">위너율 = 위너 수 ÷ 한 달 ${won(RULE.minCost)} 이상 쓴 소재-월 수 · 구매 ROAS는 형태 전체 합산</p><div class="tbl"><table><thead><tr><th>소재 형태</th><th>디바이스</th><th class="n">소재-월(${won(RULE.minCost)}↑)</th><th class="n">위너</th><th class="n">위너 소재</th><th class="n">위너율</th><th class="n">총 비용</th><th class="n">구매완료 전환매출액</th><th class="n">구매 ROAS(전체)</th></tr></thead><tbody>
+  ${(() => { const rows = {}; for (const s of STATS) { const c = C.get(s.n) || {}; const k = (c.fmt || 'feed_1x1') + '|' + (c.dv || 'MO'); const r = rows[k] ||= { fmt: c.fmt || 'feed_1x1', dv: c.dv || 'MO', act: 0, cost: 0, sales: 0 }; r.cost += s.cost; r.sales += s.psales; if (s.cost >= RULE.minCost) r.act++; } for (const w of W) { const r = rows[w.fmt + '|' + w.dv]; if (r) { r.win = (r.win || 0) + 1; (r.g ||= new Set()).add(w.g); } } return Object.values(rows).sort((a, b) => b.cost - a.cost).map(r => `<tr><td><a href="#winners?fmt=${r.fmt}&dv=${r.dv}">${FMT[r.fmt] || r.fmt}</a></td><td>${dvName(r.dv)}</td><td class="n">${r.act}</td><td class="n">${r.win || 0}</td><td class="n">${r.g ? r.g.size : 0}</td><td class="n">${r.act ? pct((r.win || 0) / r.act * 100) : '-'}</td><td class="n">${man(r.cost)}</td><td class="n">${man(r.sales)}</td><td class="n">${r.cost ? pct(r.sales / r.cost * 100) : '-'}</td></tr>`).join(''); })()}
+  </tbody></table></div></section>
   <section><h2>제품별</h2><div class="tbl"><table><thead><tr><th>제품</th><th class="n">위너</th><th class="n">위너 소재</th><th class="n">위너율</th><th class="n">위너 총 비용</th><th class="n">위너 구매완료 전환매출액</th><th class="n">위너 구매 ROAS(합산)</th><th class="n">봄</th><th class="n">여름</th><th class="n">가을</th><th class="n">겨울</th></tr></thead><tbody>
   ${rows.map(r => `<tr><td><a href="#winners?product=${encodeURIComponent(r.p)}">${esc(r.p)}</a></td><td class="n">${r.win}</td><td class="n">${r.cre.size}</td><td class="n">${pct(r.win / r.act * 100)}</td><td class="n">${man(r.cost)}</td><td class="n">${man(r.sales)}</td><td class="n">${pct(r.sales / r.cost * 100)}</td>${SEASONS.map(s => `<td class="n" style="background:rgba(22,163,74,${(r.seasons[s] / heatMax * .45).toFixed(2)})">${r.seasons[s] || ''}</td>`).join('')}</tr>`).join('')}
   </tbody></table></div></section>
@@ -778,7 +798,14 @@ const idb = (() => {
   const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction('gen', mode); const s = t.objectStore('gen'); const out = fn(s); t.oncomplete = () => res(out.result ?? out); t.onerror = () => rej(t.error); }); };
   return { all: () => tx('readonly', s => s.getAll()), put: v => tx('readwrite', s => s.put(v)), del: id => tx('readwrite', s => s.delete(id)) };
 })();
-function productRefs(p) {
+const PL_FMT = { feed_1x1: ['feed_1x1'], feed_16x9: ['feed_16x9', 'feed_1x1'], feed_2x3: ['feed_2x3', 'feed_1x1'], collection: ['collection', 'feed_1x1'], mda_banner: ['mda_banner'], native_thumb: ['native_pc', 'native_mo'], shopping: ['shopping'], smartchannel: ['smartchannel'], smartchannel_160: ['smartchannel'], smartchannel_280: ['smartchannel'], webtoon_big: ['feed_1x1'], video_916: ['feed_video', 'feed_1x1'] };
+function productRefs(p, pk) {
+  const fm = PL_FMT[pk || createState.placement || 'feed_1x1'];
+  if (fm) { const base = productRefsAll(p, W.filter(w => fm.includes(w.fmt))); if (base.list.length) return { ...base, fmtMatch: true }; }
+  return { ...productRefsAll(p, W), fmtMatch: !fm };
+}
+function productRefsAll(p, WW) {
+  const W = WW;
   const pick = list => { const best = new Map(); for (const w of list) { const b = best.get(w.g); if (!b || w.proas > b.proas) best.set(w.g, w); } return [...best.values()].sort((a, b) => b.proas - a.proas); };
   const own = pick(W.filter(w => w.p === p));
   if (own.length) return { list: own, own: true };
@@ -860,7 +887,7 @@ async function createPage() {
   const sb = window.sbClient;
   const CREATE_PRODUCTS = REG_ORDER.length ? REG_ORDER : PRODUCTS;
   if (!createState.product || !CREATE_PRODUCTS.includes(createState.product)) createState.product = CREATE_PRODUCTS.includes('페이스클렌징') ? '페이스클렌징' : CREATE_PRODUCTS[0];
-  const pr = productRefs(createState.product); const refsAll = pr.list;
+  const pr = productRefs(createState.product, createState.placement); const refsAll = pr.list;
   const pinfo = productInfo(createState.product);
   if (!createState.refs || !createState.refs.every(n => refsAll.some(w => w.n === n))) createState.refs = refsAll.slice(0, 3).map(w => w.n);
   const [reqRes, genRes, localGens] = await Promise.all([
@@ -899,7 +926,7 @@ async function createPage() {
       
       <span class="muted">참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)</span></div>
       ${pinfo ? `<div class="pmini"><img src="${pinfo.img}"><div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
-      ${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
+      ${pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 지면 형태로는 아직 위너가 없어서, 다른 형태의 위너를 참고로 보여 드립니다.</p>`}${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
       <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span><img src="${THUMB(w.n)}"><div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
       <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
       <textarea id="cd" rows="3" placeholder="예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이"></textarea>
@@ -939,7 +966,7 @@ async function createPage() {
   drawGal();
   document.querySelectorAll('#galtabs .galtab').forEach(b => b.onclick = () => { createState.gal = b.dataset.gal; drawGal(); });
   const drawPl = () => { const k = $('#cpl').value; createState.placement = k; const p = plOf(k); $('#plinfo').innerHTML = `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.min > 1 ? p.min + 'KB 이상 ' : ''}${p.max >= 1000 ? (p.max / 1000).toFixed(1) + 'MB' : p.max + 'KB'} 이하 · JPG/RGB<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>`; };
-  $('#cpl').onchange = drawPl; drawPl();
+  $('#cpl').onchange = () => { drawPl(); createState.refs = null; createPage(); }; drawPl();
   if ($('#setk2')) $('#setk2').onclick = openSettings;
   $('#rfq').onclick = () => createPage();
   clearTimeout(window.__reqTimer);
@@ -1138,6 +1165,7 @@ async function loadData() {
   const { data, error } = await sb.from('app_data').select('key,payload');
   if (error) throw error;
   const main = data.find(r => r.key === 'main')?.payload;
+  if (main && !main.creatives) main.creatives = data.filter(r => /^cre_\d+$/.test(r.key)).sort((a, b) => +a.key.slice(4) - +b.key.slice(4)).flatMap(r => r.payload);
   if (!main) throw new Error('자료가 없습니다.');
   const thumbs = {}; data.filter(r => r.key.startsWith('thumbs')).forEach(r => Object.assign(thumbs, r.payload));
   const products = data.find(r => r.key === 'products')?.payload || [];
