@@ -100,6 +100,7 @@ tr.win td{background:#f0fdf4}
 .pmini{display:flex;gap:12px;align-items:center;background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
 .pmini img{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:8px}
 pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;max-height:260px;overflow:auto}
+.fbadge.simb{left:auto;right:6px;top:6px;bottom:auto}
 .fbadge{position:absolute;left:6px;bottom:6px;background:rgba(15,23,42,.72);color:#fff;font-size:11px;font-weight:600;line-height:1;padding:4px 6px;border-radius:4px;pointer-events:none}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -1111,7 +1112,7 @@ async function createPage() {
       ${pinfo ? `<div class="pmini">${pinfo.img ? `<img src="${pinfo.img}">` : ""}<div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
       ${isPromo ? `<div class="pmini"><div><b>행사·프로모션</b> <span class="muted">브랜드데이·쿠폰·기획전 같은 행사 소재</span><div style="font-size:12px">아래 「방향」 칸에 <b>행사 이름 · 기간 · 혜택</b>을 적어 주세요. 함께 보여 줄 제품이 있으면 제품 이름도 적어 주시면 그 제품 사진을 그대로 넣습니다.</div></div></div>` : ''}
       ${pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">${esc(plOf(createState.placement).label)} 지면은 아직 위너 기준을 넘은 소재가 없어요. 그래서 ${pr.used ? `가장 비슷한 <b>${esc(FMT[pr.used[0]] || pr.used[0])}</b>` : '다른 지면의'} 위너를 대신 보여 드려요. 문구·분위기만 참고하고 시안은 ${plOf(createState.placement).w}×${plOf(createState.placement).h} 크기로 만듭니다.</p>`}${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
-      <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`)}<div>${w.sim > 1 ? `<span class="muted" style="font-size:11px">같은 이미지 소재 ${w.sim}개 중 최고</span><br>` : ''}<b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
+      <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, (pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`) + (w.sim > 1 ? `<span class="fbadge simb" title="이미지가 같은 소재 ${w.sim}개 중 구매 ROAS가 가장 높은 것만 보여요">같은 이미지 ${w.sim}개</span>` : ''))}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
       <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
       <textarea id="cd" rows="3" placeholder="${isPromo ? '예) 10월 브랜드데이, 10/15~10/17, 전 제품 쿠폰. 아이즈·조인트 같이 보여 주기' : '예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이'}"></textarea>
       <div class="row" style="margin-top:10px">
