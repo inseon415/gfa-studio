@@ -128,6 +128,10 @@ pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);
 .thb i.pos{background:#4caf7a}.thb i.neg{background:#e07a6a}
 .thv{text-align:right;font-variant-numeric:tabular-nums}.thv small{color:var(--mute)}
 .rvopt.sel .rvwhy{background:#fff}
+.rvquotes{display:flex;flex-direction:column;gap:8px}
+.rvq{font-size:12.5px;line-height:1.55;padding:8px 10px;background:#f7f8fa;border-radius:8px}
+.rvq b{display:block;font-size:12px;color:var(--sub);margin-bottom:2px}
+.rvq span{display:block;color:var(--ink)}
 @media(max-width:800px){.srctabs{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -836,7 +840,7 @@ async function revRows(product, opt = {}) {
 }
 const rvState = { product: '', view: 'recent', year: '', score: '', q: '', page: 0 };
 const stars = s => '★'.repeat(s) + '<span style="color:#d6dbe3">' + '★'.repeat(5 - s) + '</span>';
-const unent = s => String(s || '').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+const unent = s => String(s || '').replace(/&quot;/g, '"').replace(/&hellip;/g, '…').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 const kwOk = arr => (arr || []).filter(([w, c]) => w.length <= 8 && c >= 2);
 const revDate = iso => new Date(iso).toLocaleDateString('ko-KR');
 const revCard = (r, opt = {}) => `<div class="rvcard${r.best_pick ? ' best' : ''}"><div class="row" style="justify-content:space-between;gap:8px"><span class="rvstar">${stars(r.score)}</span><span class="muted">${revDate(r.created_at)}${r.review_type === 'AFTER_USE' ? ' · 한달사용' : ''}${r.photo ? ' · 사진' : ''}${r.help ? ' · 도움 ' + r.help : ''}</span></div>
@@ -849,6 +853,7 @@ function revSumMonths(P, months) {
   return o;
 }
 const themeBars = (keys, vals, n, cls) => { const mx = Math.max(1, ...vals); return `<div class="thbars">${keys.map((k, i) => [k, vals[i]]).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="throw"><span class="thk">${esc(k)}</span><span class="thb"><i class="${cls}" style="width:${v / mx * 100}%"></i></span><span class="thv">${v}<small>${n ? ' · ' + Math.round(v / n * 100) + '%' : ''}</small></span></div>`).join('')}</div>`; };
+const quoteBlock = (keys, vals, ex, title) => { const rows = keys.map((k, i) => [k, vals[i], (ex || {})[k] || []]).filter(x => x[2].length).sort((a, b) => b[1] - a[1]).slice(0, 5); return rows.length ? `<p class="muted" style="margin:14px 0 6px">${title}</p><div class="rvquotes">${rows.map(([k, , q]) => `<div class="rvq"><b>${esc(k)}</b>${q.slice(0, 3).map(x => `<span>“${esc(unent(x))}”</span>`).join('')}</div>`).join('')}</div>` : ''; };
 const starBar = s => { const n = s.reduce((a, b) => a + b, 0) || 1; return `<div class="starbar">${[5, 4, 3, 2, 1].map(k => `<div class="throw"><span class="thk">${k}점</span><span class="thb"><i class="${k >= 4 ? 'pos' : 'neg'}" style="width:${s[k - 1] / n * 100}%"></i></span><span class="thv">${s[k - 1].toLocaleString()}<small> · ${(s[k - 1] / n * 100).toFixed(1)}%</small></span></div>`).join('')}</div>`; };
 async function reviewsPage() {
   app.innerHTML = `<h1>리뷰 분석</h1><p class="sub"><span class="spin"></span>스마트스토어 리뷰 자료를 불러오는 중...</p>`;
@@ -881,8 +886,8 @@ async function reviewsPage() {
       <div class="box"><h2>소비자가 자주 쓰는 말</h2>${(A.words || []).length ? `<div class="chips" style="margin-bottom:10px">${A.words.map(w => `<span class="chip">${esc(w)}</span>`).join('')}</div>` : ''}<p class="muted" style="margin:6px 0">최근 ${R.n}개에서 많이 나온 단어 (리뷰 수)</p><div class="chips">${kwOk(R.kw).slice(0, 24).map(([w, c]) => `<span class="chip">${esc(w)}<b>${c}</b></span>`).join('')}</div></div>
     </div>
     <div class="two" style="margin-top:16px">
-      <div class="box"><h2>좋은 리뷰 분석 <span class="muted">4~5점 ${(R.s[3] + R.s[4]).toLocaleString()}개</span></h2><p>${esc(A.goodAnalysis || '')}</p><p class="muted" style="margin:10px 0 4px">리뷰 속 좋은 이야기 (최근 ${R.n}개 중 언급 수)</p>${themeBars(D.POS_K, R.pos, R.n, 'pos')}</div>
-      <div class="box"><h2>안 좋은 리뷰 분석 <span class="muted">1~3점 ${(R.s[0] + R.s[1] + R.s[2]).toLocaleString()}개</span></h2><p>${esc(A.badAnalysis || '')}</p><p class="muted" style="margin:10px 0 4px">리뷰 속 아쉬운 이야기 (별점과 상관없이 언급 수)</p>${themeBars(D.NEG_K, R.neg, R.n, 'neg')}${kwOk(R.kwBad).length >= 3 ? `<p class="muted" style="margin:10px 0 4px">1~3점 리뷰에 자주 나온 말</p><div class="chips">${kwOk(R.kwBad).slice(0, 15).map(([w, c]) => `<span class="chip">${esc(w)}<b>${c}</b></span>`).join('')}</div>` : ''}</div>
+      <div class="box"><h2>좋은 리뷰 분석 <span class="muted">4~5점 ${(R.s[3] + R.s[4]).toLocaleString()}개</span></h2><p>${esc(A.goodAnalysis || '')}</p><p class="muted" style="margin:10px 0 4px">리뷰 속 좋은 이야기 (최근 ${R.n}개 중 언급 수)</p>${themeBars(D.POS_K, R.pos, R.n, 'pos')}${quoteBlock(D.POS_K, R.pos, R.posEx, '실제 리뷰 문장')}</div>
+      <div class="box"><h2>안 좋은 리뷰 분석 <span class="muted">1~3점 ${(R.s[0] + R.s[1] + R.s[2]).toLocaleString()}개</span></h2><p>${esc(A.badAnalysis || '')}</p><p class="muted" style="margin:10px 0 4px">리뷰 속 아쉬운 이야기 (최근 ${R.n}개 중 1~3점 리뷰 + 아쉬운 점을 적은 4·5점 리뷰)</p>${themeBars(D.NEG_K, R.neg, R.n, 'neg')}${quoteBlock(D.NEG_K, R.neg, R.negEx, '실제 리뷰 문장 (어떤 맥락인지)')}${(R.badPhrases || []).length ? `<p class="muted" style="margin:14px 0 6px">1~3점 리뷰에 자주 나온 표현 <span title="최근 1~3점 리뷰 ${R.badN || ''}개에서 2번 이상 나온 말 묶음">(최근 1~3점 ${R.badN || ''}개 기준)</span></p><div class="chips">${R.badPhrases.map(([w, c, ex]) => `<span class="chip" title="${esc(unent(ex || ''))}">${esc(w)}<b>${c}</b></span>`).join('')}</div>` : ''}</div>
     </div>
     <div class="two" style="margin-top:16px">
       <div class="box"><h2>별점 분포</h2>${starBar(R.s)}</div>
