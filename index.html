@@ -102,6 +102,32 @@ tr.win td{background:#f0fdf4}
 pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;max-height:260px;overflow:auto}
 .fbadge.simb{left:auto;right:6px;top:6px;bottom:auto}
 .fbadge{position:absolute;left:6px;bottom:6px;background:rgba(15,23,42,.72);color:#fff;font-size:11px;font-weight:600;line-height:1;padding:4px 6px;border-radius:4px;pointer-events:none}
+
+/* 리뷰 분석 · 베스트 리뷰 */
+.srctabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 14px}
+.srctab{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:12px 16px;border:1px solid #d7dce3;border-radius:10px;background:#fff;cursor:pointer;font:inherit;color:var(--ink)}
+.srctab b{font-size:15px}.srctab span{font-size:12px;color:var(--sub)}
+.srctab.on{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc);background:var(--acc2)}
+.rvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.rvcard,.rvopt{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;position:relative}
+.rvcard.best{border-color:var(--acc)}
+.rvstar{color:#f5a524;font-size:13px;letter-spacing:1px}
+.rvtext{margin-top:6px;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:keep-all}
+.rvwhy{margin-top:8px;font-size:12px;color:var(--acc-d);background:var(--acc2);border-radius:6px;padding:4px 8px}
+.rvpick{display:grid;grid-template-columns:1fr;gap:8px;max-height:560px;overflow:auto;padding-right:4px}
+.rvopt{cursor:pointer;padding-left:38px}
+.rvopt .ck{position:absolute;left:10px;top:12px;width:18px;height:18px;border-radius:50%;border:1.5px solid #c3cad6;color:transparent;font-size:11px;display:flex;align-items:center;justify-content:center}
+.rvopt.sel{border-color:var(--acc);background:var(--acc2)}.rvopt.sel .ck{background:var(--acc);border-color:var(--acc);color:#fff}
+.rvlist{margin:0;padding-left:18px;line-height:1.7;font-size:13px}.rvlist li{margin:2px 0}
+.rvsum p{margin:6px 0 0;font-size:14px;line-height:1.6}
+.thbars,.starbar{display:flex;flex-direction:column;gap:5px}
+.throw{display:grid;grid-template-columns:130px 1fr 92px;align-items:center;gap:8px;font-size:12px}
+.starbar .throw{grid-template-columns:36px 1fr 110px}
+.thk{color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thb{height:10px;background:#f1f3f6;border-radius:5px;overflow:hidden}.thb i{display:block;height:100%;border-radius:5px}
+.thb i.pos{background:#4caf7a}.thb i.neg{background:#e07a6a}
+.thv{text-align:right;font-variant-numeric:tabular-nums}.thv small{color:var(--mute)}
+@media(max-width:800px){.srctabs{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style id="studio-theme">
@@ -314,7 +340,7 @@ img.zoomable{cursor:zoom-in}
 <header class="top"><div class="topin">
   <div class="brand"><a class="bl" data-brand="bylab" title="바이랩"><img src="data:image/png;base64,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" alt="BY LAB" class="lg-by"></a><span class="bsep"></span><a class="bl" data-brand="drby" title="닥터바이"><img src="data:image/png;base64,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" alt="Dr.BY" class="lg-dr"></a></div>
   <nav class="tabs" id="tabs">
-    <a href="#home">홈</a><a href="#winners">위너 소재</a><a href="#analysis">위너 분석</a><a href="#ask">질문하기</a><a href="#create">소재 만들기</a><a href="#products">제품</a>
+    <a href="#home">홈</a><a href="#winners">위너 소재</a><a href="#analysis">위너 분석</a><a href="#reviews">리뷰 분석</a><a href="#ask">질문하기</a><a href="#create">소재 만들기</a><a href="#products">제품</a>
   </nav>
   <span class="keybadge" id="keybadge" title="AI 모델 설정">AI 모델</span>
 </div></header>
@@ -782,6 +808,136 @@ function analysis() {
   </div></section>`;
 }
 
+// ---------- REVIEWS (리뷰 분석) ----------
+// 자료: app_data 'reviews_<brand>' (월별 숫자·주제·자주 쓰는 말·분석문) + store_reviews 테이블 (상품별 최근 1000개 원문, best_pick)
+let __revPub = null;
+async function revData() {
+  if (__revPub && __revPub.brand === BRAND) return __revPub.d;
+  const { data, error } = await window.sbClient.from('app_data').select('payload').eq('key', 'reviews_' + BRAND).maybeSingle();
+  if (error) throw error;
+  __revPub = { brand: BRAND, d: data?.payload || null };
+  return __revPub.d;
+}
+const revCache = new Map();
+async function revRows(product, opt = {}) {
+  const k = product + '|' + JSON.stringify(opt);
+  if (revCache.has(k)) return revCache.get(k);
+  let q = window.sbClient.from('store_reviews').select('id,score,content,review_type,photo,created_at,help,best_pick,pick_reason').eq('brand', BRAND).eq('product', product);
+  if (opt.best) q = q.eq('best_pick', true);
+  if (opt.min) q = q.gte('score', opt.min);
+  if (opt.max) q = q.lte('score', opt.max);
+  if (opt.q) q = q.ilike('content', '%' + opt.q + '%');
+  q = q.order('created_at', { ascending: false }).range(opt.from || 0, (opt.from || 0) + (opt.size || 50) - 1);
+  const { data, error } = await q;
+  if (error) throw error;
+  revCache.set(k, data || []);
+  return data || [];
+}
+const rvState = { product: '', view: 'recent', year: '', score: '', q: '', page: 0 };
+const stars = s => '★'.repeat(s) + '<span style="color:#d6dbe3">' + '★'.repeat(5 - s) + '</span>';
+const revDate = iso => new Date(iso).toLocaleDateString('ko-KR');
+const revCard = (r, opt = {}) => `<div class="rvcard${r.best_pick ? ' best' : ''}"><div class="row" style="justify-content:space-between;gap:8px"><span class="rvstar">${stars(r.score)}</span><span class="muted">${revDate(r.created_at)}${r.review_type === 'AFTER_USE' ? ' · 한달사용' : ''}${r.photo ? ' · 사진' : ''}${r.help ? ' · 도움 ' + r.help : ''}</span></div>
+  <div class="rvtext">${esc(r.content)}</div>${r.pick_reason ? `<div class="rvwhy">베스트 이유 · ${esc(r.pick_reason)}</div>` : ''}${opt.mk ? `<div class="row" style="margin-top:8px"><button class="lnk" data-rvmk="${r.id}">이 리뷰로 소재 만들기</button></div>` : ''}</div>`;
+function revSumMonths(P, months) {
+  const D = __revPub.d; const nP = D.POS_K.length, nN = D.NEG_K.length;
+  const o = { n: 0, s: [0, 0, 0, 0, 0], ph: 0, pos: Array(nP).fill(0), neg: Array(nN).fill(0) };
+  for (const ym of months) { const m = P.months[ym]; if (!m) continue; o.n += m[0]; for (let i = 0; i < 5; i++) o.s[i] += m[1 + i]; o.ph += m[6]; for (let i = 0; i < nP; i++) o.pos[i] += m[7 + i]; for (let i = 0; i < nN; i++) o.neg[i] += m[7 + nP + i]; }
+  o.avg = o.n ? o.s.reduce((a, c, i) => a + c * (i + 1), 0) / o.n : 0;
+  return o;
+}
+const themeBars = (keys, vals, n, cls) => { const mx = Math.max(1, ...vals); return `<div class="thbars">${keys.map((k, i) => [k, vals[i]]).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="throw"><span class="thk">${esc(k)}</span><span class="thb"><i class="${cls}" style="width:${v / mx * 100}%"></i></span><span class="thv">${v}<small>${n ? ' · ' + Math.round(v / n * 100) + '%' : ''}</small></span></div>`).join('')}</div>`; };
+const starBar = s => { const n = s.reduce((a, b) => a + b, 0) || 1; return `<div class="starbar">${[5, 4, 3, 2, 1].map(k => `<div class="throw"><span class="thk">${k}점</span><span class="thb"><i class="${k >= 4 ? 'pos' : 'neg'}" style="width:${s[k - 1] / n * 100}%"></i></span><span class="thv">${s[k - 1].toLocaleString()}<small> · ${(s[k - 1] / n * 100).toFixed(1)}%</small></span></div>`).join('')}</div>`; };
+async function reviewsPage() {
+  app.innerHTML = `<h1>리뷰 분석</h1><p class="sub"><span class="spin"></span>스마트스토어 리뷰 자료를 불러오는 중...</p>`;
+  let D; try { D = await revData(); } catch (e) { app.innerHTML = `<h1>리뷰 분석</h1><p class="notice">리뷰 자료를 못 불러왔어요: ${esc(e.message)}</p>`; return; }
+  if (!D) { app.innerHTML = `<h1>리뷰 분석</h1><p class="notice">${BN} 리뷰 자료가 아직 없어요.</p>`; return; }
+  const list = Object.entries(D.prods).filter(([p]) => p !== '[확인필요]').sort((a, b) => b[1].total - a[1].total);
+  if (!rvState.product || !D.prods[rvState.product]) rvState.product = list[0][0];
+  const total = list.reduce((a, [, o]) => a + o.total, 0);
+  const firstAll = list.map(([, o]) => o.first).sort()[0], lastAll = list.map(([, o]) => o.last).sort().at(-1);
+  const P = D.prods[rvState.product];
+  const yms = Object.keys(P.months).sort();
+  const years = [...new Set(yms.map(m => m.slice(0, 4)))].sort().reverse();
+  const viewBtn = (v, l) => `<button class="galtab ${rvState.view === v ? 'on' : ''}" data-rvview="${v}">${l}</button>`;
+  const R = P.recent, A = P.ana || {};
+  const li = arr => (arr || []).length ? `<ul class="rvlist">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="muted">분석 준비 중이에요.</p>';
+  let body = '';
+  if (rvState.view === 'recent') {
+    body = `
+    <div class="stats" style="margin-bottom:16px">
+      <dl class="stat"><dt>최근 리뷰</dt><dd>${R.n.toLocaleString()}개</dd><div class="muted">${R.from} ~ ${R.to}</div></dl>
+      <dl class="stat"><dt>평균 별점</dt><dd>${R.avg.toFixed(2)}</dd><div class="muted">5점 ${(R.s[4] / R.n * 100).toFixed(1)}%</div></dl>
+      <dl class="stat"><dt>1~3점 리뷰</dt><dd>${(R.s[0] + R.s[1] + R.s[2]).toLocaleString()}개</dd><div class="muted">${((R.s[0] + R.s[1] + R.s[2]) / R.n * 100).toFixed(1)}%</div></dl>
+      <dl class="stat"><dt>사진·영상 리뷰</dt><dd>${R.ph.toLocaleString()}개</dd><div class="muted">${(R.ph / R.n * 100).toFixed(1)}%</div></dl>
+    </div>
+    ${A.summary ? `<div class="box rvsum"><b>한 줄 요약</b><p>${esc(A.summary)}</p></div>` : ''}
+    <div class="two" style="margin-top:16px">
+      <div class="box"><h2>소비자가 말하는 장점</h2>${li(A.strengths)}</div>
+      <div class="box"><h2>써 보니 좋아진 점</h2>${li(A.useBenefits)}</div>
+      <div class="box"><h2>아쉬운 점 · 단점</h2>${li(A.weaknesses)}</div>
+      <div class="box"><h2>소비자가 자주 쓰는 말</h2>${(A.words || []).length ? `<div class="chips" style="margin-bottom:10px">${A.words.map(w => `<span class="chip">${esc(w)}</span>`).join('')}</div>` : ''}<p class="muted" style="margin:6px 0">최근 ${R.n}개에서 많이 나온 단어 (리뷰 수)</p><div class="chips">${R.kw.slice(0, 24).map(([w, c]) => `<span class="chip">${esc(w)}<b>${c}</b></span>`).join('')}</div></div>
+    </div>
+    <div class="two" style="margin-top:16px">
+      <div class="box"><h2>좋은 리뷰 분석 <span class="muted">4~5점 ${(R.s[3] + R.s[4]).toLocaleString()}개</span></h2><p>${esc(A.goodAnalysis || '')}</p><p class="muted" style="margin:10px 0 4px">리뷰 속 좋은 이야기 (최근 ${R.n}개 중 언급 수)</p>${themeBars(D.POS_K, R.pos, R.n, 'pos')}</div>
+      <div class="box"><h2>안 좋은 리뷰 분석 <span class="muted">1~3점 ${(R.s[0] + R.s[1] + R.s[2]).toLocaleString()}개</span></h2><p>${esc(A.badAnalysis || '')}</p><p class="muted" style="margin:10px 0 4px">리뷰 속 아쉬운 이야기 (별점과 상관없이 언급 수)</p>${themeBars(D.NEG_K, R.neg, R.n, 'neg')}${R.kwBad.length ? `<p class="muted" style="margin:10px 0 4px">1~3점 리뷰에 자주 나온 말</p><div class="chips">${R.kwBad.slice(0, 15).map(([w, c]) => `<span class="chip">${esc(w)}<b>${c}</b></span>`).join('')}</div>` : ''}</div>
+    </div>
+    <div class="two" style="margin-top:16px">
+      <div class="box"><h2>별점 분포</h2>${starBar(R.s)}</div>
+      <div class="box"><h2>광고 문구 아이디어 <span class="muted">리뷰에서 나온 말 기준</span></h2>${li(A.adHints)}</div>
+    </div>
+    <section><h2>베스트 리뷰 <span class="muted">4~5점 중 긍정적이고 구체적인 리뷰를 골랐어요</span></h2><div class="rvgrid" id="rvbest"><p class="muted"><span class="spin"></span>불러오는 중...</p></div></section>
+    <section><h2>최근 리뷰 보기</h2>
+      <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap">${[['', '전체'], ['good', '4~5점'], ['bad', '1~3점']].map(([v, l]) => `<button class="galtab ${rvState.score === v ? 'on' : ''}" data-rvsc="${v}">${l}</button>`).join('')}
+      <input id="rvq" placeholder="리뷰 내용 검색" value="${esc(rvState.q)}" style="max-width:240px"><button id="rvqb">검색</button></div>
+      <div class="rvgrid" id="rvlist"><p class="muted"><span class="spin"></span>불러오는 중...</p></div>
+      <div class="row" style="justify-content:center;margin-top:10px"><button id="rvmore" style="display:none">더 보기</button></div></section>`;
+  } else if (rvState.view === 'month') {
+    const ys = rvState.year && years.includes(rvState.year) ? rvState.year : '';
+    const rows = yms.filter(m => !ys || m.startsWith(ys)).reverse();
+    const mx = Math.max(1, ...rows.map(m => P.months[m][0]));
+    body = `<div class="row" style="gap:6px;margin-bottom:12px;flex-wrap:wrap"><button class="galtab ${ys ? '' : 'on'}" data-rvyear="">전체 연도</button>${years.map(y => `<button class="galtab ${ys === y ? 'on' : ''}" data-rvyear="${y}">${y}년</button>`).join('')}</div>
+    <div class="bars" style="margin-bottom:16px">${rows.slice().reverse().map(m => `<div class="bar" title="${m} · 리뷰 ${P.months[m][0]}개"><s>${P.months[m][0] >= mx * 0.15 ? P.months[m][0] : ''}</s><i style="height:${P.months[m][0] / mx * 110}px"></i><u>${m.slice(2).replace('-', '.')}</u></div>`).join('')}</div>
+    <div class="tbl"><table><thead><tr><th>월</th><th>계절</th><th class="n">리뷰</th><th class="n">평균</th><th class="n">5점</th><th class="n">1~3점</th><th class="n">사진</th><th>많이 나온 좋은 이야기</th><th>많이 나온 아쉬운 이야기</th></tr></thead><tbody>
+    ${rows.map(m => { const o = revSumMonths(P, [m]); const top = (keys, vals) => keys.map((k, i) => [k, vals[i]]).filter(x => x[1]).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k, v]) => `${esc(k)} <small class="muted">${Math.round(v / o.n * 100)}%</small>`).join(', ') || '-';
+      return `<tr><td>${m}</td><td>${seasonOf(m)}</td><td class="n">${o.n.toLocaleString()}</td><td class="n">${o.avg.toFixed(2)}</td><td class="n">${(o.s[4] / o.n * 100).toFixed(1)}%</td><td class="n">${((o.s[0] + o.s[1] + o.s[2]) / o.n * 100).toFixed(1)}%</td><td class="n">${(o.ph / o.n * 100).toFixed(0)}%</td><td>${top(D.POS_K, o.pos)}</td><td>${top(D.NEG_K, o.neg)}</td></tr>`; }).join('')}
+    </tbody></table></div>`;
+  } else {
+    const S = { 봄: [], 여름: [], 가을: [], 겨울: [] };
+    for (const m of yms) S[seasonOf(m)].push(m);
+    const agg = Object.fromEntries(SEASONS.map(s => [s, revSumMonths(P, S[s])]));
+    const heat = (keys, k, cls) => `<div class="tbl"><table><thead><tr><th>${k}</th>${SEASONS.map(s => `<th class="n">${s}</th>`).join('')}</tr></thead><tbody>${keys.map((t, i) => { const vals = SEASONS.map(s => agg[s].n ? agg[s][k === '좋은 이야기' ? 'pos' : 'neg'][i] / agg[s].n * 100 : 0); const mx = Math.max(0.1, ...vals); return `<tr><td>${esc(t)}</td>${vals.map(v => `<td class="n" style="background:rgba(${cls === 'pos' ? '22,163,74' : '220,38,38'},${(v / mx * 0.35).toFixed(2)})">${v.toFixed(1)}%</td>`).join('')}</tr>`; }).join('')}</tbody></table></div>`;
+    const byYear = years.slice().reverse().map(y => ({ y, ss: SEASONS.map(s => { const ms = s === '겨울' ? [`${y}-12`, `${+y + 1}-01`, `${+y + 1}-02`] : S[s].filter(m => m.startsWith(y)); return revSumMonths(P, ms); }) }));
+    body = `<p class="muted" style="margin-bottom:10px">전체 기간(${P.first} ~ ${P.last}) 리뷰를 계절별로 합쳤어요. 봄 3~5월, 여름 6~8월, 가을 9~11월, 겨울 12~2월 · % = 그 계절 리뷰 중 해당 이야기가 나온 비율</p>
+    <div class="stats" style="margin-bottom:16px">${SEASONS.map(s => `<dl class="stat"><dt>${s}</dt><dd>${agg[s].n.toLocaleString()}개</dd><div class="muted">평균 ${agg[s].avg.toFixed(2)} · 1~3점 ${agg[s].n ? ((agg[s].s[0] + agg[s].s[1] + agg[s].s[2]) / agg[s].n * 100).toFixed(1) : 0}%</div></dl>`).join('')}</div>
+    <div class="two"><div>${heat(D.POS_K, '좋은 이야기', 'pos')}</div><div>${heat(D.NEG_K, '아쉬운 이야기', 'neg')}</div></div>
+    <section><h2>연도 × 계절 리뷰 수</h2><div class="tbl"><table><thead><tr><th>연도</th>${SEASONS.map(s => `<th class="n">${s}</th>`).join('')}</tr></thead><tbody>${byYear.map(r => `<tr><td>${r.y}</td>${r.ss.map(o => `<td class="n">${o.n ? `${o.n.toLocaleString()} <small class="muted">· ${o.avg.toFixed(2)}점</small>` : '-'}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="muted" style="margin-top:6px">겨울은 그해 12월 + 다음 해 1·2월</p></section>`;
+  }
+  app.innerHTML = `<h1>리뷰 분석</h1>
+  <p class="sub" style="margin-bottom:14px">${BN} 스마트스토어 리뷰 ${total.toLocaleString()}개 (${firstAll} ~ ${lastAll}) 전체를 쌓아 두고 분석했어요. 화면 기본은 제품별 <b>최근 1,000개</b>예요. 매월 1일에 새 리뷰를 더해 다시 분석합니다. <span class="muted">· 업데이트 ${new Date(D.updatedAt).toLocaleDateString('ko-KR')}</span></p>
+  <div class="galfilter"><span class="gfl">제품</span><div class="galtabs" id="rvprods">${list.map(([p, o]) => `<button class="galtab ${p === rvState.product ? 'on' : ''}" data-rvp="${esc(p)}">${esc(p)} <b>${o.total >= 10000 ? (o.total / 10000).toFixed(1) + '만' : o.total.toLocaleString()}</b></button>`).join('')}</div></div>
+  <div class="row" style="justify-content:space-between;align-items:flex-end;margin:18px 0 12px;flex-wrap:wrap;gap:10px"><div><h2 style="margin:0">${esc(rvState.product)}</h2><div class="muted">전체 ${P.total.toLocaleString()}개 · ${P.first} ~ ${P.last}</div></div><div class="galtabs" style="margin:0">${viewBtn('recent', '최근 1,000개')}${viewBtn('month', '달마다')}${viewBtn('season', '계절마다')}</div></div>
+  ${body}
+  <section><h2>전체 제품 한눈에 <span class="muted">최근 1,000개 기준</span></h2><div class="tbl"><table><thead><tr><th>제품</th><th class="n">전체 리뷰</th><th class="n">최근 평균</th><th class="n">1~3점</th><th>대표 장점</th><th>대표 아쉬운 점</th></tr></thead><tbody>
+  ${list.map(([p, o]) => `<tr style="cursor:pointer" data-rvp="${esc(p)}"><td><b>${esc(p)}</b></td><td class="n">${o.total.toLocaleString()}</td><td class="n">${o.recent.avg.toFixed(2)}</td><td class="n">${((o.recent.s[0] + o.recent.s[1] + o.recent.s[2]) / o.recent.n * 100).toFixed(1)}%</td><td>${esc((o.ana?.strengths?.[0] || '').split(' — ')[0])}</td><td>${esc((o.ana?.weaknesses?.[0] || '').split(' — ')[0])}</td></tr>`).join('')}
+  </tbody></table></div></section>`;
+  app.querySelectorAll('[data-rvp]').forEach(b => b.onclick = () => { rvState.product = b.dataset.rvp; rvState.page = 0; rvState.score = ''; rvState.q = ''; reviewsPage(); });
+  app.querySelectorAll('[data-rvview]').forEach(b => b.onclick = () => { rvState.view = b.dataset.rvview; reviewsPage(); });
+  app.querySelectorAll('[data-rvyear]').forEach(b => b.onclick = () => { rvState.year = b.dataset.rvyear; reviewsPage(); });
+  if (rvState.view !== 'recent') return;
+  const bindMk = root => root.querySelectorAll('[data-rvmk]').forEach(b => b.onclick = () => { createState.src = 'review'; createState.product = rvState.product; createState.rrefs = [+b.dataset.rvmk]; createState.rrefsFor = rvState.product; location.hash = '#create'; });
+  revRows(rvState.product, { best: true, size: 30 }).then(rows => { const el = document.getElementById('rvbest'); if (!el) return; el.innerHTML = rows.length ? rows.map(r => revCard(r, { mk: true })).join('') : '<p class="muted">아직 고른 베스트 리뷰가 없어요.</p>'; bindMk(el); }).catch(e => { const el = document.getElementById('rvbest'); if (el) el.innerHTML = `<p class="notice">${esc(e.message)}</p>`; });
+  const loadList = async (append) => {
+    const opt = { from: rvState.page * 50, size: 50, q: rvState.q || undefined, ...(rvState.score === 'good' ? { min: 4 } : rvState.score === 'bad' ? { max: 3 } : {}) };
+    const el = document.getElementById('rvlist'); if (!el) return;
+    try { const rows = await revRows(rvState.product, opt); const html = rows.map(r => revCard(r, { mk: r.score >= 4 })).join(''); if (append) el.insertAdjacentHTML('beforeend', html); else el.innerHTML = html || '<p class="muted">조건에 맞는 리뷰가 없어요.</p>'; bindMk(el); document.getElementById('rvmore').style.display = rows.length === 50 ? '' : 'none'; } catch (e) { el.innerHTML = `<p class="notice">${esc(e.message)}</p>`; }
+  };
+  loadList(false);
+  app.querySelectorAll('[data-rvsc]').forEach(b => b.onclick = () => { rvState.score = b.dataset.rvsc; rvState.page = 0; app.querySelectorAll('[data-rvsc]').forEach(x => x.classList.toggle('on', x === b)); loadList(false); });
+  const doQ = () => { rvState.q = $('#rvq').value.trim(); rvState.page = 0; loadList(false); };
+  $('#rvqb').onclick = doQ; $('#rvq').onkeydown = e => { if (e.key === 'Enter') doQ(); };
+  $('#rvmore').onclick = () => { rvState.page++; loadList(true); };
+}
+
 // ---------- ASK ----------
 const LITTERS = ['고양이 두부모래', '고양이 벤토나이트모래', '고양이 카사바모래', '고양이모래(종류 구분 없음)'];
 const PWORDS = [['두부', '고양이 두부모래'], ['벤토', '고양이 벤토나이트모래'], ['카사바', '고양이 카사바모래'], ['모래', LITTERS], ['트리트먼트', '스킨테라피 트리트먼트'], ['스밸샴', '스킨밸런스샴푸'], ['샤워기', '아토버블샤워기'], ['스킨테라피', ['스킨테라피 샴푸', '스킨테라피 트리트먼트']], ['귀', '이어클리너'], ['눈곱', '아이클리너'], ['눈물', '아이클리너'], ['양치', '덴탈스프레이'], ['덴탈', '덴탈스프레이'], ['발샴푸', '수분풋케어'], ['발바닥', '수딩풋에센스'], ['수딩', '수딩풋에센스'], ['풋', '수분풋케어'], ['얼굴', '페이스클렌징'], ['세수', '페이스클렌징'], ['페클', '페이스클렌징'], ['인공눈물', '아이드롭'], ['샴푸', '스킨테라피 샴푸']];
@@ -899,7 +1055,7 @@ function askPage() {
 }
 
 // ---------- CREATE ----------
-const createState = { product: '', refs: null };
+const createState = { product: '', refs: null, src: 'winner', rrefs: [] };
 const idb = (() => {
   let dbp;
   const open = () => dbp ||= new Promise((res, rej) => { const r = indexedDB.open('gfa-studio', 1); r.onupgradeneeded = () => r.result.createObjectStore('gen', { keyPath: 'id' }); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
@@ -1066,12 +1222,16 @@ function openRevision(g) {
 async function createPage() {
   const hasKey = !!getKey();
   const sb = window.sbClient;
-  const CREATE_PRODUCTS = (REG_ORDER.length ? REG_ORDER : PRODUCTS).filter(p => p !== PROMO).concat([PROMO]);
-  const isPromo = createState.product === PROMO;
+  const isRev = createState.src === 'review';
+  let REVD = null; if (isRev) { try { REVD = await revData(); } catch (e) { REVD = null; } }
+  const REV_PRODUCTS = REVD ? ordP(Object.keys(REVD.prods).filter(p => p !== '[확인필요]' && p !== '여러 제품 묶음' && REVD.prods[p].best?.length)) : [];
+  const CREATE_PRODUCTS = isRev ? REV_PRODUCTS : (REG_ORDER.length ? REG_ORDER : PRODUCTS).filter(p => p !== PROMO).concat([PROMO]);
+  const isPromo = !isRev && createState.product === PROMO;
   if (!createState.product || !CREATE_PRODUCTS.includes(createState.product)) createState.product = CREATE_PRODUCTS.includes('페이스클렌징') ? '페이스클렌징' : CREATE_PRODUCTS[0];
   const pr = productRefs(createState.product, createState.placement); const refsAll = pr.list;
   const pinfo = productInfo(createState.product);
   if (!createState.refs || !createState.refs.every(n => refsAll.some(w => w.n === n))) createState.refs = refsAll.slice(0, 3).map(w => w.n);
+  if (!isRev || createState.rrefsFor !== createState.product) { if (createState.rrefsFor !== createState.product) createState.rrefs = createState.rrefs && createState.rrefsFor === undefined ? createState.rrefs : []; createState.rrefsFor = createState.product; }
   const [reqRes, genRes, localGens] = await Promise.all([
     sb ? sb.from('creative_requests').select('*').order('created_at', { ascending: false }).limit(30) : { data: [] },
     sb ? sb.from('generations').select('*').order('created_at', { ascending: false }).limit(60) : { data: [] },
@@ -1097,30 +1257,31 @@ async function createPage() {
       ${g.revision_note ? `<div class="copy"><span>반영한 수정안</span>${esc(g.revision_note)}</div>` : ''}
       ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
       ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
-      ${g.analysis ? `<div class="copy"><span>참고 위너 공통점</span>${esc(g.analysis)}</div>` : ''}
-      ${refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
+      ${g.analysis ? `<div class="copy"><span>${g.source === 'review' ? '살린 리뷰 포인트' : '참고 위너 공통점'}</span>${esc(g.analysis)}</div>` : ''}
+      ${g.source === 'review' ? `<div class="muted"><span class="tag p">베스트 리뷰</span> 리뷰 ${(g.review_refs || []).length}개로 만듦</div>` : refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
       <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_${plOf(g.placement).w}x${plOf(g.placement).h}_${String(id).slice(0, 8)}.${String(g.image).startsWith('data:image/png') ? 'png' : 'jpg'}">내려받기 (${plOf(g.placement).w}×${plOf(g.placement).h})</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && olderOf(g).length ? `<button class="lnk" data-hist="${g.id}">이전 버전 ${olderOf(g).length}개 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
   };
   app.innerHTML = `<h1>소재 만들기</h1>
-  <p class="sub" style="margin-bottom:12px">제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 자동으로 받아 고른 지면 규격에 맞는 시안(새 문구 + 이미지)을 찍어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.</p>
+  <div class="srctabs"><button class="srctab ${isRev ? '' : 'on'}" data-src="winner"><b>위너 소재</b><span>광고에서 성과 좋았던 소재를 참고해 만들기</span></button><button class="srctab ${isRev ? 'on' : ''}" data-src="review"><b>베스트 리뷰</b><span>스마트스토어 4~5점 좋은 리뷰 문장으로 만들기</span></button></div>
+  <p class="sub" style="margin-bottom:12px">${isRev ? '제품과 소재로 쓸 <b>베스트 리뷰</b>를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, 리뷰 속 실제 고객의 말을 살린 시안(문구 + 이미지)을 고른 지면 규격으로 만들어 아래 <b>팀 시안 갤러리</b>에 올립니다.' : ''}${isRev ? '' : `제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 자동으로 받아 고른 지면 규격에 맞는 시안(새 문구 + 이미지)을 찍어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.`}</p>
   <div class="two">
     <div class="box">
       <div class="frow"><span class="fl">제품</span><select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
-      <span class="muted">참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)</span></div>
+      <span class="muted">${isRev ? `베스트 리뷰 <b id="rrc">${createState.rrefs.length}</b>개 선택 (최대 3)` : `참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)`}</span></div>
       <div class="frow"><span class="fl">광고 지면</span><select id="cpl">${['피드', '배너', '기타'].map(gp => `<optgroup label="${gp}">${Object.entries(PLACEMENTS).filter(([, p]) => p.group === gp).map(([k, p]) => `<option value="${k}" ${(createState.placement || 'feed_1x1') === k ? 'selected' : ''}>${p.label} (${p.w}×${p.h})</option>`).join('')}</optgroup>`).join('')}</select></div>
       <div class="plinfo" id="plinfo" style="margin:0 0 12px 76px"></div>
       ${pinfo ? `<div class="pmini">${pinfo.img ? `<img src="${pinfo.img}">` : ""}<div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
       ${isPromo ? `<div class="pmini"><div><b>행사·프로모션</b> <span class="muted">브랜드데이·쿠폰·기획전 같은 행사 소재</span><div style="font-size:12px">아래 「방향」 칸에 <b>행사 이름 · 기간 · 혜택</b>을 적어 주세요. 함께 보여 줄 제품이 있으면 제품 이름도 적어 주시면 그 제품 사진을 그대로 넣습니다.</div></div></div>` : ''}
-      ${pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">${esc(plOf(createState.placement).label)} 지면은 아직 위너 기준을 넘은 소재가 없어요. 그래서 ${pr.used ? `가장 비슷한 <b>${esc(FMT[pr.used[0]] || pr.used[0])}</b>` : '다른 지면의'} 위너를 대신 보여 드려요. 문구·분위기만 참고하고 시안은 ${plOf(createState.placement).w}×${plOf(createState.placement).h} 크기로 만듭니다.</p>`}${pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
-      <div class="refs" id="refs">${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, (pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`) + (w.sim > 1 ? `<span class="fbadge simb" title="이미지가 같은 소재 ${w.sim}개 중 구매 ROAS가 가장 높은 것만 보여요">같은 이미지 ${w.sim}개</span>` : ''))}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
+      ${isRev ? `<div id="revpick"><p class="muted"><span class="spin"></span>베스트 리뷰를 불러오는 중...</p></div>` : ''}${isRev || pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">${esc(plOf(createState.placement).label)} 지면은 아직 위너 기준을 넘은 소재가 없어요. 그래서 ${pr.used ? `가장 비슷한 <b>${esc(FMT[pr.used[0]] || pr.used[0])}</b>` : '다른 지면의'} 위너를 대신 보여 드려요. 문구·분위기만 참고하고 시안은 ${plOf(createState.placement).w}×${plOf(createState.placement).h} 크기로 만듭니다.</p>`}${isRev || pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
+      <div class="refs" id="refs" ${isRev ? 'style="display:none"' : ''}>${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, (pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`) + (w.sim > 1 ? `<span class="fbadge simb" title="이미지가 같은 소재 ${w.sim}개 중 구매 ROAS가 가장 높은 것만 보여요">같은 이미지 ${w.sim}개</span>` : ''))}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
       <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
-      <textarea id="cd" rows="3" placeholder="${isPromo ? '예) 10월 브랜드데이, 10/15~10/17, 전 제품 쿠폰. 아이즈·조인트 같이 보여 주기' : '예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이'}"></textarea>
+      <textarea id="cd" rows="3" placeholder="${isRev ? '예) 리뷰 말투 그대로, 보호자 후기 느낌, 겨울 분위기' : isPromo ? '예) 10월 브랜드데이, 10/15~10/17, 전 제품 쿠폰. 아이즈·조인트 같이 보여 주기' : '예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이'}"></textarea>
       <div class="row" style="margin-top:10px">
         <label>장수 <select id="cn"><option>1</option><option>2</option><option>3</option></select></label>
         <button class="pri" id="mkreq" ${sb ? '' : 'disabled'}>Aside에게 제작 요청</button>
-        <button id="mkprompt">시안 요청문 복사용</button>
+        <button id="mkprompt" ${isRev ? 'style="display:none"' : ''}>시안 요청문 복사용</button>
       </div>
-      <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">내 AI 키로 바로 만들기 (OpenRouter 크레딧 필요)</summary>
+      <details style="margin-top:12px;${isRev ? 'display:none' : ''}"><summary class="muted" style="cursor:pointer">내 AI 키로 바로 만들기 (OpenRouter 크레딧 필요)</summary>
         <div class="row" style="margin-top:8px"><button id="mkai" ${hasKey ? '' : 'disabled'}>문구(Claude) + 이미지(GPT) 바로 만들기</button>${hasKey ? '' : '<button class="lnk" id="setk2">AI 키 연결</button>'}</div>
       </details>
     </div>
@@ -1171,17 +1332,30 @@ async function createPage() {
   clearTimeout(window.__reqTimer);
   const tick = () => { if (!(location.hash || '').startsWith('#create')) return; if (document.activeElement?.matches('textarea,input,select')) { window.__reqTimer = setTimeout(tick, 30000); return; } createPage(); };
   if (pending && sb) window.__reqTimer = setTimeout(tick, 30000);
-  $('#cp').onchange = e => { createState.product = e.target.value; createState.refs = null; createPage(); };
+  $('#cp').onchange = e => { createState.product = e.target.value; createState.refs = null; createState.rrefs = []; createState.rrefsFor = createState.product; createPage(); };
+  document.querySelectorAll('[data-src]').forEach(b => b.onclick = () => { if (createState.src === b.dataset.src) return; createState.src = b.dataset.src; createState.rrefs = []; createState.rrefsFor = undefined; createPage(); });
+  if (isRev) {
+    if (!REVD) $('#revpick').innerHTML = '<p class="notice">리뷰 자료를 못 불러왔어요.</p>';
+    else if (!CREATE_PRODUCTS.length) $('#revpick').innerHTML = '<p class="notice">아직 베스트 리뷰가 고른 제품이 없어요.</p>';
+    else revRows(createState.product, { best: true, size: 30 }).then(rows => {
+      const box = document.getElementById('revpick'); if (!box) return;
+      const A = REVD.prods[createState.product]?.ana;
+      box.innerHTML = (A?.words?.length ? `<p class="muted" style="margin:0 0 6px">이 제품 리뷰에 자주 나오는 말</p><div class="chips" style="margin-bottom:12px">${A.words.slice(0, 14).map(w => `<span class="chip">${esc(w)}</span>`).join('')}</div>` : '')
+        + `<div class="rvpick">${rows.map(r => `<div class="rvopt ${createState.rrefs.includes(+r.id) ? 'sel' : ''}" data-rr="${r.id}"><span class="ck">✓</span><div class="row" style="justify-content:space-between"><span class="rvstar">${stars(r.score)}</span><span class="muted">${revDate(r.created_at)}${r.photo ? ' · 사진' : ''}</span></div><div class="rvtext">${esc(r.content)}</div>${r.pick_reason ? `<div class="rvwhy">${esc(r.pick_reason)}</div>` : ''}</div>`).join('') || '<p class="muted">베스트 리뷰가 없어요.</p>'}</div>`;
+      box.querySelectorAll('[data-rr]').forEach(el => el.onclick = () => { const n = +el.dataset.rr; const i = createState.rrefs.indexOf(n); if (i >= 0) createState.rrefs.splice(i, 1); else if (createState.rrefs.length < 3) createState.rrefs.push(n); else return alert('베스트 리뷰는 3개까지 고를 수 있어요.'); el.classList.toggle('sel', createState.rrefs.includes(n)); $('#rrc').textContent = createState.rrefs.length; });
+    }).catch(e => { const box = document.getElementById('revpick'); if (box) box.innerHTML = `<p class="notice">${esc(e.message)}</p>`; });
+  }
   document.querySelectorAll('.ref').forEach(el => el.onclick = () => { const n = +el.dataset.n; const i = createState.refs.indexOf(n); if (i >= 0) createState.refs.splice(i, 1); else if (createState.refs.length < 4) createState.refs.push(n); el.classList.toggle('sel', createState.refs.includes(n)); $('#rc').textContent = createState.refs.length; });
   document.querySelectorAll('[data-ldel]').forEach(el => el.onclick = async () => { if (confirm('이 시안을 지울까요?')) { await idb.del(el.dataset.ldel); createPage(); } });
   document.querySelectorAll('[data-gdel]').forEach(el => el.onclick = async () => { if (!confirm('팀 갤러리에서 이 시안을 지울까요?')) return; const { error } = await sb.from('generations').delete().eq('id', el.dataset.gdel); if (error) alert(error.message); createPage(); });
   document.querySelectorAll('[data-cancel]').forEach(el => el.onclick = async () => { const { error } = await sb.from('creative_requests').update({ status: '취소' }).eq('id', el.dataset.cancel); if (error) alert(error.message); createPage(); });
   const refsSel = () => createState.refs.map(n => refsAll.find(w => w.n === n)).filter(Boolean);
   $('#mkreq').onclick = async () => {
-    if (!createState.refs.length) return alert('참고할 위너를 1개 이상 골라 주세요.');
+    if (isRev && !createState.rrefs.length) return alert('소재로 쓸 베스트 리뷰를 1개 이상 골라 주세요.');
+    if (!isRev && !createState.refs.length) return alert('참고할 위너를 1개 이상 골라 주세요.');
     if (isPromo && !$('#cd').value.trim()) { $('#cd').focus(); return alert('행사 소재는 「방향」 칸에 행사 이름·기간·혜택을 적어 주세요.'); }
     $('#mkreq').disabled = true;
-    const { error } = await sb.from('creative_requests').insert({ brand: BRAND, placement: createState.placement || 'feed_1x1', product: createState.product, direction: $('#cd').value.trim(), refs: createState.refs, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
+    const { error } = await sb.from('creative_requests').insert({ brand: BRAND, placement: createState.placement || 'feed_1x1', product: createState.product, direction: $('#cd').value.trim(), refs: isRev ? [] : createState.refs, source: isRev ? 'review' : 'winner', review_refs: isRev ? createState.rrefs : null, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
     if (error) { alert('요청 실패: ' + error.message); $('#mkreq').disabled = false; return; }
     await createPage();
     const box = document.getElementById('cout'); box.insertAdjacentHTML('afterbegin', '<p class="notice" style="padding:8px 10px">요청을 넣었습니다. Aside가 만들면 아래 갤러리에 올라옵니다.</p>');
@@ -1227,7 +1401,7 @@ async function createPage() {
 function route() {
   const h = (location.hash || '#home').slice(1).split('?')[0];
   document.querySelectorAll('#tabs a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + h));
-  ({ home, winners: winnersPage, analysis, ask: askPage, create: createPage, products: productsPage, ...(window.EXTRA_PAGES || {}) }[h] || home)();
+  ({ home, winners: winnersPage, analysis, reviews: reviewsPage, ask: askPage, create: createPage, products: productsPage, ...(window.EXTRA_PAGES || {}) }[h] || home)();
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', route);
@@ -1383,7 +1557,7 @@ async function loadProfile() {
   if (error) throw error; return data;
 }
 async function loadData(brand) {
-  const q1 = await sb.from('app_data').select('key,payload').not('key', 'like', 'thumbs%');
+  const q1 = await sb.from('app_data').select('key,payload').not('key', 'like', 'thumbs%').not('key', 'like', 'reviews\\_%');
   if (q1.error) throw q1.error;
   let q2 = sb.from('app_data').select('key,payload').like('key', 'thumbs%');
   q2 = brand === 'drby' ? q2.like('key', 'thumbs\\_dr\\_%') : q2.not('key', 'like', 'thumbs\\_dr\\_%');
