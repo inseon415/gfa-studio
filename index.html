@@ -127,6 +127,7 @@ pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);
 .thb{height:10px;background:#f1f3f6;border-radius:5px;overflow:hidden}.thb i{display:block;height:100%;border-radius:5px}
 .thb i.pos{background:#4caf7a}.thb i.neg{background:#e07a6a}
 .thv{text-align:right;font-variant-numeric:tabular-nums}.thv small{color:var(--mute)}
+.rvopt.sel .rvwhy{background:#fff}
 @media(max-width:800px){.srctabs{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -835,9 +836,11 @@ async function revRows(product, opt = {}) {
 }
 const rvState = { product: '', view: 'recent', year: '', score: '', q: '', page: 0 };
 const stars = s => '★'.repeat(s) + '<span style="color:#d6dbe3">' + '★'.repeat(5 - s) + '</span>';
+const unent = s => String(s || '').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+const kwOk = arr => (arr || []).filter(([w, c]) => w.length <= 8 && c >= 2);
 const revDate = iso => new Date(iso).toLocaleDateString('ko-KR');
 const revCard = (r, opt = {}) => `<div class="rvcard${r.best_pick ? ' best' : ''}"><div class="row" style="justify-content:space-between;gap:8px"><span class="rvstar">${stars(r.score)}</span><span class="muted">${revDate(r.created_at)}${r.review_type === 'AFTER_USE' ? ' · 한달사용' : ''}${r.photo ? ' · 사진' : ''}${r.help ? ' · 도움 ' + r.help : ''}</span></div>
-  <div class="rvtext">${esc(r.content)}</div>${r.pick_reason ? `<div class="rvwhy">베스트 이유 · ${esc(r.pick_reason)}</div>` : ''}${opt.mk ? `<div class="row" style="margin-top:8px"><button class="lnk" data-rvmk="${r.id}">이 리뷰로 소재 만들기</button></div>` : ''}</div>`;
+  <div class="rvtext">${esc(unent(r.content))}</div>${r.pick_reason ? `<div class="rvwhy">베스트 이유 · ${esc(r.pick_reason)}</div>` : ''}${opt.mk ? `<div class="row" style="margin-top:8px"><button class="lnk" data-rvmk="${r.id}">이 리뷰로 소재 만들기</button></div>` : ''}</div>`;
 function revSumMonths(P, months) {
   const D = __revPub.d; const nP = D.POS_K.length, nN = D.NEG_K.length;
   const o = { n: 0, s: [0, 0, 0, 0, 0], ph: 0, pos: Array(nP).fill(0), neg: Array(nN).fill(0) };
@@ -875,11 +878,11 @@ async function reviewsPage() {
       <div class="box"><h2>소비자가 말하는 장점</h2>${li(A.strengths)}</div>
       <div class="box"><h2>써 보니 좋아진 점</h2>${li(A.useBenefits)}</div>
       <div class="box"><h2>아쉬운 점 · 단점</h2>${li(A.weaknesses)}</div>
-      <div class="box"><h2>소비자가 자주 쓰는 말</h2>${(A.words || []).length ? `<div class="chips" style="margin-bottom:10px">${A.words.map(w => `<span class="chip">${esc(w)}</span>`).join('')}</div>` : ''}<p class="muted" style="margin:6px 0">최근 ${R.n}개에서 많이 나온 단어 (리뷰 수)</p><div class="chips">${R.kw.slice(0, 24).map(([w, c]) => `<span class="chip">${esc(w)}<b>${c}</b></span>`).join('')}</div></div>
+      <div class="box"><h2>소비자가 자주 쓰는 말</h2>${(A.words || []).length ? `<div class="chips" style="margin-bottom:10px">${A.words.map(w => `<span class="chip">${esc(w)}</span>`).join('')}</div>` : ''}<p class="muted" style="margin:6px 0">최근 ${R.n}개에서 많이 나온 단어 (리뷰 수)</p><div class="chips">${kwOk(R.kw).slice(0, 24).map(([w, c]) => `<span class="chip">${esc(w)}<b>${c}</b></span>`).join('')}</div></div>
     </div>
     <div class="two" style="margin-top:16px">
       <div class="box"><h2>좋은 리뷰 분석 <span class="muted">4~5점 ${(R.s[3] + R.s[4]).toLocaleString()}개</span></h2><p>${esc(A.goodAnalysis || '')}</p><p class="muted" style="margin:10px 0 4px">리뷰 속 좋은 이야기 (최근 ${R.n}개 중 언급 수)</p>${themeBars(D.POS_K, R.pos, R.n, 'pos')}</div>
-      <div class="box"><h2>안 좋은 리뷰 분석 <span class="muted">1~3점 ${(R.s[0] + R.s[1] + R.s[2]).toLocaleString()}개</span></h2><p>${esc(A.badAnalysis || '')}</p><p class="muted" style="margin:10px 0 4px">리뷰 속 아쉬운 이야기 (별점과 상관없이 언급 수)</p>${themeBars(D.NEG_K, R.neg, R.n, 'neg')}${R.kwBad.length ? `<p class="muted" style="margin:10px 0 4px">1~3점 리뷰에 자주 나온 말</p><div class="chips">${R.kwBad.slice(0, 15).map(([w, c]) => `<span class="chip">${esc(w)}<b>${c}</b></span>`).join('')}</div>` : ''}</div>
+      <div class="box"><h2>안 좋은 리뷰 분석 <span class="muted">1~3점 ${(R.s[0] + R.s[1] + R.s[2]).toLocaleString()}개</span></h2><p>${esc(A.badAnalysis || '')}</p><p class="muted" style="margin:10px 0 4px">리뷰 속 아쉬운 이야기 (별점과 상관없이 언급 수)</p>${themeBars(D.NEG_K, R.neg, R.n, 'neg')}${kwOk(R.kwBad).length >= 3 ? `<p class="muted" style="margin:10px 0 4px">1~3점 리뷰에 자주 나온 말</p><div class="chips">${kwOk(R.kwBad).slice(0, 15).map(([w, c]) => `<span class="chip">${esc(w)}<b>${c}</b></span>`).join('')}</div>` : ''}</div>
     </div>
     <div class="two" style="margin-top:16px">
       <div class="box"><h2>별점 분포</h2>${starBar(R.s)}</div>
@@ -1341,7 +1344,7 @@ async function createPage() {
       const box = document.getElementById('revpick'); if (!box) return;
       const A = REVD.prods[createState.product]?.ana;
       box.innerHTML = (A?.words?.length ? `<p class="muted" style="margin:0 0 6px">이 제품 리뷰에 자주 나오는 말</p><div class="chips" style="margin-bottom:12px">${A.words.slice(0, 14).map(w => `<span class="chip">${esc(w)}</span>`).join('')}</div>` : '')
-        + `<div class="rvpick">${rows.map(r => `<div class="rvopt ${createState.rrefs.includes(+r.id) ? 'sel' : ''}" data-rr="${r.id}"><span class="ck">✓</span><div class="row" style="justify-content:space-between"><span class="rvstar">${stars(r.score)}</span><span class="muted">${revDate(r.created_at)}${r.photo ? ' · 사진' : ''}</span></div><div class="rvtext">${esc(r.content)}</div>${r.pick_reason ? `<div class="rvwhy">${esc(r.pick_reason)}</div>` : ''}</div>`).join('') || '<p class="muted">베스트 리뷰가 없어요.</p>'}</div>`;
+        + `<div class="rvpick">${rows.map(r => `<div class="rvopt ${createState.rrefs.includes(+r.id) ? 'sel' : ''}" data-rr="${r.id}"><span class="ck">✓</span><div class="row" style="justify-content:space-between"><span class="rvstar">${stars(r.score)}</span><span class="muted">${revDate(r.created_at)}${r.photo ? ' · 사진' : ''}</span></div><div class="rvtext">${esc(unent(r.content))}</div>${r.pick_reason ? `<div class="rvwhy">${esc(r.pick_reason)}</div>` : ''}</div>`).join('') || '<p class="muted">베스트 리뷰가 없어요.</p>'}</div>`;
       box.querySelectorAll('[data-rr]').forEach(el => el.onclick = () => { const n = +el.dataset.rr; const i = createState.rrefs.indexOf(n); if (i >= 0) createState.rrefs.splice(i, 1); else if (createState.rrefs.length < 3) createState.rrefs.push(n); else return alert('베스트 리뷰는 3개까지 고를 수 있어요.'); el.classList.toggle('sel', createState.rrefs.includes(n)); $('#rrc').textContent = createState.rrefs.length; });
     }).catch(e => { const box = document.getElementById('revpick'); if (box) box.innerHTML = `<p class="notice">${esc(e.message)}</p>`; });
   }
