@@ -128,6 +128,7 @@ pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);
 .thb i.pos{background:#4caf7a}.thb i.neg{background:#e07a6a}
 .thv{text-align:right;font-variant-numeric:tabular-nums}.thv small{color:var(--mute)}
 .rvopt.sel .rvwhy{background:#fff}
+.workerst{font-size:12.5px;padding:8px 10px;border-radius:8px;margin:8px 0 4px;line-height:1.5}.workerst.on{background:#e8f5ee;color:#1f6b45}.workerst.off{background:#fdf0e6;color:#9a4a12}.workerst b{margin-right:4px}
 .rvquotes{display:flex;flex-direction:column;gap:8px}
 .rvq{font-size:12.5px;line-height:1.55;padding:8px 10px;background:#f7f8fa;border-radius:8px}
 .rvq b{display:block;font-size:12px;color:var(--sub);margin-bottom:2px}
@@ -1264,11 +1265,13 @@ async function createPage() {
   const pinfo = productInfo(createState.product);
   if (!createState.refs || !createState.refs.every(n => refsAll.some(w => w.n === n))) createState.refs = refsAll.slice(0, 3).map(w => w.n);
   if (!isRev || createState.rrefsFor !== createState.product) { if (createState.rrefsFor !== createState.product) createState.rrefs = createState.rrefs && createState.rrefsFor === undefined ? createState.rrefs : []; createState.rrefsFor = createState.product; }
+  const hbP = sb ? sb.from('app_data').select('updated_at').eq('key', 'worker_heartbeat').maybeSingle() : Promise.resolve({ data: null });
   const [reqRes, genRes, localGens] = await Promise.all([
     sb ? sb.from('creative_requests').select('*').order('created_at', { ascending: false }).limit(30) : { data: [] },
     sb ? sb.from('generations').select(GEN_COLS).order('created_at', { ascending: false }).limit(60).then(async r => { if (!r.error && r.data) await withGenImages(r.data); return r; }) : { data: [] },
     idb.all().catch(() => [])
   ]);
+  const hb = (await hbP).data;
   const reqs = (reqRes.data || []).filter(r => (r.brand || 'bylab') === BRAND); const allGens = (genRes.data || []).filter(g => (g.brand || 'bylab') === BRAND);
   // 같은 원본에서 나온 버전 중 가장 최신만 갤러리에 보여 주고, 이전 버전은 카드 안 「이전 버전」으로
   const rootOf = g => g.parent_id || g.id;
@@ -1319,7 +1322,8 @@ async function createPage() {
     </div>
     <div class="box" id="cout">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">제작 요청 ${pending ? `<span class="tag off">진행 중 ${pending}건</span>` : ''}</h2><button id="rfq">새로고침</button></div>
-      <p class="muted" style="margin:6px 0 10px">요청은 Aside가 자동으로 받아 만듭니다. 보통 5~10분 안에 갤러리에 올라오고, 이 목록은 저절로 새로고침됩니다.</p>
+      ${(() => { const at = hb?.updated_at ? new Date(hb.updated_at) : null; const min = at ? Math.round((Date.now() - at) / 60000) : null; const on = min !== null && min <= 12; return `<div class="workerst ${on ? 'on' : 'off'}"><b>${on ? '● 제작 담당 PC 켜짐' : '● 제작 담당 PC 꺼짐'}</b> <span>${on ? '요청하면 보통 5~10분 안에 갤러리에 올라와요.' : `마지막 확인 ${at ? at.toLocaleString('ko-KR') : '-'}. 요청은 그대로 저장되고, PC가 켜지면 들어온 순서대로 만들어요.`}</span></div>`; })()}
+      <p class="muted" style="margin:6px 0 10px">요청은 Aside가 자동으로 받아 만듭니다. 이 목록은 저절로 새로고침됩니다.</p>
       ${reqs.length ? reqs.map(r => `<div class="qa" style="padding:8px 0"><div class="row" style="justify-content:space-between"><span><span class="tag ${STATUS_TAG[r.status] || ''}">${esc(r.status)}</span> ${r.kind === '수정' ? '<span class="tag p">수정</span> ' : ''}<b>${esc(r.product)}</b> · ${r.kind === '수정' ? '재제작' : r.count + '장'}</span><span class="muted">${new Date(r.created_at).toLocaleString('ko-KR')}</span></div>
         <div class="muted">${esc(r.requester_name || '')}${r.kind === '수정' ? ' · 수정안: ' + esc(r.revision_note) : (r.direction ? ' · ' + esc(r.direction) : '')}</div>
         ${r.note ? `<div style="font-size:12px">${esc(r.note)}</div>` : ''}
