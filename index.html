@@ -1246,7 +1246,7 @@ const __genUrl = new Map();
 const toBlobUrl = (id, d) => { if (!d || !String(d).startsWith('data:')) return d; let u = __genUrl.get(id); if (u) return u; try { const i = d.indexOf(','); const mime = d.slice(5, d.indexOf(';')); const bin = atob(d.slice(i + 1)); const arr = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k); u = URL.createObjectURL(new Blob([arr], { type: mime })); } catch { u = d; } __genUrl.set(id, u); return u; };
 async function withGenImages(list) {
   const kv = window.__kv; const miss = [];
-  await Promise.all(list.map(async g => { try { const c = kv && await kv.get('gen:' + g.id); if (c) g.image = c; else miss.push(g); } catch { miss.push(g); } }));
+  await Promise.all(list.map(async g => { try { const c = kv && await kv.get('gen:' + g.id); if (typeof c === 'string' && c.startsWith('data:')) g.image = c; else miss.push(g); } catch { miss.push(g); } }));
   const chunks = []; for (let i = 0; i < miss.length; i += 4) chunks.push(miss.slice(i, i + 4));
   const pool = async () => { while (chunks.length) { const part = chunks.shift(); const { data } = await window.sbClient.from('generations').select('id,image').in('id', part.map(g => g.id)); for (const r of data || []) { const g = part.find(x => x.id === r.id); if (g) g.image = r.image; if (kv) kv.put('gen:' + r.id, r.image).catch(() => {}); } } };
   await Promise.all([pool(), pool(), pool()]);
@@ -1595,7 +1595,7 @@ async function loadProfile() {
 // 자료는 이 기기(IndexedDB)에 보관해 두고, 서버에서 바뀐 조각(updated_at 이 다른 것)만 새로 받는다.
 const kv = (() => {
   let dbp; const open = () => dbp ||= new Promise((res, rej) => { const r = indexedDB.open('gfa-cache', 1); r.onupgradeneeded = () => r.result.createObjectStore('app_data'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
-  const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction('app_data', mode); const st = t.objectStore('app_data'); const out = fn(st); t.oncomplete = () => res(out && out.result !== undefined ? out.result : out); t.onerror = () => rej(t.error); }); };
+  const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction('app_data', mode); const st = t.objectStore('app_data'); const out = fn(st); t.oncomplete = () => res(out instanceof IDBRequest ? out.result : out); t.onerror = () => rej(t.error); }); };
   return { get: k => tx('readonly', s => s.get(k)), put: (k, v) => tx('readwrite', s => s.put(v, k)), del: k => tx('readwrite', s => s.delete(k)), keys: () => tx('readonly', s => s.getAllKeys()) };
 })();
 window.__kv = kv;
