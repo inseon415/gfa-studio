@@ -433,7 +433,10 @@ const GFA_SIZE = 1200;
 const GFA_MAX_BYTES = 800 * 1024 * 0.98, GFA_MIN_BYTES = 80 * 1024 * 1.02; // GFA 피드형 80KB 이상 800KB 이하
 const imgKB = u => { u = String(u); return Math.round((u.length - u.indexOf(',') - 1) * 3 / 4 / 1024); };
 const ALL_PRODUCTS = [...new Set(D.creatives.map(c => c.p))].sort();
-const THUMB = n => D.thumbs[n] || 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480"><rect width="100%" height="100%" fill="#eef3f9"/><text x="50%" y="50%" text-anchor="middle" font-family="sans-serif" font-size="26" fill="#6b7f99">자동 상품 이미지</text></svg>');
+// 썸네일은 처음 쓸 때 한 번만 blob 주소로 바꿔 둔다 (긴 data: 주소를 화면 HTML 에 넣지 않아 탭 전환이 빨라짐)
+const __thumbUrl = new Map();
+const THUMB = n => { const d = D.thumbs[n]; if (!d) return THUMB0; let u = __thumbUrl.get(n); if (!u) { try { const i = d.indexOf(','); const mime = d.slice(5, d.indexOf(';')); const bin = atob(d.slice(i + 1)); const arr = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k); u = URL.createObjectURL(new Blob([arr], { type: mime })); } catch { u = d; } __thumbUrl.set(n, u); } return u; };
+const THUMB0 = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480"><rect width="100%" height="100%" fill="#eef3f9"/><text x="50%" y="50%" text-anchor="middle" font-family="sans-serif" font-size="26" fill="#6b7f99">자동 상품 이미지</text></svg>');
 const won = x => Math.round(x).toLocaleString('ko-KR') + '원';
 const man = x => (x >= 1e8 ? (x / 1e8).toFixed(1) + '억' : Math.round(x / 1e4).toLocaleString('ko-KR') + '만') + '원';
 const pct = x => (Math.round(x * 10) / 10).toLocaleString('ko-KR') + '%';
@@ -711,8 +714,13 @@ function winnersPage() {
     let groups = groupWinners(list);
     if (v.sort === 'roas') groups.sort((a, b) => b.proasSum - a.proasSum); else if (v.sort === 'cost') groups.sort((a, b) => b.costSum - a.costSum); else groups.sort((a, b) => b.latest.localeCompare(a.latest) || b.proasSum - a.proasSum);
     $('#wcount').textContent = `위너 소재 ${groups.length}개 (소재 × 달 ${list.length}건) · 같은 소재는 한 장으로 합치고 위너였던 달을 모두 적었습니다`;
-    $('#wg').innerHTML = groups.map(groupCard).join('') || '<p class="sub">조건에 맞는 위너가 없습니다.</p>'; fitGrid($('#wg'), v.fmt);
-    bindCards($('#wg'));
+    // 카드는 60개씩 그리고, 아래로 내리면 이어서 더 그린다
+    const wg = $('#wg'); if (window.__wObs) window.__wObs.disconnect();
+    let shown = 0; const PAGE = 60;
+    const more = () => { const part = groups.slice(shown, shown + PAGE); if (!part.length) return; const tmp = document.createElement('div'); tmp.innerHTML = part.map(groupCard).join(''); bindCards(tmp); const sen = wg.querySelector('.wsentinel'); while (tmp.firstChild) wg.insertBefore(tmp.firstChild, sen); shown += part.length; if (shown >= groups.length && sen) { sen.remove(); window.__wObs?.disconnect(); } };
+    wg.innerHTML = groups.length ? '<div class="wsentinel" style="grid-column:1/-1;height:1px"></div>' : '<p class="sub">조건에 맞는 위너가 없습니다.</p>'; fitGrid(wg, v.fmt);
+    more();
+    if (shown < groups.length) { window.__wObs = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) more(); }, { rootMargin: '1200px' }); window.__wObs.observe(wg.querySelector('.wsentinel')); }
     const qs = new URLSearchParams(Object.entries(v).filter(([k, x]) => x && !(k === 'sort' && x === 'recent'))).toString();
     history.replaceState(null, '', '#winners' + (qs ? '?' + qs : ''));
     window._wlist = list;
@@ -1233,12 +1241,15 @@ function openRevision(g) {
 }
 // 시안 이미지는 한 번 받으면 이 기기에 보관한다(시안 id 별로 내용이 바뀌지 않음)
 const GEN_COLS = 'id,created_at,request_id,product,direction,refs,analysis,copies,prompt,maker,made_by,parent_id,version,revision_note,placement,brand,source,review_refs';
+const __genUrl = new Map();
+const toBlobUrl = (id, d) => { if (!d || !String(d).startsWith('data:')) return d; let u = __genUrl.get(id); if (u) return u; try { const i = d.indexOf(','); const mime = d.slice(5, d.indexOf(';')); const bin = atob(d.slice(i + 1)); const arr = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k); u = URL.createObjectURL(new Blob([arr], { type: mime })); } catch { u = d; } __genUrl.set(id, u); return u; };
 async function withGenImages(list) {
   const kv = window.__kv; const miss = [];
   await Promise.all(list.map(async g => { try { const c = kv && await kv.get('gen:' + g.id); if (c) g.image = c; else miss.push(g); } catch { miss.push(g); } }));
   const chunks = []; for (let i = 0; i < miss.length; i += 4) chunks.push(miss.slice(i, i + 4));
   const pool = async () => { while (chunks.length) { const part = chunks.shift(); const { data } = await window.sbClient.from('generations').select('id,image').in('id', part.map(g => g.id)); for (const r of data || []) { const g = part.find(x => x.id === r.id); if (g) g.image = r.image; if (kv) kv.put('gen:' + r.id, r.image).catch(() => {}); } } };
   await Promise.all([pool(), pool(), pool()]);
+  for (const g of list) if (g.image && String(g.image).startsWith('data:')) { g.kb = imgKB(g.image); g.isPng = String(g.image).startsWith('data:image/png'); g.image = toBlobUrl(g.id, g.image); }
 }
 async function createPage() {
   const hasKey = !!getKey();
@@ -1273,14 +1284,14 @@ async function createPage() {
     const when = local ? g.at : new Date(g.created_at).toLocaleString('ko-KR');
     const id = local ? g.id : g.id;
     return `<div class="card gen" style="cursor:default"><div class="gimg" data-zoom="${g.id}" title="클릭하면 크게 봅니다"><img src="${g.image}" alt=""><span class="zhint">크게 보기</span></div><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
-      <div class="gspec">${plTag(g.placement)} · ${imgKB(g.image)}KB</div>
+      <div class="gspec">${plTag(g.placement)} · ${g.kb ?? imgKB(g.image)}KB</div>
       <div class="muted">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))} · ${esc(when)}</div>
       ${g.revision_note ? `<div class="copy"><span>반영한 수정안</span>${esc(g.revision_note)}</div>` : ''}
       ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
       ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
       ${g.analysis ? `<div class="copy"><span>${g.source === 'review' ? '살린 리뷰 포인트' : '참고 위너 공통점'}</span>${esc(g.analysis)}</div>` : ''}
       ${g.source === 'review' ? `<div class="muted"><span class="tag p">베스트 리뷰</span> 리뷰 ${(g.review_refs || []).length}개로 만듦</div>` : refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
-      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_${plOf(g.placement).w}x${plOf(g.placement).h}_${String(id).slice(0, 8)}.${String(g.image).startsWith('data:image/png') ? 'png' : 'jpg'}">내려받기 (${plOf(g.placement).w}×${plOf(g.placement).h})</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && olderOf(g).length ? `<button class="lnk" data-hist="${g.id}">이전 버전 ${olderOf(g).length}개 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
+      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_${plOf(g.placement).w}x${plOf(g.placement).h}_${String(id).slice(0, 8)}.${(g.isPng ?? String(g.image).startsWith('data:image/png')) ? 'png' : 'jpg'}">내려받기 (${plOf(g.placement).w}×${plOf(g.placement).h})</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && olderOf(g).length ? `<button class="lnk" data-hist="${g.id}">이전 버전 ${olderOf(g).length}개 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
   };
   app.innerHTML = `<h1>소재 만들기</h1>
   <div class="srctabs"><button class="srctab ${isRev ? '' : 'on'}" data-src="winner"><b>위너 소재</b><span>광고에서 성과 좋았던 소재를 참고해 만들기</span></button><button class="srctab ${isRev ? 'on' : ''}" data-src="review"><b>베스트 리뷰</b><span>스마트스토어 4~5점 좋은 리뷰 문장으로 만들기</span></button></div>
