@@ -818,9 +818,13 @@ function analysis() {
 let __revPub = null;
 async function revData() {
   if (__revPub && __revPub.brand === BRAND) return __revPub.d;
-  const { data, error } = await window.sbClient.from('app_data').select('payload').eq('key', 'reviews_' + BRAND).maybeSingle();
-  if (error) throw error;
-  __revPub = { brand: BRAND, d: data?.payload || null };
+  const key = 'reviews_' + BRAND, kv = window.__kv;
+  const head = await window.sbClient.from('app_data').select('updated_at').eq('key', key).maybeSingle();
+  if (head.error) throw head.error;
+  let d = null;
+  if (kv) { try { const c = await kv.get(key); if (c && c.u === head.data?.updated_at) d = c.p; } catch {} }
+  if (!d) { const { data, error } = await window.sbClient.from('app_data').select('payload,updated_at').eq('key', key).maybeSingle(); if (error) throw error; d = data?.payload || null; if (kv && data) kv.put(key, { u: data.updated_at, p: data.payload }).catch(() => {}); }
+  __revPub = { brand: BRAND, d };
   return __revPub.d;
 }
 const revCache = new Map();
@@ -1227,6 +1231,15 @@ function openRevision(g) {
     closeModal(); createPage();
   };
 }
+// 시안 이미지는 한 번 받으면 이 기기에 보관한다(시안 id 별로 내용이 바뀌지 않음)
+const GEN_COLS = 'id,created_at,request_id,product,direction,refs,analysis,copies,prompt,maker,made_by,parent_id,version,revision_note,placement,brand,source,review_refs';
+async function withGenImages(list) {
+  const kv = window.__kv; const miss = [];
+  await Promise.all(list.map(async g => { try { const c = kv && await kv.get('gen:' + g.id); if (c) g.image = c; else miss.push(g); } catch { miss.push(g); } }));
+  const chunks = []; for (let i = 0; i < miss.length; i += 4) chunks.push(miss.slice(i, i + 4));
+  const pool = async () => { while (chunks.length) { const part = chunks.shift(); const { data } = await window.sbClient.from('generations').select('id,image').in('id', part.map(g => g.id)); for (const r of data || []) { const g = part.find(x => x.id === r.id); if (g) g.image = r.image; if (kv) kv.put('gen:' + r.id, r.image).catch(() => {}); } } };
+  await Promise.all([pool(), pool(), pool()]);
+}
 async function createPage() {
   const hasKey = !!getKey();
   const sb = window.sbClient;
@@ -1242,7 +1255,7 @@ async function createPage() {
   if (!isRev || createState.rrefsFor !== createState.product) { if (createState.rrefsFor !== createState.product) createState.rrefs = createState.rrefs && createState.rrefsFor === undefined ? createState.rrefs : []; createState.rrefsFor = createState.product; }
   const [reqRes, genRes, localGens] = await Promise.all([
     sb ? sb.from('creative_requests').select('*').order('created_at', { ascending: false }).limit(30) : { data: [] },
-    sb ? sb.from('generations').select('*').order('created_at', { ascending: false }).limit(60) : { data: [] },
+    sb ? sb.from('generations').select(GEN_COLS).order('created_at', { ascending: false }).limit(60).then(async r => { if (!r.error && r.data) await withGenImages(r.data); return r; }) : { data: [] },
     idb.all().catch(() => [])
   ]);
   const reqs = (reqRes.data || []).filter(r => (r.brand || 'bylab') === BRAND); const allGens = (genRes.data || []).filter(g => (g.brand || 'bylab') === BRAND);
@@ -1564,13 +1577,29 @@ async function loadProfile() {
   const { data, error } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
   if (error) throw error; return data;
 }
+// 자료는 이 기기(IndexedDB)에 보관해 두고, 서버에서 바뀐 조각(updated_at 이 다른 것)만 새로 받는다.
+const kv = (() => {
+  let dbp; const open = () => dbp ||= new Promise((res, rej) => { const r = indexedDB.open('gfa-cache', 1); r.onupgradeneeded = () => r.result.createObjectStore('app_data'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction('app_data', mode); const st = t.objectStore('app_data'); const out = fn(st); t.oncomplete = () => res(out && out.result !== undefined ? out.result : out); t.onerror = () => rej(t.error); }); };
+  return { get: k => tx('readonly', s => s.get(k)), put: (k, v) => tx('readwrite', s => s.put(v, k)), del: k => tx('readwrite', s => s.delete(k)), keys: () => tx('readonly', s => s.getAllKeys()) };
+})();
+window.__kv = kv;
 async function loadData(brand) {
-  const q1 = await sb.from('app_data').select('key,payload').not('key', 'like', 'thumbs%').not('key', 'like', 'reviews\\_%');
-  if (q1.error) throw q1.error;
-  let q2 = sb.from('app_data').select('key,payload').like('key', 'thumbs%');
-  q2 = brand === 'drby' ? q2.like('key', 'thumbs\\_dr\\_%') : q2.not('key', 'like', 'thumbs\\_dr\\_%');
-  const r2 = await q2; if (r2.error) throw r2.error;
-  const data = q1.data.concat(r2.data);
+  const idx = await sb.from('app_data').select('key,updated_at');
+  if (idx.error) throw idx.error;
+  const wantRow = r => !r.key.startsWith('reviews_') && (!r.key.startsWith('thumbs') || (brand === 'drby' ? r.key.startsWith('thumbs_dr_') : !r.key.startsWith('thumbs_dr_')));
+  const want = idx.data.filter(wantRow);
+  const got = {}; const need = [];
+  let cacheOk = true;
+  await Promise.all(want.map(async r => { try { const c = await kv.get(r.key); if (c && c.u === r.updated_at) got[r.key] = c.p; else need.push(r.key); } catch { cacheOk = false; need.push(r.key); } }));
+  // 바뀐 조각만 3개씩 나눠 동시에 받는다
+  const chunks = []; for (let i = 0; i < need.length; i += 3) chunks.push(need.slice(i, i + 3));
+  let done = 0; const lead = document.querySelector('#authbox .lead');
+  const pool = async () => { while (chunks.length) { const ks = chunks.shift(); const { data, error } = await sb.from('app_data').select('key,payload,updated_at').in('key', ks); if (error) throw error; for (const r of data) { got[r.key] = r.payload; if (cacheOk) kv.put(r.key, { u: r.updated_at, p: r.payload }).catch(() => {}); } done += ks.length; if (lead && need.length > 3) lead.textContent = `자료를 받는 중... ${Math.round(done / need.length * 100)}% (처음 한 번만 오래 걸려요)`; } };
+  await Promise.all([pool(), pool(), pool(), pool()]);
+  // 서버에서 없어진 조각은 기기에서도 지운다
+  try { const live = new Set(idx.data.map(r => r.key)); for (const k of await kv.keys()) if (!String(k).startsWith('gen:') && !live.has(k)) kv.del(k).catch(() => {}); } catch {}
+  const data = want.map(r => ({ key: r.key, payload: got[r.key] })).filter(r => r.payload !== undefined);
   const main = data.find(r => r.key === 'main')?.payload;
   if (main && !main.creatives) main.creatives = data.filter(r => /^cre_\d+$/.test(r.key)).sort((a, b) => +a.key.slice(4) - +b.key.slice(4)).flatMap(r => r.payload);
   if (!main) throw new Error('자료가 없습니다.');
