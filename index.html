@@ -285,6 +285,15 @@ button.pri{background:var(--brand);border-color:var(--brand)}button.pri:hover{ba
 .brand .bl img{height:20px;width:auto;display:block}
 .brand .bl:hover{opacity:.9;background:rgba(255,255,255,.12)}
 .brand .bl.on{opacity:1;background:rgba(255,255,255,.18);box-shadow:inset 0 -2px 0 #fff}
+.mediasw{display:flex;gap:2px;background:rgba(255,255,255,.18);border-radius:8px;padding:3px;margin:0 8px 0 2px;flex:none}
+.keybadge{white-space:nowrap}
+.clamp3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+body.media-meta .card .copy{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+body.media-meta .mgrid p{white-space:pre-line}
+.mediasw button{border:0;background:transparent;color:#fff;font-size:12px;font-weight:600;padding:4px 8px;white-space:nowrap;border-radius:6px;cursor:pointer;opacity:.75}
+.mediasw button.on{background:#fff;color:#1f2937;opacity:1}
+.vframes{display:flex;gap:6px;overflow-x:auto}.vframes img{height:150px;width:auto;border-radius:6px;border:1px solid var(--line)}
+.gimg.gvid video{width:100%;height:100%;object-fit:contain;background:#111;display:block}
 .brand .bsep{width:1px;height:22px;background:rgba(255,255,255,.45);margin:0 6px}
 .pbox .noimg{color:var(--mute);font-size:13px;text-align:center;line-height:1.5}
 /* 닥터바이 테마 (Dr.BY 그린 #0D5440) */
@@ -345,6 +354,7 @@ img.zoomable{cursor:zoom-in}
 <body>
 <header class="top"><div class="topin">
   <div class="brand"><a class="bl" data-brand="bylab" title="바이랩"><img src="data:image/png;base64,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" alt="BY LAB" class="lg-by"></a><span class="bsep"></span><a class="bl" data-brand="drby" title="닥터바이"><img src="data:image/png;base64,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" alt="Dr.BY" class="lg-dr"></a></div>
+  <div class="mediasw" id="mediasw"><button data-media="gfa">네이버 GFA</button><button data-media="meta">메타</button></div>
   <nav class="tabs" id="tabs">
     <a href="#home">홈</a><a href="#winners">위너 소재</a><a href="#analysis">위너 분석</a><a href="#reviews">리뷰 분석</a><a href="#ask">질문하기</a><a href="#create">소재 만들기</a><a href="#products">제품</a>
   </nav>
@@ -357,7 +367,11 @@ img.zoomable{cursor:zoom-in}
 "use strict";
 const D = window.__GFA_DATA__;
 const BRAND = window.__GFA_BRAND__ || 'bylab';
-const BRANDS = { bylab: { name: '바이랩', accounts: ['바이랩', '바이랩 2'] }, drby: { name: '닥터바이', en: 'Dr.BY', accounts: ['Dr 강아지', 'Dr 강아지2', 'Dr 고양이'] } };
+const MEDIA = window.__GFA_MEDIA__ || 'gfa'; const IS_META = MEDIA === 'meta';
+const MEDIA_NAME = IS_META ? '메타' : '네이버 GFA';
+const BRANDS = { bylab: { name: '바이랩', accounts: ['바이랩', '바이랩 2'], metaAccounts: ['바이랩_네이버 협력광고', '바이랩_자사몰'] }, drby: { name: '닥터바이', en: 'Dr.BY', accounts: ['Dr 강아지', 'Dr 강아지2', 'Dr 고양이'], metaAccounts: ['닥터바이_자사몰', '닥터바이_네이버 협력광고'] } };
+if (IS_META) for (const k in BRANDS) BRANDS[k].accounts = BRANDS[k].metaAccounts;
+document.body.classList.add('media-' + MEDIA);
 const BN = BRANDS[BRAND].name;
 const DR_PRODUCT_NAMES = ["바다&우주트릿","캣시크릿밸런스","GI케어","베지케어","키토치카츄"];
 // 닥터바이 질문용 별칭 (긴 말 먼저). 힙앤조인트 = 힙앤조인트 스위프트, 조인트(유리병)와 다른 제품
@@ -380,16 +394,16 @@ const W = STATS.filter(isWin).map(s => {
   const c = C.get(s.n); const t = D.imgText[s.n] || {};
   return { ...c, ...s, season: seasonOf(s.month), year: +s.month.slice(0, 4), it: t.imageText || '', vis: t.visual || '' };
 }).sort((a, b) => b.month.localeCompare(a.month) || b.proas - a.proas);
-const FMT = { feed_1x1: '피드 1:1', feed_16x9: '피드 16:9', feed_2x3: '피드 2:3', collection: '컬렉션형', feed_video: '피드 동영상', mda_banner: '모바일 DA 배너', smartchannel: '스마트채널', native_pc: 'PC 네이티브', native_mo: '모바일 네이티브', shopping: '쇼핑소식', communication: '커뮤니케이션 애드', webtoon_big: '웹툰 빅배너', video: '동영상', catalog: '카탈로그(다이나믹)', advoost: 'ADVoost', other: '기타' };
+const FMT = { feed_1x1: '피드 1:1', feed_16x9: '피드 16:9', feed_2x3: '피드 2:3', collection: '컬렉션형', feed_video: '피드 동영상', mda_banner: '모바일 DA 배너', smartchannel: '스마트채널', native_pc: 'PC 네이티브', native_mo: '모바일 네이티브', shopping: '쇼핑소식', communication: '커뮤니케이션 애드', webtoon_big: '웹툰 빅배너', video: '동영상', catalog: '카탈로그(다이나믹)', advoost: 'ADVoost', other: '기타', meta_image: '이미지', meta_video: '동영상', meta_carousel: '캐러셀', meta_catalog: '카탈로그(다이나믹)' };
 const FMT_ORDER = Object.keys(FMT);
 const AREAS = ['피드', '네이버 메인', '서비스 통합', '스마트채널', '쇼핑', '커뮤니케이션', '동영상'];
 const dvName = d => d === 'PC' ? 'PC' : '모바일';
-const FMT_RATIO = { feed_1x1: 1, feed_16x9: 1200 / 628, feed_2x3: 2 / 3, collection: 1, feed_video: 9 / 16, mda_banner: 1250 / 560, smartchannel: 750 / 200, native_pc: 1.5, native_mo: 1.5, shopping: 1.5, communication: 1, webtoon_big: 1, video: 16 / 9, catalog: 1, advoost: 1, other: 1 };
+const FMT_RATIO = { feed_1x1: 1, feed_16x9: 1200 / 628, feed_2x3: 2 / 3, collection: 1, feed_video: 9 / 16, mda_banner: 1250 / 560, smartchannel: 750 / 200, native_pc: 1.5, native_mo: 1.5, shopping: 1.5, communication: 1, webtoon_big: 1, video: 16 / 9, catalog: 1, advoost: 1, other: 1, meta_image: 1, meta_video: 1, meta_carousel: 1, meta_catalog: 1 };
 const ratioOf = f => FMT_RATIO[f] || 1;
 // 카드 이미지: 「전체」에선 정사각 칸 안에 잘리지 않게(contain), 형태를 고르면 그 비율 그대로
 const imgBox = (w, extra = '') => { const r = ratioOf(w.fmt); return `<div class="imgbox ${r === 1 ? 'sq' : 'nsq'}" style="--ar:${r.toFixed(4)}"><img src="${THUMB(w.n)}" alt="${esc(w.nm)}" loading="lazy">${extra}</div>`; };
 function fitGrid(el, fmt) { if (!el) return; el.classList.toggle('fitfmt', !!fmt); const r = fmt ? ratioOf(fmt) : 1; el.classList.toggle('cols2', r >= 3); el.classList.toggle('cols3', r >= 1.4 && r < 3); }
-const fmtTag = w => `<span class="tag fm" title="${esc((w.ar || []).join(' · '))}">${FMT[w.fmt] || '피드 1:1'} · ${dvName(w.dv)}</span>`;
+const fmtTag = w => IS_META ? `<span class="tag fm">${FMT[w.fmt] || '이미지'}${w.vl ? ' ' + Math.round(w.vl) + '초' : ''}</span>` : `<span class="tag fm" title="${esc((w.ar || []).join(' · '))}">${FMT[w.fmt] || '피드 1:1'} · ${dvName(w.dv)}</span>`;
 W.forEach(w => { w.fmt = w.fmt || 'feed_1x1'; w.dv = w.dv || 'MO'; w.ar = w.ar || ['피드']; });
 // 같은 소재 = 같은 소재 번호, 또는 같은 형태에서 이미지 속 문구·광고 문구가 같은 재업로드
 W.forEach(w => { w.g = w.it && w.it !== '(글자 없음)' ? 'c:' + w.fmt + '|' + w.it + '|' + w.m : 'n:' + w.n; });
@@ -428,7 +442,16 @@ const PLACEMENTS = {
   video_169: { label: '아웃스트림 정지컷 16:9', group: '기타', w: 1280, h: 720, min: 1, max: 220, where: '모바일 아웃스트림 동영상 정지컷', tip: '' },
   endcard: { label: '풀스크린 비디오 엔드카드', group: '기타', w: 828, h: 1472, min: 1, max: 400, where: '시리즈 앱 보상형 풀스크린 비디오', tip: '' },
 };
-const plOf = k => PLACEMENTS[k] || PLACEMENTS.feed_1x1;
+// 메타 지면 (META_소재가이드.md): 피드 4:5, 스토리·릴스 9:16, 1:1, 동영상 9:16(힉스필드)
+const META_PLACEMENTS = {
+  meta_feed_45: { label: '메타 피드 4:5', group: '메타 이미지', w: 1080, h: 1350, min: 1, max: 30000, where: '페이스북·인스타그램 피드 (모바일 기본 비율)', tip: '초점 하나, 이미지 위 글자는 최소로. 하고 싶은 말은 광고 텍스트 칸에' },
+  meta_story_916: { label: '메타 스토리·릴스 9:16', group: '메타 이미지', w: 1080, h: 1920, min: 1, max: 30000, where: '인스타·페이스북 스토리, 릴스, 메신저 스토리', tip: '위 약 14%·아래 약 35%는 비우고 핵심은 가운데' },
+  meta_square: { label: '메타 1:1', group: '메타 이미지', w: 1080, h: 1080, min: 1, max: 30000, where: '인스타 피드 이미지·캐러셀·마켓플레이스·검색', tip: '캐러셀은 모든 카드 비율을 같게' },
+  meta_video_916: { label: '메타 동영상 9:16', group: '메타 동영상', w: 720, h: 1280, min: 1, max: 4000000, where: '스토리·릴스 동영상 (힉스필드로 제작, 15초 이하·기본 4~8초)', tip: '첫 3초에 제품·브랜드, 끝에도 브랜드. 소리 없이도 이해되게', video: true },
+};
+if (IS_META) { for (const k of Object.keys(PLACEMENTS)) delete PLACEMENTS[k]; Object.assign(PLACEMENTS, META_PLACEMENTS); }
+const DEF_PL = IS_META ? 'meta_feed_45' : 'feed_1x1';
+const plOf = k => PLACEMENTS[k] || PLACEMENTS[DEF_PL];
 const plTag = k => { const p = plOf(k); return p.label.includes(p.w + '×' + p.h) ? p.label : `${p.label} · ${p.w}×${p.h}`; };
 const GFA_SIZE = 1200;
 const GFA_MAX_BYTES = 800 * 1024 * 0.98, GFA_MIN_BYTES = 80 * 1024 * 1.02; // GFA 피드형 80KB 이상 800KB 이하
@@ -493,6 +516,12 @@ $('#mclose').onclick = closeModal; $('#modal').onclick = e => { if (e.target.id 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // ---------- card + detail ----------
+// 메타 소재: 영상은 앞·중간·끝 장면을 보여 주고, 원본 게시물 링크를 단다
+function metaMediaBox(c) {
+  const fr = (D.frames || {})[c.n] || [];
+  return (fr.length ? `<p style="margin:8px 0 4px"><b>영상 흐름</b> <span class="muted">${c.vl ? Math.round(c.vl) + '초 · ' : ''}처음 → 끝</span></p><div class="vframes">${fr.map(u => `<img src="${u}" alt="">`).join('')}</div>` : '')
+    + `<p class="muted" style="margin-top:6px">${c.sid ? `<a href="https://www.facebook.com/${esc(c.sid)}" target="_blank" rel="noopener">페이스북에서 ${c.fmt === 'meta_video' ? '영상' : '게시물'} 보기</a>` : ''}${c.ig ? ` · <a href="${esc(c.ig)}" target="_blank" rel="noopener">인스타그램에서 보기</a>` : ''}${c.sid || c.ig ? '' : '광고 관리자의 「미리 보기」에서 원본을 볼 수 있어요.'}</p>`;
+}
 function card(w) {
   return `<article class="card" data-n="${w.n}">
     ${imgBox(w)}
@@ -535,10 +564,10 @@ function detail(n) {
   const wins = new Set(hist.filter(isWin).map(s => s.month)).size;
   openModal(`<div class="mgrid">
     <div><img src="${esc(c.img || '')}" onerror="this.onerror=null;this.src='${THUMB(n)}'" alt="">
-      <p class="muted">원본 이미지는 네이버 서버에서 불러옵니다. 안 보이면 저장된 작은 이미지로 바뀝니다.</p></div>
+      ${IS_META ? metaMediaBox(c) : '<p class="muted">원본 이미지는 네이버 서버에서 불러옵니다. 안 보이면 저장된 작은 이미지로 바뀝니다.</p>'}</div>
     <div>
       <div class="row"><span class="tag p">${esc(c.p)}</span>${fmtTag({ fmt: c.fmt || 'feed_1x1', dv: c.dv || 'MO', ar: c.ar })}<span class="tag">${esc(c.a)}</span><span class="tag ${c.on ? 'on' : 'off'}">${c.on ? 'ON' : 'OFF'}</span><span class="tag">위너 ${wins}개월</span></div>
-      <p class="muted" style="margin:6px 0 0">노출 가능 게재위치: ${esc((c.ar || ['피드']).join(' · '))}${c.obj ? ' · 캠페인 목적 ' + esc({ CONVERSION: '웹사이트 전환', WEB_SITE_TRAFFIC: '인지도 및 트래픽', SHOPPING: '쇼핑 프로모션', WATCH_VIDEO: '동영상 조회', CATALOG: '카탈로그 판매', INSTALL_APP: '앱 전환', LEAD: '참여 유도', PMAX: 'ADVoost 쇼핑' }[c.obj] || c.obj) : ''}</p>
+      <p class="muted" style="margin:6px 0 0;${IS_META ? 'display:none' : ''}">노출 가능 게재위치: ${esc((c.ar || ['피드']).join(' · '))}${c.obj ? ' · 캠페인 목적 ' + esc({ CONVERSION: '웹사이트 전환', WEB_SITE_TRAFFIC: '인지도 및 트래픽', SHOPPING: '쇼핑 프로모션', WATCH_VIDEO: '동영상 조회', CATALOG: '카탈로그 판매', INSTALL_APP: '앱 전환', LEAD: '참여 유도', PMAX: 'ADVoost 쇼핑' }[c.obj] || c.obj) : ''}</p>
       <h2 style="margin-top:8px">${esc(c.nm)}</h2>
       <p class="muted">${esc(c.cp)} › ${esc(c.as)}${c.at ? ' · 만든 날 ' + c.at : ''}</p>
       <p><b>광고 문구</b><br>${esc(c.m) || '-'}</p>
@@ -635,7 +664,7 @@ function nextMonthBox() {
     <div class="row" style="gap:6px;margin:4px 0 10px"><span class="muted">위너가 많았던 제품</span>${prodCount.map(([p, k]) => `<a class="chip" href="#winners?month=${ref || ''}&product=${encodeURIComponent(p)}">${esc(p)}<b>${k}</b></a>`).join('')}</div>
     ${gs.slice(0, 4).map(g => `<div class="fat-row" data-n="${g.n}"><img src="${THUMB(g.n)}" alt="">
       <div class="fr-main"><div class="row" style="gap:6px"><span class="tag p">${esc(g.p)}</span><span class="tag">ROAS ${pct(g.proasSum)}</span><span class="tag">+${man(g.extra)}</span></div>
-        <div class="fr-nm">「${esc(g.it || g.m)}」</div><div class="muted">광고 문구 · ${esc(g.m) || '-'}</div></div>
+        <div class="fr-nm">「${esc(g.it || g.m)}」</div><div class="muted clamp3">광고 문구 · ${esc(g.m) || '-'}</div></div>
       ${REG_ORDER.includes(g.p) ? `<button class="mkalt" data-p="${esc(g.p)}" data-n="${g.n}">이걸로 소재 만들기</button>` : ''}</div>`).join('') || '<p class="muted">작년 같은 달 위너가 없어요.</p>'}
   </section>`;
 }
@@ -663,9 +692,9 @@ function home() {
   const top = topWinners(10);
   app.innerHTML = `
   <section class="studio-hero">
-    <span class="eyebrow">NAVER GFA · 디스플레이 광고 · 광고 관리 전체</span>
+    <span class="eyebrow">${IS_META ? 'META · 페이스북·인스타그램 광고 · 광고 관리자 전체' : 'NAVER GFA · 디스플레이 광고 · 광고 관리 전체'}</span>
     <h1>성과로 검증된 위너 소재를 한눈에</h1>
-    <p class="sub">${BN} 브랜드 ${BRANDS[BRAND].accounts.join(' · ')} 계정의 모든 캠페인(웹사이트 전환·트래픽·쇼핑 프로모션 등) 소재를 게재 위치·디바이스별 월별 성과로 누적 관리합니다.</p>
+    <p class="sub">${BN} 브랜드 ${BRANDS[BRAND].accounts.join(' · ')} 계정의 모든 캠페인${IS_META ? ' 광고 소재를 월별 성과로 누적 관리합니다. 금액은 달러를 그때 환율로 원화로 바꿔 보여 줍니다' + (D.fx ? ` (1달러 = ${Math.round(D.fx.krw).toLocaleString('ko-KR')}원${D.fx.live ? '' : ', 예비 환율'})` : '') + '.' : '(웹사이트 전환·트래픽·쇼핑 프로모션 등) 소재를 게재 위치·디바이스별 월별 성과로 누적 관리합니다.'}</p>
     <div class="filmstrip"><span>위너 기준</span><span>한 달 총 비용 ${won(RULE.minCost)} 이상</span><span>구매완료 광고수익률 ${RULE.minPurchaseRoas}% 이상</span>${RULE.minPurchases ? `<span>구매완료 수 ${RULE.minPurchases}건 이상</span>` : ''}<a href="#analysis" class="fs-link">기준 자세히 보기</a></div>
   </section>
   ${statusBoard()}
@@ -677,7 +706,7 @@ function home() {
     <div class="galtabs" id="toptabs" style="margin-top:12px">${[['', '전체']].concat(FMT_ORDER.filter(k => W.some(w => w.fmt === k)).map(k => [k, FMT[k]])).map(([k, l]) => `<button class="galtab ${k === '' ? 'on' : ''}" data-tf="${k}">${l}</button>`).join('')}</div>
     <div class="topgrid" id="hg">${top.map(topCard).join('')}</div>
   </section>
-  <p class="muted">보관 중인 기간 ${MONTHS[0]} ~ ${LATEST} · 소재 ${D.creatives.length.toLocaleString()}개 · 위너 ${W.length}건(소재 ${new Set(W.map(w => w.g)).size}개) · 마지막 수집: ${new Date(D.collectedAt).toLocaleString('ko-KR')} · GFA는 2년이 지나면 자료를 볼 수 없지만, 이 사이트는 모은 달을 지우지 않고 계속 보관합니다 (매주 월요일 자동 수집).</p>`;
+  <p class="muted">보관 중인 기간 ${MONTHS[0]} ~ ${LATEST} · 소재 ${D.creatives.length.toLocaleString()}개 · 위너 ${W.length}건(소재 ${new Set(W.map(w => w.g)).size}개) · 마지막 수집: ${new Date(D.collectedAt).toLocaleString('ko-KR')} · ${IS_META ? '메타 광고 관리자는 37개월' : 'GFA는 2년'}이 지나면 자료를 볼 수 없지만, 이 사이트는 모은 달을 지우지 않고 계속 보관합니다 (매주 월요일 자동 수집).</p>`;
   bindCards(app);
   app.querySelectorAll('[data-tf]').forEach(b => b.onclick = () => { app.querySelectorAll('[data-tf]').forEach(x => x.classList.toggle('on', x === b)); $('#hg').innerHTML = topWinners(10, b.dataset.tf).map(topCard).join('') || '<p class="muted">이 형태의 위너가 없어요.</p>'; fitGrid($('#hg'), b.dataset.tf); bindCards($('#hg')); });
   app.querySelectorAll('.fat-row').forEach(el => el.onclick = e => { if (e.target.closest('.mkalt')) return; detail(+el.dataset.n); });
@@ -699,8 +728,8 @@ function winnersPage() {
     <select name="account">${opt(BRANDS[BRAND].accounts, f.account, '계정 전체')}</select>
     <select name="product">${opt(PRODUCTS, f.product, '제품 전체')}</select>
     <select name="fmt"><option value="">소재 형태 전체</option>${fmtsW.map(k => `<option value="${k}" ${f.fmt === k ? 'selected' : ''}>${FMT[k]} (${new Set(W.filter(w => w.fmt === k).map(w => w.g)).size})</option>`).join('')}</select>
-    <select name="area"><option value="">게재 위치 전체</option>${AREAS.map(a => `<option ${f.area === a ? 'selected' : ''}>${a}</option>`).join('')}</select>
-    <select name="dv"><option value="">디바이스 전체</option><option value="MO" ${f.dv === 'MO' ? 'selected' : ''}>모바일</option><option value="PC" ${f.dv === 'PC' ? 'selected' : ''}>PC</option></select>
+    <select name="area" ${IS_META ? 'style="display:none"' : ''}><option value="">게재 위치 전체</option>${AREAS.map(a => `<option ${f.area === a ? 'selected' : ''}>${a}</option>`).join('')}</select>
+    <select name="dv" ${IS_META ? 'style="display:none"' : ''}><option value="">디바이스 전체</option><option value="MO" ${f.dv === 'MO' ? 'selected' : ''}>모바일</option><option value="PC" ${f.dv === 'PC' ? 'selected' : ''}>PC</option></select>
     <select name="on"><option value="">ON/OFF 전체</option><option value="1" ${f.on === '1' ? 'selected' : ''}>지금 ON</option><option value="0" ${f.on === '0' ? 'selected' : ''}>지금 OFF</option></select>
     <input type="text" name="q" placeholder="문구·소재 이름 검색" value="${esc(f.q)}">
     <select name="sort"><option value="recent" ${f.sort === 'recent' ? 'selected' : ''}>최근에 위너된 순</option><option value="roas" ${f.sort === 'roas' ? 'selected' : ''}>구매 ROAS 높은 순</option><option value="cost" ${f.sort === 'cost' ? 'selected' : ''}>총 비용 큰 순</option></select>
@@ -736,7 +765,7 @@ function downloadCsv(list) {
   const head = ['월', '계절', '계정', '캠페인', '광고 그룹', '제품', '소재 이름', 'ON/OFF', '총 비용', '구매완료 광고수익률(%)', '구매완료 전환매출액', '구매완료 수', '광고 문구', '이미지 속 문구', '이미지 특징', '이미지 주소'];
   const rows = list.map(w => [w.month, w.season, w.a, w.cp, w.as, w.p, w.nm, w.on ? 'ON' : 'OFF', w.cost, w.proas, w.psales, w.pc, w.m, w.it, w.vis, w.img]);
   const csv = '\ufeff' + [head, ...rows].map(r => r.map(x => '"' + String(x ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `GFA_위너소재_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `${IS_META ? '메타' : 'GFA'}_위너소재_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
 }
 
 // ---------- ANALYSIS ----------
@@ -773,7 +802,7 @@ function bindRuleBox() {
   document.getElementById('rcsave').onclick = async () => {
     if (!window.sbClient) return alert('여기서는 저장할 수 없습니다.');
     const r = val(); if (!confirm(`위너 기준을 바꿀까요?\n${ruleText(r)}\n팀원 모두의 화면에 적용됩니다.`)) return;
-    const { error } = await window.sbClient.from('app_data').upsert({ key: BRAND === 'drby' ? 'rule_drby' : 'rule', payload: r, updated_at: new Date().toISOString() });
+    const { error } = await window.sbClient.from('app_data').upsert({ key: (IS_META ? 'meta_' : '') + (BRAND === 'drby' ? 'rule_drby' : 'rule'), payload: r, updated_at: new Date().toISOString() });
     if (error) return alert('저장 실패: ' + error.message);
     location.hash = '#analysis'; location.reload();
   };
@@ -1035,8 +1064,8 @@ function winnersTsv(list) {
 }
 async function aiAnswer(q, r) {
   const ctx = r.list.length && r.list.length < W.length ? r.list : W;
-  const sys = `너는 ANBIO ${BN} 마케팅팀의 GFA 광고 분석 도우미다.
-[자료]는 네이버 GFA 디스플레이 광고(${BRANDS[BRAND].accounts.join('·')} 계정, 광고 관리 전체 캠페인)의 월별 위너 소재 목록이다.
+  const sys = `너는 ANBIO ${BN} 마케팅팀의 ${IS_META ? '메타(페이스북·인스타그램)' : 'GFA'} 광고 분석 도우미다.
+[자료]는 ${IS_META ? '메타 광고' : '네이버 GFA 디스플레이 광고'}(${BRANDS[BRAND].accounts.join('·')} 계정, 광고 관리 전체 캠페인)의 월별 위너 소재 목록이다.
 위너 기준: ${ruleText()}. 기간 ${MONTHS[0]} ~ ${LATEST}. 계절: 봄 3~5, 여름 6~8, 가을 9~11, 겨울 12~2월.
 규칙: [자료] 안에서만 답한다. 자료에 없으면 "자료에 없음"이라고 말하고 지어내지 않는다. 소재를 말할 때는 광고 문구·이미지 속 문구·소재 이름·월·구매 ROAS를 함께 적는다. 한국어로 짧고 분명하게, 목록은 줄마다 한 소재.`;
   const msg = await orChat({ model: TEXT_MODEL(), max_tokens: 1500, messages: [{ role: 'system', content: sys }, { role: 'user', content: `[자료] (${ctx === W ? '전체 위너' : '질문 조건으로 거른 위너'} ${ctx.length}건)\n${winnersTsv(ctx)}\n\n[질문] ${q}` }] });
@@ -1084,11 +1113,11 @@ const idb = (() => {
   return { all: () => tx('readonly', s => s.getAll()), put: v => tx('readwrite', s => s.put(v)), del: id => tx('readwrite', s => s.delete(id)) };
 })();
 // 지면별 참고 위너: 같은 지면 위너가 먼저, 없으면 가장 비슷한 지면(2번째 묶음)으로 대신
-const PL_REF = { feed_1x1: [['feed_1x1']], feed_16x9: [['feed_16x9'], ['feed_1x1']], feed_2x3: [['feed_2x3'], ['feed_1x1']], collection: [['collection'], ['feed_1x1']], mda_banner: [['mda_banner']], native_thumb: [['native_pc', 'native_mo']], shopping: [['shopping']], smartchannel: [['smartchannel']], smartchannel_160: [['smartchannel']], smartchannel_280: [['smartchannel']], webtoon_big: [['webtoon_big'], ['feed_1x1']], video_916: [['feed_video'], ['feed_1x1']] };
+const PL_REF = IS_META ? { meta_feed_45: [['meta_image'], ['meta_video']], meta_story_916: [['meta_image'], ['meta_video']], meta_square: [['meta_image'], ['meta_video']], meta_video_916: [['meta_video'], ['meta_image']] } : { feed_1x1: [['feed_1x1']], feed_16x9: [['feed_16x9'], ['feed_1x1']], feed_2x3: [['feed_2x3'], ['feed_1x1']], collection: [['collection'], ['feed_1x1']], mda_banner: [['mda_banner']], native_thumb: [['native_pc', 'native_mo']], shopping: [['shopping']], smartchannel: [['smartchannel']], smartchannel_160: [['smartchannel']], smartchannel_280: [['smartchannel']], webtoon_big: [['webtoon_big'], ['feed_1x1']], video_916: [['feed_video'], ['feed_1x1']] };
 const PL_FMT = Object.fromEntries(Object.entries(PL_REF).map(([k, t]) => [k, t.flat()]));
 const PROMO = '행사·프로모션';
 function productRefs(p, pk) {
-  const tiers = PL_REF[pk || createState.placement || 'feed_1x1'];
+  const tiers = PL_REF[pk || createState.placement || DEF_PL];
   if (!tiers) return { ...productRefsAll(p, W), fmtMatch: true, tier: 0 };
   const inT = t => W.filter(w => t.includes(w.fmt));
   // 1) 이 제품의 위너를 같은 지면 → 비슷한 지면 순으로
@@ -1119,9 +1148,9 @@ const EXTRA_PRODUCTS = ['고양이모래(종류 구분 없음)', '캣피지클�
 const productChoices = () => BRAND === 'drby' ? [...new Set([...REG_ORDER, ...DR_PRODUCT_NAMES, '여러 제품 묶음', '행사·프로모션'])] : [...REG_ORDER, ...EXTRA_PRODUCTS.filter(p => !REG_ORDER.includes(p))];
 async function saveProductOverrides(map) {
   if (!window.sbClient) throw new Error('로그인 상태에서만 저장할 수 있습니다.');
-  const cur = (await window.sbClient.from('app_data').select('payload').eq('key', 'product_overrides').maybeSingle()).data?.payload || {};
+  const cur = (await window.sbClient.from('app_data').select('payload').eq('key', IS_META ? 'meta_product_overrides' : 'product_overrides').maybeSingle()).data?.payload || {};
   const next = { ...cur, ...map };
-  const { error } = await window.sbClient.from('app_data').upsert({ key: 'product_overrides', payload: next, updated_at: new Date().toISOString() });
+  const { error } = await window.sbClient.from('app_data').upsert({ key: IS_META ? 'meta_product_overrides' : 'product_overrides', payload: next, updated_at: new Date().toISOString() });
   if (error) throw error;
 }
 const unkState = { size: 50, page: 0, changed: {} };
@@ -1235,13 +1264,13 @@ function openRevision(g) {
     if (!a && !b && !c) { document.getElementById('rvmsg').textContent = '고칠 내용을 하나 이상 적어 주세요.'; return; }
     const note = [a && `이미지 속 문구 → ${a.replace(/\n+/g, ' / ')}`, c && `광고 문구 → ${c}`, b && `기타: ${b}`].filter(Boolean).join('\n');
     document.getElementById('rvgo').disabled = true;
-    const { error } = await window.sbClient.from('creative_requests').insert({ brand: BRAND, product: g.product, kind: '수정', source_generation: g.id, revision_note: note, refs: g.refs || [], count: 1, direction: '', requester_name: window.ME?.name || window.ME?.email || '' });
+    const { error } = await window.sbClient.from('creative_requests').insert({ brand: BRAND, media: MEDIA, product: g.product, kind: '수정', source_generation: g.id, revision_note: note, refs: g.refs || [], count: 1, direction: '', requester_name: window.ME?.name || window.ME?.email || '' });
     if (error) { document.getElementById('rvgo').disabled = false; document.getElementById('rvmsg').textContent = '요청 실패: ' + error.message; return; }
     closeModal(); createPage();
   };
 }
 // 시안 이미지는 한 번 받으면 이 기기에 보관한다(시안 id 별로 내용이 바뀌지 않음)
-const GEN_COLS = 'id,created_at,request_id,product,direction,refs,analysis,copies,prompt,maker,made_by,parent_id,version,revision_note,placement,brand,source,review_refs';
+const GEN_COLS = 'id,created_at,request_id,product,direction,refs,analysis,copies,prompt,maker,made_by,parent_id,version,revision_note,placement,brand,source,review_refs,media,video_url';
 const __genUrl = new Map();
 const toBlobUrl = (id, d) => { if (!d || !String(d).startsWith('data:')) return d; let u = __genUrl.get(id); if (u) return u; try { const i = d.indexOf(','); const mime = d.slice(5, d.indexOf(';')); const bin = atob(d.slice(i + 1)); const arr = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k); u = URL.createObjectURL(new Blob([arr], { type: mime })); } catch { u = d; } __genUrl.set(id, u); return u; };
 async function withGenImages(list) {
@@ -1272,7 +1301,7 @@ async function createPage() {
     idb.all().catch(() => [])
   ]);
   const hb = (await hbP).data;
-  const reqs = (reqRes.data || []).filter(r => (r.brand || 'bylab') === BRAND); const allGens = (genRes.data || []).filter(g => (g.brand || 'bylab') === BRAND);
+  const reqs = (reqRes.data || []).filter(r => (r.brand || 'bylab') === BRAND && (r.media || 'gfa') === MEDIA); const allGens = (genRes.data || []).filter(g => (g.brand || 'bylab') === BRAND && (g.media || 'gfa') === MEDIA);
   // 같은 원본에서 나온 버전 중 가장 최신만 갤러리에 보여 주고, 이전 버전은 카드 안 「이전 버전」으로
   const rootOf = g => g.parent_id || g.id;
   const byRoot = new Map(); for (const g of allGens) { const k = rootOf(g); (byRoot.get(k) || byRoot.set(k, []).get(k)).push(g); }
@@ -1286,15 +1315,15 @@ async function createPage() {
     const copies = g.copies || []; const refs = g.refs || [];
     const when = local ? g.at : new Date(g.created_at).toLocaleString('ko-KR');
     const id = local ? g.id : g.id;
-    return `<div class="card gen" style="cursor:default"><div class="gimg" data-zoom="${g.id}" title="클릭하면 크게 봅니다"><img src="${g.image}" alt=""><span class="zhint">크게 보기</span></div><div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
+    return `<div class="card gen" style="cursor:default">${g.video_url ? `<div class="gimg gvid"><video src="${esc(g.video_url)}" poster="${g.image}" controls playsinline loop muted preload="none"></video></div>` : `<div class="gimg" data-zoom="${g.id}" title="클릭하면 크게 봅니다"><img src="${g.image}" alt=""><span class="zhint">크게 보기</span></div>`}<div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
       <div class="gspec">${plTag(g.placement)} · ${g.kb ?? imgKB(g.image)}KB</div>
       <div class="muted">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))} · ${esc(when)}</div>
       ${g.revision_note ? `<div class="copy"><span>반영한 수정안</span>${esc(g.revision_note)}</div>` : ''}
       ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
-      ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `「${esc(c.imageText)}」 / ${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
+      ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `${c.imageText ? `「${esc(c.imageText)}」 / ` : ''}${c.headline ? `헤드라인 「${esc(c.headline)}」 / ` : ''}${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
       ${g.analysis ? `<div class="copy"><span>${g.source === 'review' ? '살린 리뷰 포인트' : '참고 위너 공통점'}</span>${esc(g.analysis)}</div>` : ''}
       ${g.source === 'review' ? `<div class="muted"><span class="tag p">베스트 리뷰</span> 리뷰 ${(g.review_refs || []).length}개로 만듦</div>` : refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
-      <div class="row"><a href="${g.image}" download="GFA시안_${esc(g.product)}_${plOf(g.placement).w}x${plOf(g.placement).h}_${String(id).slice(0, 8)}.${(g.isPng ?? String(g.image).startsWith('data:image/png')) ? 'png' : 'jpg'}">내려받기 (${plOf(g.placement).w}×${plOf(g.placement).h})</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && olderOf(g).length ? `<button class="lnk" data-hist="${g.id}">이전 버전 ${olderOf(g).length}개 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
+      <div class="row">${g.video_url ? `<a href="${esc(g.video_url)}" target="_blank" rel="noopener" download>동영상 받기 (MP4)</a>` : ''}<a href="${g.image}" download="${IS_META ? '메타' : 'GFA'}시안_${esc(g.product)}_${plOf(g.placement).w}x${plOf(g.placement).h}_${String(id).slice(0, 8)}.${(g.isPng ?? String(g.image).startsWith('data:image/png')) ? 'png' : 'jpg'}">${g.video_url ? '첫 장면 이미지 받기' : `내려받기 (${plOf(g.placement).w}×${plOf(g.placement).h})`}</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && olderOf(g).length ? `<button class="lnk" data-hist="${g.id}">이전 버전 ${olderOf(g).length}개 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
   };
   app.innerHTML = `<h1>소재 만들기</h1>
   <div class="srctabs"><button class="srctab ${isRev ? '' : 'on'}" data-src="winner"><b>위너 소재</b><span>광고에서 성과 좋았던 소재를 참고해 만들기</span></button><button class="srctab ${isRev ? 'on' : ''}" data-src="review"><b>베스트 리뷰</b><span>스마트스토어 4~5점 좋은 리뷰 문장으로 만들기</span></button></div>
@@ -1303,7 +1332,7 @@ async function createPage() {
     <div class="box">
       <div class="frow"><span class="fl">제품</span><select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
       <span class="muted">${isRev ? `베스트 리뷰 <b id="rrc">${createState.rrefs.length}</b>개 선택 (최대 3)` : `참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)`}</span></div>
-      <div class="frow"><span class="fl">광고 지면</span><select id="cpl">${['피드', '배너', '기타'].map(gp => `<optgroup label="${gp}">${Object.entries(PLACEMENTS).filter(([, p]) => p.group === gp).map(([k, p]) => `<option value="${k}" ${(createState.placement || 'feed_1x1') === k ? 'selected' : ''}>${p.label} (${p.w}×${p.h})</option>`).join('')}</optgroup>`).join('')}</select></div>
+      <div class="frow"><span class="fl">광고 지면</span><select id="cpl">${[...new Set(Object.values(PLACEMENTS).map(p => p.group))].map(gp => `<optgroup label="${gp}">${Object.entries(PLACEMENTS).filter(([, p]) => p.group === gp).map(([k, p]) => `<option value="${k}" ${(createState.placement || DEF_PL) === k ? 'selected' : ''}>${p.label} (${p.w}×${p.h})</option>`).join('')}</optgroup>`).join('')}</select></div>
       <div class="plinfo" id="plinfo" style="margin:0 0 12px 76px"></div>
       ${pinfo ? `<div class="pmini">${pinfo.img ? `<img src="${pinfo.img}">` : ""}<div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
       ${isPromo ? `<div class="pmini"><div><b>행사·프로모션</b> <span class="muted">브랜드데이·쿠폰·기획전 같은 행사 소재</span><div style="font-size:12px">아래 「방향」 칸에 <b>행사 이름 · 기간 · 혜택</b>을 적어 주세요. 함께 보여 줄 제품이 있으면 제품 이름도 적어 주시면 그 제품 사진을 그대로 넣습니다.</div></div></div>` : ''}
@@ -1336,7 +1365,7 @@ async function createPage() {
   ${locals.length ? `<section><h2>이 브라우저에만 있는 시안 ${locals.length}개</h2><div class="grid">${locals.map(g => genCard(g, true)).join('')}</div></section>` : ''}`;
   if (createState.gal && !gens.some(g => g.product === createState.gal)) createState.gal = '';
   if (createState.galPl && !gens.some(g => (g.placement || 'feed_1x1') === createState.galPl)) createState.galPl = '';
-  const gPl = g => g.placement || 'feed_1x1';
+  const gPl = g => g.placement || DEF_PL;
   const plOrder = Object.keys(PLACEMENTS);
   const plShort = k => { const p = plOf(k); return p.label.includes(p.w + '×' + p.h) ? p.label : p.label + ' ' + p.w + '×' + p.h; };
   const drawGal = () => {
@@ -1361,7 +1390,7 @@ async function createPage() {
     $('#galgrid').querySelectorAll('[data-gdel]').forEach(el => el.onclick = async () => { if (!confirm('팀 갤러리에서 이 시안을 지울까요?')) return; const { error } = await sb.from('generations').delete().eq('id', el.dataset.gdel); if (error) alert(error.message); createPage(); });
   };
   drawGal();
-  const drawPl = () => { const k = $('#cpl').value; createState.placement = k; const p = plOf(k); $('#plinfo').innerHTML = `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.min > 1 ? p.min + 'KB 이상 ' : ''}${p.max >= 1000 ? (p.max / 1000).toFixed(1) + 'MB' : p.max + 'KB'} 이하 · ${/^smartchannel/.test(k) ? 'PNG(투명 배경)' : 'JPG/RGB'}<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>`; };
+  const drawPl = () => { const k = $('#cpl').value; createState.placement = k; const p = plOf(k); $('#plinfo').innerHTML = IS_META ? `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.video ? 'MP4 · 힉스필드(Seedance 1.5, 4~8초)' : 'JPG'}<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>` : `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.min > 1 ? p.min + 'KB 이상 ' : ''}${p.max >= 1000 ? (p.max / 1000).toFixed(1) + 'MB' : p.max + 'KB'} 이하 · ${/^smartchannel/.test(k) ? 'PNG(투명 배경)' : 'JPG/RGB'}<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>`; };
   $('#cpl').onchange = () => { drawPl(); createState.refs = null; createPage(); }; drawPl();
   if ($('#setk2')) $('#setk2').onclick = openSettings;
   $('#rfq').onclick = () => createPage();
@@ -1391,7 +1420,7 @@ async function createPage() {
     if (!isRev && !createState.refs.length) return alert('참고할 위너를 1개 이상 골라 주세요.');
     if (isPromo && !$('#cd').value.trim()) { $('#cd').focus(); return alert('행사 소재는 「방향」 칸에 행사 이름·기간·혜택을 적어 주세요.'); }
     $('#mkreq').disabled = true;
-    const { error } = await sb.from('creative_requests').insert({ brand: BRAND, placement: createState.placement || 'feed_1x1', product: createState.product, direction: $('#cd').value.trim(), refs: isRev ? [] : createState.refs, source: isRev ? 'review' : 'winner', review_refs: isRev ? createState.rrefs : null, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
+    const { error } = await sb.from('creative_requests').insert({ brand: BRAND, media: MEDIA, placement: createState.placement || DEF_PL, product: createState.product, direction: $('#cd').value.trim(), refs: isRev ? [] : createState.refs, source: isRev ? 'review' : 'winner', review_refs: isRev ? createState.rrefs : null, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
     if (error) { alert('요청 실패: ' + error.message); $('#mkreq').disabled = false; return; }
     await createPage();
     const box = document.getElementById('cout'); box.insertAdjacentHTML('afterbegin', '<p class="notice" style="padding:8px 10px">요청을 넣었습니다. Aside가 만들면 아래 갤러리에 올라옵니다.</p>');
@@ -1442,6 +1471,15 @@ function route() {
 }
 window.addEventListener('hashchange', route);
 document.querySelectorAll('.brand .bl').forEach(a => { a.classList.toggle('on', a.dataset.brand === BRAND); a.onclick = () => { if (a.dataset.brand === BRAND) { location.hash = '#home'; return; } try { localStorage.setItem('gfa-brand', a.dataset.brand); sessionStorage.setItem('gfa-brand', a.dataset.brand); } catch {} location.hash = '#home'; location.reload(); }; });
+document.querySelectorAll('#mediasw button').forEach(b => { b.classList.toggle('on', b.dataset.media === MEDIA); b.onclick = () => { if (b.dataset.media === MEDIA) return; try { localStorage.setItem('gfa-media', b.dataset.media); sessionStorage.setItem('gfa-media', b.dataset.media); } catch {} location.hash = '#home'; location.reload(); }; });
+// 메타 화면에서는 GFA 용어를 메타 용어로 바꿔 보여 준다 (광고비 = 지출 금액, 광고 매출 = 공유 항목의 구매 전환값, 구매수 = 공유 항목이 포함된 구매)
+if (IS_META) {
+  const REPL = [['구매완료 광고수익률', '구매 ROAS'], ['구매완료 전환매출액', '광고 매출'], ['구매완료 수', '구매수'], ['총 광고비', '총 광고비'], ['한 달 총 비용', '한 달 광고비'], ['총 비용', '광고비'], ['노출 가능 게재위치', '게재 위치']];
+  const fix = root => { const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let nd; while ((nd = tw.nextNode())) { let t = nd.nodeValue, o = t; for (const [a, b] of REPL) if (t.includes(a)) t = t.split(a).join(b); if (t !== o) nd.nodeValue = t; } };
+  const mo = new MutationObserver(ms => { mo.disconnect(); for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1) fix(n); else if (n.nodeType === 3 && n.parentNode) fix(n.parentNode); obs(); });
+  const obs = () => { mo.observe(app, { childList: true, subtree: true }); mo.observe(document.getElementById('mbody'), { childList: true, subtree: true }); };
+  obs();
+}
 refreshKeyBadge(); route();
 </script>
 <style>
@@ -1599,10 +1637,14 @@ const kv = (() => {
   return { get: k => tx('readonly', s => s.get(k)), put: (k, v) => tx('readwrite', s => s.put(v, k)), del: k => tx('readwrite', s => s.delete(k)), keys: () => tx('readonly', s => s.getAllKeys()) };
 })();
 window.__kv = kv;
-async function loadData(brand) {
+async function loadData(brand, media = 'gfa') {
   const idx = await sb.from('app_data').select('key,updated_at');
   if (idx.error) throw idx.error;
-  const wantRow = r => !r.key.startsWith('reviews_') && (!r.key.startsWith('thumbs') || (brand === 'drby' ? r.key.startsWith('thumbs_dr_') : !r.key.startsWith('thumbs_dr_')));
+  const META_KEY = k => k.startsWith('meta_');
+  const SHARED = new Set(['products', 'products_drby', 'rule', 'rule_drby']);
+  const wantRow = media === 'meta'
+    ? r => SHARED.has(r.key) || (META_KEY(r.key) && (!/^meta_(thumbs|frames)/.test(r.key) || (brand === 'drby' ? /^meta_(thumbs|frames)_dr_/.test(r.key) : !/^meta_(thumbs|frames)_dr_/.test(r.key))))
+    : r => !META_KEY(r.key) && !r.key.startsWith('reviews_') && (!r.key.startsWith('thumbs') || (brand === 'drby' ? r.key.startsWith('thumbs_dr_') : !r.key.startsWith('thumbs_dr_')));
   const want = idx.data.filter(wantRow);
   const got = {}; const need = [];
   let cacheOk = true;
@@ -1615,6 +1657,7 @@ async function loadData(brand) {
   // 서버에서 없어진 조각은 기기에서도 지운다
   try { const live = new Set(idx.data.map(r => r.key)); for (const k of await kv.keys()) if (!String(k).startsWith('gen:') && !live.has(k)) kv.del(k).catch(() => {}); } catch {}
   const data = want.map(r => ({ key: r.key, payload: got[r.key] })).filter(r => r.payload !== undefined);
+  if (media === 'meta') return metaData(data);
   const main = data.find(r => r.key === 'main')?.payload;
   if (main && !main.creatives) main.creatives = data.filter(r => /^cre_\d+$/.test(r.key)).sort((a, b) => +a.key.slice(4) - +b.key.slice(4)).flatMap(r => r.payload);
   if (!main) throw new Error('자료가 없습니다.');
@@ -1625,6 +1668,21 @@ async function loadData(brand) {
   const productsDr = data.find(r => r.key === 'products_drby')?.payload || [];
   const ruleDr = data.find(r => r.key === 'rule_drby')?.payload;
   return { ...main, rule: rule || main.rule, ruleDr: ruleDr || rule || main.rule, thumbs, products, productsDr, productOverrides };
+}
+// 메타: 금액은 달러로 보관 → 지금 환율로 원화로 바꿔서 앱에 넘긴다 (환율을 못 받으면 수집 때 환율)
+async function liveFx() { const tries = [async () => (await (await fetch('https://open.er-api.com/v6/latest/USD')).json()).rates.KRW, async () => (await (await fetch('https://api.frankfurter.app/latest?from=USD&to=KRW')).json()).rates.KRW]; for (const t of tries) { try { const v = await Promise.race([t(), new Promise((_, rj) => setTimeout(() => rj(new Error('timeout')), 4000))]); if (v > 500) return v; } catch {} } return null; }
+async function metaData(data) {
+  const main = { ...(data.find(r => r.key === 'meta_main')?.payload || {}) };
+  if (!main.stats) throw new Error('메타 자료가 아직 없습니다.');
+  main.creatives = data.filter(r => /^meta_cre_\d+$/.test(r.key)).sort((a, b) => +a.key.slice(9) - +b.key.slice(9)).flatMap(r => r.payload);
+  const live = await liveFx(); const krw = live || main.fx?.krw || 1400;
+  main.fx = { krw, live: !!live, at: live ? new Date().toISOString() : main.fx?.at };
+  main.stats = main.stats.map(s => { const r = s.slice(); r[2] = s[2] * krw; r[4] = s[4] * krw; return r; });
+  const thumbs = {}; data.filter(r => r.key.startsWith('meta_thumbs')).forEach(r => Object.assign(thumbs, r.payload));
+  const frames = {}; data.filter(r => r.key.startsWith('meta_frames')).forEach(r => Object.assign(frames, r.payload));
+  const get = k => data.find(r => r.key === k)?.payload;
+  const rule = get('meta_rule') || get('rule') || main.rule;
+  return { ...main, rule, ruleDr: get('meta_rule_drby') || rule, thumbs, frames, products: get('products') || [], productsDr: get('products_drby') || [], productOverrides: get('meta_product_overrides') || {} };
 }
 let loginRun = null;
 function afterLogin() { if (!loginRun) loginRun = afterLoginInner().finally(() => { loginRun = null; }); return loginRun; }
@@ -1640,8 +1698,9 @@ async function afterLoginInner() {
     let brand = sessionStorage.getItem('gfa-brand');
     if (!brand) brand = await brandPick();
     window.__GFA_BRAND__ = brand;
-    box.classList.remove('wide'); box.innerHTML = `<p class="lead">${brand === 'drby' ? '닥터바이' : '바이랩'} 자료를 불러오는 중...</p>`;
-    try { window.__GFA_DATA__ = await loadData(brand); } catch (e) { box.innerHTML = `<p class="msg err">자료를 못 불러왔습니다: ${esc(e.message)}</p>`; return; }
+    let media = 'gfa'; try { media = sessionStorage.getItem('gfa-media') || localStorage.getItem('gfa-media') || 'gfa'; } catch {} window.__GFA_MEDIA__ = media;
+    box.classList.remove('wide'); box.innerHTML = `<p class="lead">${brand === 'drby' ? '닥터바이' : '바이랩'} ${media === 'meta' ? '메타' : 'GFA'} 자료를 불러오는 중...</p>`;
+    try { window.__GFA_DATA__ = await loadData(brand, media); } catch (e) { box.innerHTML = `<p class="msg err">자료를 못 불러왔습니다: ${esc(e.message)}</p>`; return; }
     installExtras(p);
     const s = document.createElement('script'); s.textContent = document.getElementById('appsrc').textContent; document.body.appendChild(s);
     appStarted = true;
