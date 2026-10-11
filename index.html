@@ -345,6 +345,7 @@ img.zoomable{cursor:zoom-in}
 .frow .fl{flex:0 0 66px;font-weight:600;font-size:14px}
 .frow select{width:300px;max-width:100%}
 .gen .gspec{font-size:13px;font-weight:600;color:#334155}
+.ppick{position:relative;flex:none;min-width:190px;max-width:300px}.ppbtn{width:100%;display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:38px;padding:5px 30px 5px 10px;border:1px solid #d7dce3;border-radius:8px;background:#fff;cursor:pointer;text-align:left;font:inherit;position:relative}.ppbtn:hover{border-color:var(--acc)}.ppcaret{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#64748b;font-size:12px}.ppchip{background:var(--acc2);color:var(--ink);border-radius:999px;padding:2px 8px;font-size:12.5px;font-weight:600}.ppchip:first-child{background:var(--acc);color:#fff}.pppanel{position:absolute;right:0;top:calc(100% + 4px);z-index:60;width:280px;max-height:340px;overflow:auto;background:#fff;border:1px solid #d7dce3;border-radius:10px;box-shadow:0 10px 30px rgba(15,23,42,.18);padding:8px}.pphint{font-size:11.5px;color:var(--sub);padding:2px 4px 6px;line-height:1.4}.ppopt{display:flex;align-items:center;gap:8px;padding:6px 6px;border-radius:6px;font-size:13.5px;cursor:pointer}.ppopt:hover{background:#f3f6fa}.ppopt input{margin:0}.pprep{margin-left:auto;font-size:11px;color:var(--acc);font-weight:700}.ppfoot{display:flex;justify-content:space-between;align-items:center;position:sticky;bottom:-8px;background:#fff;padding:8px 2px 2px;border-top:1px solid #eef0f3;margin-top:6px}
 .unkbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0 4px;font-size:13px}
 #unkbarBot{margin:12px 0 0}
 .unkbar .pgsize{display:flex;align-items:center;gap:6px;color:#475569}
@@ -389,7 +390,13 @@ if (BRAND === 'drby') { D.rule = D.ruleDr || D.rule; D.products = (D.productsDr 
 document.body.classList.add('brand-' + BRAND);
 document.title = '닥터바이랩 광고 소재';
 const OVR = D.productOverrides || {};
-for (const c of D.creatives) if (OVR[c.n]) c.p = OVR[c.n];
+for (const c of D.creatives) if (OVR[c.n]) c.p = Array.isArray(OVR[c.n]) ? OVR[c.n].join(' + ') : OVR[c.n];
+// 한 소재에 제품이 여러 개(세트·묶음)면 ' + ' 로 이어 저장된다. c.ps = 제품 목록, c.p = 대표(첫 번째), c.pl = 화면 표시용
+const PSEP = ' + ';
+const splitP = p => String(p || '').split(PSEP).map(s => s.trim()).filter(Boolean);
+const joinP = arr => [...new Set(arr)].join(PSEP);
+for (const c of D.creatives) { c.ps = splitP(c.p); if (!c.ps.length) c.ps = [c.p]; c.pl = c.ps.join(PSEP); c.p = c.ps[0]; }
+const hasP = (w, p) => (w.ps || [w.p]).includes(p);
 const C = new Map(D.creatives.map(c => [c.n, c]));
 const STATS = D.stats.map(([month, n, cost, proas, psales, pc, imp, click, roas]) => ({ month, n, cost, proas, psales, pc, imp, click, roas }));
 const RULE = D.rule;
@@ -431,7 +438,7 @@ const LATEST = MONTHS[MONTHS.length - 1];
 const PRODUCT_LIST = D.products || [];
 const REG_ORDER = PRODUCT_LIST.map(p => p.name);
 const ordP = arr => [...arr].sort((a, b) => ((REG_ORDER.indexOf(a) + 1) || 999) - ((REG_ORDER.indexOf(b) + 1) || 999) || a.localeCompare(b));
-const PRODUCTS = ordP(new Set(W.map(w => w.p))).filter(p => p !== '[확인필요]');
+const PRODUCTS = ordP(new Set(W.flatMap(w => w.ps || [w.p]))).filter(p => p !== '[확인필요]');
 const productInfo = name => PRODUCT_LIST.find(p => p.name === name);
 const PLACEMENTS = {
   feed_1x1: { label: '피드 이미지형 1:1', group: '피드', w: 1200, h: 1200, min: 80, max: 800, where: '홈피드·메인 주제판·카페/블로그/밴드 피드·기사 하단 피드', tip: '사방 60px 안(1080×1080)에 글자·로고' },
@@ -464,7 +471,7 @@ const plTag = k => { const p = plOf(k); return p.label.includes(p.w + '×' + p.h
 const GFA_SIZE = 1200;
 const GFA_MAX_BYTES = 800 * 1024 * 0.98, GFA_MIN_BYTES = 80 * 1024 * 1.02; // GFA 피드형 80KB 이상 800KB 이하
 const imgKB = u => { u = String(u); return Math.round((u.length - u.indexOf(',') - 1) * 3 / 4 / 1024); };
-const ALL_PRODUCTS = [...new Set(D.creatives.map(c => c.p))].sort();
+const ALL_PRODUCTS = [...new Set(D.creatives.flatMap(c => c.ps || [c.p]))].sort();
 // 썸네일은 처음 쓸 때 한 번만 blob 주소로 바꿔 둔다 (긴 data: 주소를 화면 HTML 에 넣지 않아 탭 전환이 빨라짐)
 const __thumbUrl = new Map();
 const THUMB = n => { const d = D.thumbs[n]; if (!d) return THUMB0; let u = __thumbUrl.get(n); if (!u) { try { const i = d.indexOf(','); const mime = d.slice(5, d.indexOf(';')); const bin = atob(d.slice(i + 1)); const arr = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k); u = URL.createObjectURL(new Blob([arr], { type: mime })); } catch { u = d; } __thumbUrl.set(n, u); } return u; };
@@ -534,7 +541,7 @@ function card(w) {
   return `<article class="card" data-n="${w.n}">
     ${imgBox(w)}
     <div class="cb">
-      <div class="row"><span class="tag p">${esc(w.p)}</span>${fmtTag(w)}<span class="tag">${w.month}</span><span class="tag">${esc(w.a)}</span><span class="tag ${w.on ? 'on' : 'off'}">${w.on ? 'ON' : 'OFF'}</span></div>
+      <div class="row"><span class="tag p">${esc(w.pl || w.p)}</span>${fmtTag(w)}<span class="tag">${w.month}</span><span class="tag">${esc(w.a)}</span><span class="tag ${w.on ? 'on' : 'off'}">${w.on ? 'ON' : 'OFF'}</span></div>
       <div class="nm">${esc(w.nm)}</div>
       <div class="kv"><span>구매완료 광고수익률</span><b>${pct(w.proas)}</b></div>
       <div class="kv"><span>구매완료 전환매출액</span><span class="sales">${won(w.psales)}</span></div>
@@ -550,7 +557,7 @@ function groupCard(g) {
   return `<article class="card" data-n="${g.n}">
     ${imgBox(g)}
     <div class="cb">
-      <div class="row"><span class="tag p">${esc(g.p)}</span>${fmtTag(g)}<span class="tag">${esc(g.a)}</span><span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span>${g.nos.length > 1 ? `<span class="tag" title="같은 이미지·문구로 다시 올린 소재">재업로드 ${g.nos.length}개 합침</span>` : ''}</div>
+      <div class="row"><span class="tag p">${esc(g.pl || g.p)}</span>${fmtTag(g)}<span class="tag">${esc(g.a)}</span><span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span>${g.nos.length > 1 ? `<span class="tag" title="같은 이미지·문구로 다시 올린 소재">재업로드 ${g.nos.length}개 합침</span>` : ''}</div>
       <div class="nm">${esc(g.nm)}</div>
       <div class="row" style="gap:4px"><span class="muted">위너 ${ms.length}개월</span>${ms.length > 8 ? '<span class="muted">…</span>' : ''}${shown.map(m => `<span class="tag">${m.slice(2).replace('-', '.')}</span>`).join('')}</div>
       <div class="kv"><span>구매완료 광고수익률${many ? ' <span class="muted">(합산)</span>' : ''}</span><b>${pct(g.proasSum)}</b></div>
@@ -574,7 +581,7 @@ function detail(n) {
     <div>${IS_META && c.vf ? `<video class="mvid" src="${META_VIDEO(n)}" poster="${THUMB(n)}" controls autoplay muted playsinline loop preload="auto"></video>` : `<img src="${esc(c.img || '')}" onerror="this.onerror=null;this.src='${THUMB(n)}'" alt="">`}
       ${IS_META ? metaMediaBox(c) : '<p class="muted">원본 이미지는 네이버 서버에서 불러옵니다. 안 보이면 저장된 작은 이미지로 바뀝니다.</p>'}</div>
     <div>
-      <div class="row"><span class="tag p">${esc(c.p)}</span>${fmtTag({ fmt: c.fmt || 'feed_1x1', dv: c.dv || 'MO', ar: c.ar })}<span class="tag">${esc(c.a)}</span><span class="tag ${c.on ? 'on' : 'off'}">${c.on ? 'ON' : 'OFF'}</span><span class="tag">위너 ${wins}개월</span></div>
+      <div class="row"><span class="tag p">${esc(c.pl || c.p)}</span>${fmtTag({ fmt: c.fmt || 'feed_1x1', dv: c.dv || 'MO', ar: c.ar })}<span class="tag">${esc(c.a)}</span><span class="tag ${c.on ? 'on' : 'off'}">${c.on ? 'ON' : 'OFF'}</span><span class="tag">위너 ${wins}개월</span></div>
       <p class="muted" style="margin:6px 0 0;${IS_META ? 'display:none' : ''}">노출 가능 게재위치: ${esc((c.ar || ['피드']).join(' · '))}${c.obj ? ' · 캠페인 목적 ' + esc({ CONVERSION: '웹사이트 전환', WEB_SITE_TRAFFIC: '인지도 및 트래픽', SHOPPING: '쇼핑 프로모션', WATCH_VIDEO: '동영상 조회', CATALOG: '카탈로그 판매', INSTALL_APP: '앱 전환', LEAD: '참여 유도', PMAX: 'ADVoost 쇼핑' }[c.obj] || c.obj) : ''}</p>
       <h2 style="margin-top:8px">${esc(c.nm)}</h2>
       <p class="muted">${esc(c.cp)} › ${esc(c.as)}${c.at ? ' · 만든 날 ' + c.at : ''}</p>
@@ -583,14 +590,14 @@ function detail(n) {
       <p><b>이미지 특징</b><br>${esc(t.visual) || '-'}</p>
       ${multi ? `<p class="notice" style="padding:8px 10px">같은 이미지·문구로 다시 올린 소재 ${nos.length}개를 합쳐 보여 줍니다: ${nos.map(x => esc(C.get(x).nm) + ' (' + esc(C.get(x).as) + ')').join(', ')}</p>` : ''}
       ${c.link ? `<p><a href="${esc(c.link)}" target="_blank" rel="noopener">연결된 상품 페이지 열기</a></p>` : ''}
-      ${window.ME && window.ME.is_admin ? `<p class="row" style="gap:6px"><span class="muted">제품 바꾸기</span><select id="dprod"><option value="">${esc(c.p)} (지금)</option>${productChoices().filter(p => p !== c.p).map(p => `<option>${esc(p)}</option>`).join('')}</select><button id="dprodsave" disabled>저장</button></p>` : ''}
+      ${window.ME && window.ME.is_admin ? `<p class="row" style="gap:6px"><span class="muted">제품 바꾸기</span><span id="dprod"></span><button id="dprodsave" disabled>저장</button></p>` : ''}
       <button class="pri" id="mkfrom">이 소재를 참고해 시안 만들기</button>
     </div></div>
     <h2 style="margin-top:18px">월별 성과</h2>
     <div class="tbl"><table><thead><tr><th>월</th>${multi ? '<th>소재</th>' : ''}<th class="n">총 비용</th><th class="n">구매완료 광고수익률</th><th class="n">구매완료 전환매출액</th><th class="n">구매완료 수</th><th class="n">노출</th><th class="n">클릭</th><th>위너</th></tr></thead><tbody>
     ${hist.map(s => `<tr class="${isWin(s) ? 'win' : ''}"><td>${s.month}</td>${multi ? `<td style="font-size:12px">${esc(C.get(s.n).nm)}</td>` : ''}<td class="n">${won(s.cost)}</td><td class="n">${pct(s.proas)}</td><td class="n">${won(s.psales)}</td><td class="n">${s.pc}</td><td class="n">${s.imp.toLocaleString()}</td><td class="n">${s.click.toLocaleString()}</td><td>${isWin(s) ? '위너' : ''}</td></tr>`).join('')}
     </tbody></table></div>`);
-  if ($('#dprod')) { $('#dprod').onchange = () => { $('#dprodsave').disabled = !$('#dprod').value; }; $('#dprodsave').onclick = async () => { const v = $('#dprod').value; if (!v) return; $('#dprodsave').disabled = true; try { await saveProductOverrides(Object.fromEntries(nos.map(x => [x, v]))); location.reload(); } catch (e) { alert('저장 실패: ' + e.message); $('#dprodsave').disabled = false; } }; }
+  if ($('#dprod')) { const cur0 = joinP(c.ps || [c.p]); let pv = cur0; prodPicker($('#dprod'), { value: c.ps || [c.p], choices: productChoices, onChange: arr => { pv = joinP(arr); $('#dprodsave').disabled = !pv || pv === cur0; } }); $('#dprodsave').onclick = async () => { const v = pv; if (!v) return; $('#dprodsave').disabled = true; try { await saveProductOverrides(Object.fromEntries(nos.map(x => [x, v]))); location.reload(); } catch (e) { alert('저장 실패: ' + e.message); $('#dprodsave').disabled = false; } }; }
   $('#mkfrom').onclick = () => { closeModal(); createState.product = c.p; createState.refs = [n]; location.hash = '#create'; };
 }
 
@@ -653,7 +660,7 @@ function fatigueBox() {
   return `<section class="box hbox"><div class="hb-title"><h2>교체가 필요한 위너</h2><span class="muted">지금 ON · 위너 2개월 이상 · 최근 3개월 구매완료 광고수익률 기준</span></div>
     ${list.length ? list.slice(0, 6).map(x => `<div class="fat-row" data-n="${x.c.n}">
       <img src="${THUMB(x.c.n)}" alt="">
-      <div class="fr-main"><div class="row" style="gap:6px"><span class="tag ${x.level === '교체 필요' ? 'warnt' : 'cautt'}">${x.level}</span><span class="tag p">${esc(x.c.p)}</span></div>
+      <div class="fr-main"><div class="row" style="gap:6px"><span class="tag ${x.level === '교체 필요' ? 'warnt' : 'cautt'}">${x.level}</span><span class="tag p">${esc(x.c.pl || x.c.p)}</span></div>
         <div class="fr-nm">${esc(x.c.nm)}</div><div class="muted">${x.why} · ${mLabel(x.m3[2])} 광고비 ${man(x.spend)}</div></div>
       <div class="fr-trend">${spark(x.trend)}<div class="muted">${x.trend.map(v => v == null ? '-' : Math.round(v) + '%').join(' → ')}</div></div>
       ${REG_ORDER.includes(x.c.p) ? `<button class="mkalt" data-p="${esc(x.c.p)}" data-n="${x.c.n}">교체 소재 만들기</button>` : ''}</div>`).join('') : '<p class="muted" style="margin:8px 0 0">지금은 교체가 필요한 위너가 없어요. 👍</p>'}
@@ -671,7 +678,7 @@ function nextMonthBox() {
   return `<section class="box hbox"><div class="hb-title"><h2>${+target.slice(5)}월 준비 · 작년 이맘때 잘 된 소재</h2><span class="muted">${ref ? mLabel(ref) + ' 위너 기준' : ''} ${note}</span></div>
     <div class="row" style="gap:6px;margin:4px 0 10px"><span class="muted">위너가 많았던 제품</span>${prodCount.map(([p, k]) => `<a class="chip" href="#winners?month=${ref || ''}&product=${encodeURIComponent(p)}">${esc(p)}<b>${k}</b></a>`).join('')}</div>
     ${gs.slice(0, 4).map(g => `<div class="fat-row" data-n="${g.n}"><img src="${THUMB(g.n)}" alt="">
-      <div class="fr-main"><div class="row" style="gap:6px"><span class="tag p">${esc(g.p)}</span><span class="tag">ROAS ${pct(g.proasSum)}</span><span class="tag">+${man(g.extra)}</span></div>
+      <div class="fr-main"><div class="row" style="gap:6px"><span class="tag p">${esc(g.pl || g.p)}</span><span class="tag">ROAS ${pct(g.proasSum)}</span><span class="tag">+${man(g.extra)}</span></div>
         <div class="fr-nm">「${esc(g.it || g.m)}」</div><div class="muted clamp3">광고 문구 · ${esc(g.m) || '-'}</div></div>
       ${REG_ORDER.includes(g.p) ? `<button class="mkalt" data-p="${esc(g.p)}" data-n="${g.n}">이걸로 소재 만들기</button>` : ''}</div>`).join('') || '<p class="muted">작년 같은 달 위너가 없어요.</p>'}
   </section>`;
@@ -685,7 +692,7 @@ function topCard(g, i) {
   return `<article class="card topcard ${i < 3 ? 'podium' : ''}" data-n="${g.n}">
     <div class="timg">${imgBox(g, `<span class="rank r${i + 1}">${i + 1}</span>`)}</div>
     <div class="cb">
-      <div class="row"><span class="tag p">${esc(g.p)}</span>${fmtTag(g)}<span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span></div>
+      <div class="row"><span class="tag p">${esc(g.pl || g.p)}</span>${fmtTag(g)}<span class="tag ${g.on ? 'on' : 'off'}">${g.on ? 'ON' : 'OFF'}</span></div>
       <div class="nm">${esc(g.nm)}</div>
       <div class="hero-metric"><span>광고비 대비 추가 매출</span><b>+${won(g.extra)}</b></div>
       <div class="kv"><span>구매완료 광고수익률</span><b>${pct(g.proasSum)}</b></div>
@@ -747,7 +754,7 @@ function winnersPage() {
   <div class="grid" id="wg"></div>`;
   const apply = () => {
     const v = Object.fromEntries([...$('#wf').querySelectorAll('select,input')].map(e => [e.name, e.value]));
-    let list = W.filter(w => (!v.month || w.month === v.month) && (!v.year || String(w.year) === v.year) && (!v.season || w.season === v.season) && (!v.account || w.a === v.account) && (!v.product || w.p === v.product) && (v.on === '' || String(+w.on) === v.on) && (!v.fmt || w.fmt === v.fmt) && (!v.dv || w.dv === v.dv) && (!v.area || (w.ar || []).includes(v.area))
+    let list = W.filter(w => (!v.month || w.month === v.month) && (!v.year || String(w.year) === v.year) && (!v.season || w.season === v.season) && (!v.account || w.a === v.account) && (!v.product || hasP(w, v.product)) && (v.on === '' || String(+w.on) === v.on) && (!v.fmt || w.fmt === v.fmt) && (!v.dv || w.dv === v.dv) && (!v.area || (w.ar || []).includes(v.area))
       && (!v.q || (w.m + ' ' + w.it + ' ' + w.nm).toLowerCase().includes(v.q.toLowerCase())));
     let groups = groupWinners(list);
     if (v.sort === 'roas') groups.sort((a, b) => b.proasSum - a.proasSum); else if (v.sort === 'cost') groups.sort((a, b) => b.costSum - a.costSum); else groups.sort((a, b) => b.latest.localeCompare(a.latest) || b.proasSum - a.proasSum);
@@ -789,7 +796,7 @@ function ruleBox() {
   const now = countFor(RULE), rec = countFor(RECOMMENDED);
   setTimeout(bindRuleBox, 0);
   return `<section class="box rulebox"><div class="row" style="justify-content:space-between;align-items:flex-start"><div>
-    <div class="muted" style="font-weight:600;letter-spacing:.02em">지금 위너 기준</div>
+    <div class="muted" style="font-weight:600;letter-spacing:.02em">지금 위너 기준 <span class="tag p">${esc(BN)} ${IS_META ? 'META' : 'GFA'}</span> <span style="font-weight:400">이 기준은 ${esc(BN)} ${IS_META ? 'META' : 'GFA'}에만 적용돼요</span></div>
     <div style="font-size:17px;font-weight:700;margin:4px 0">${ruleText()}</div>
     <div class="muted">이 기준으로 위너 ${now.rows}건(소재 ${now.cre}개) · 참고: 계정 전체 평균 구매완료 광고수익률 ${pct(ACC_ROAS)}</div></div>
     <div class="rec"><div class="muted" style="font-weight:600">Aside 추천 기준</div><div style="font-weight:700">${ruleText(RECOMMENDED)}</div><div class="muted">위너 ${rec.rows}건(소재 ${rec.cre}개)</div></div></div>
@@ -809,7 +816,7 @@ function bindRuleBox() {
   document.getElementById('rcrec').onclick = () => { c1.value = RECOMMENDED.minCost; document.getElementById('rc2').value = RECOMMENDED.minPurchaseRoas; document.getElementById('rc3').value = RECOMMENDED.minPurchases; prev(); };
   document.getElementById('rcsave').onclick = async () => {
     if (!window.sbClient) return alert('여기서는 저장할 수 없습니다.');
-    const r = val(); if (!confirm(`위너 기준을 바꿀까요?\n${ruleText(r)}\n팀원 모두의 화면에 적용됩니다.`)) return;
+    const r = val(); if (!confirm(`${BN} ${IS_META ? 'META' : 'GFA'} 위너 기준을 바꿀까요?\n${ruleText(r)}\n팀원 모두의 화면에 적용됩니다. 다른 브랜드·매체 기준은 그대로예요.`)) return;
     const { error } = await window.sbClient.from('app_data').upsert({ key: (IS_META ? 'meta_' : '') + (BRAND === 'drby' ? 'rule_drby' : 'rule'), payload: r, updated_at: new Date().toISOString() });
     if (error) return alert('저장 실패: ' + error.message);
     location.hash = '#analysis'; location.reload();
@@ -818,8 +825,8 @@ function bindRuleBox() {
 function analysis() {
   const byP = {};
   const active = STATS.filter(s => s.cost >= RULE.minCost);
-  for (const s of active) { const p = C.get(s.n).p; (byP[p] ||= { p, act: 0, win: 0, cost: 0, sales: 0, cre: new Set(), seasons: { 봄: 0, 여름: 0, 가을: 0, 겨울: 0 } }).act++; }
-  for (const w of W) { const r = byP[w.p]; r.win++; r.cost += w.cost; r.sales += w.psales; r.cre.add(w.n); r.seasons[w.season]++; }
+  for (const s of active) for (const p of (C.get(s.n).ps || [C.get(s.n).p])) { (byP[p] ||= { p, act: 0, win: 0, cost: 0, sales: 0, cre: new Set(), seasons: { 봄: 0, 여름: 0, 가을: 0, 겨울: 0 } }).act++; }
+  for (const w of W) for (const p of (w.ps || [w.p])) { const r = byP[p]; if (!r) continue; r.win++; r.cost += w.cost; r.sales += w.psales; r.cre.add(w.n); r.seasons[w.season]++; }
   const rows = Object.values(byP).filter(r => r.win).sort((a, b) => b.win - a.win);
   const byMonth = MONTHS.map(m => ({ m, n: W.filter(w => w.month === m).length, a: active.filter(s => s.month === m).length }));
   const maxN = Math.max(1, ...byMonth.map(x => x.n));
@@ -832,7 +839,7 @@ function analysis() {
   const topWords = Object.entries(freq).filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]).slice(0, 40);
   const bestPerProduct = rows.map(r => {
     const best = new Map();
-    for (const w of W.filter(w => w.p === r.p)) { const b = best.get(w.g); if (!b || w.proas > b.proas) best.set(w.g, { ...w, months: (b?.months || 0) + 1 }); else b.months++; }
+    for (const w of W.filter(w => hasP(w, r.p))) { const b = best.get(w.g); if (!b || w.proas > b.proas) best.set(w.g, { ...w, months: (b?.months || 0) + 1 }); else b.months++; }
     return { p: r.p, list: [...best.values()].sort((a, b) => b.proas - a.proas).slice(0, 5) };
   });
   app.innerHTML = `<h1>위너 분석</h1>
@@ -1047,7 +1054,7 @@ function groupByCreative(list) {
 }
 function ruleAnswer(q) {
   const f = parseQ(q);
-  let list = W.filter(w => (!f.products.length || f.products.includes(w.p)) && (!f.months || f.months.includes(w.month)) && (!f.accounts.length || f.accounts.includes(w.a)));
+  let list = W.filter(w => (!f.products.length || (w.ps || [w.p]).some(p => f.products.includes(p))) && (!f.months || f.months.includes(w.month)) && (!f.accounts.length || f.accounts.includes(w.a)));
   const g = groupByCreative(list);
   const shown = f.top ? g.slice(0, f.top) : g;
   const chips = [];
@@ -1138,10 +1145,10 @@ function productRefsAll(p, WW) {
   const W = WW;
   const simKey = w => { const s = String(w.it || '').replace(/[^가-힣A-Za-z0-9]/g, ''); return w.it && w.it !== '(글자 없음)' && s.length >= 8 ? 's:' + w.fmt + '|' + s.slice(0, 24) : w.g; };
   const pick = list => { const best = new Map(), cnt = new Map(); for (const w of list) { const k = simKey(w); if (!cnt.has(k)) cnt.set(k, new Set()); cnt.get(k).add(w.n); const b = best.get(k); if (!b || w.proas > b.proas) best.set(k, w); } return [...best.values()].map(w => ({ ...w, sim: cnt.get(simKey(w)).size })).sort((a, b) => b.proas - a.proas); };
-  const own = pick(W.filter(w => w.p === p));
+  const own = pick(W.filter(w => hasP(w, p)));
   if (own.length) return { list: own, own: true };
   const fam = [LITTERS, ['스킨테라피 샴푸', '스킨테라피 트리트먼트', '스킨밸런스샴푸']].find(f => f.includes(p));
-  const sib = fam ? pick(W.filter(w => fam.includes(w.p))) : [];
+  const sib = fam ? pick(W.filter(w => (w.ps || [w.p]).some(x => fam.includes(x)))) : [];
   return sib.length ? { list: sib, own: false, sib: true } : { list: pick(W), own: false };
 }
 function toGfaSize(src, pk) {
@@ -1154,6 +1161,24 @@ function toGfaSize(src, pk) {
 }
 const EXTRA_PRODUCTS = ['고양이모래(종류 구분 없음)', '캣피지클리너', '캣버블샴푸', '여러 제품 묶음', '행사·프로모션'];
 const productChoices = () => BRAND === 'drby' ? [...new Set([...REG_ORDER, ...DR_PRODUCT_NAMES, '여러 제품 묶음', '행사·프로모션'])] : [...REG_ORDER, ...EXTRA_PRODUCTS.filter(p => !REG_ORDER.includes(p))];
+// 제품 여러 개 고르기 (세트·묶음 소재). 처음 고른 제품이 대표 제품. el.__pp.set([...]) 로 바깥에서 값 바꾸기
+function prodPicker(el, { value = [], choices, placeholder = '제품 선택', onChange, exclude = [] }) {
+  let sel = value.filter(Boolean);
+  el.classList.add('ppick');
+  el.innerHTML = '<button type="button" class="ppbtn"></button><div class="pppanel" hidden><div class="pphint">여러 개 고를 수 있어요 (세트·묶음 소재). 처음 고른 제품이 대표 제품이에요.</div><div class="ppopts"></div><div class="ppfoot"><button type="button" class="lnk ppclear">모두 해제</button><button type="button" class="pri ppok">확인</button></div></div>';
+  const btn = el.querySelector('.ppbtn'), panel = el.querySelector('.pppanel');
+  const opts = () => choices().filter(p => !exclude.includes(p));
+  const drawBtn = () => { btn.innerHTML = (sel.length ? sel.map(p => `<span class="ppchip">${esc(p)}</span>`).join('') : `<span class="muted">${esc(placeholder)}</span>`) + '<span class="ppcaret">▾</span>'; };
+  const drawOpts = () => { el.querySelector('.ppopts').innerHTML = opts().map(p => `<label class="ppopt"><input type="checkbox" value="${esc(p)}" ${sel.includes(p) ? 'checked' : ''}> ${esc(p)}${sel[0] === p && sel.length > 1 ? '<span class="pprep">대표</span>' : ''}</label>`).join('');
+    el.querySelectorAll('.ppopt input').forEach(cb => cb.onchange = () => { const p = cb.value; sel = cb.checked ? [...sel.filter(x => x !== p), p] : sel.filter(x => x !== p); drawBtn(); drawOpts(); onChange && onChange([...sel]); }); };
+  btn.onclick = e => { e.stopPropagation(); const open = panel.hidden; document.querySelectorAll('.pppanel').forEach(x => x.hidden = true); if (open) { drawOpts(); panel.hidden = false; } };
+  panel.onclick = e => e.stopPropagation();
+  el.querySelector('.ppok').onclick = () => { panel.hidden = true; };
+  el.querySelector('.ppclear').onclick = () => { sel = []; drawBtn(); drawOpts(); onChange && onChange([]); };
+  el.__pp = { set: v => { sel = v.filter(Boolean); drawBtn(); if (!panel.hidden) drawOpts(); }, get: () => [...sel] };
+  drawBtn(); return el.__pp;
+}
+document.addEventListener('click', () => document.querySelectorAll('.pppanel').forEach(x => x.hidden = true));
 async function saveProductOverrides(map) {
   if (!window.sbClient) throw new Error('로그인 상태에서만 저장할 수 있습니다.');
   const cur = (await window.sbClient.from('app_data').select('payload').eq('key', IS_META ? 'meta_product_overrides' : 'product_overrides').maybeSingle()).data?.payload || {};
@@ -1180,7 +1205,7 @@ function bindUnknownBox() {
   const box = document.getElementById('unkbox'); if (!box) return;
   const isAdmin = !!(window.ME && window.ME.is_admin);
   const rows = unkRows(); const byN = new Map(rows.map(r => [String(r.c.n), r.c]));
-  const opts = '<option value="">제품 선택</option>' + productChoices().map(p => `<option>${esc(p)}</option>`).join('');
+  
   const save = document.getElementById('unkSave'); const ch = unkState.changed;
   const updSave = () => { if (!save) return; const k = Object.keys(ch).length; save.disabled = !k; save.textContent = k ? `${k.toLocaleString()}개 저장` : '저장'; };
   const pages = () => Math.max(1, Math.ceil(rows.length / unkState.size));
@@ -1197,18 +1222,19 @@ function bindUnknownBox() {
       <img src="${esc(c.img || '')}" loading="lazy" onerror="this.onerror=null;this.src='${THUMB(c.n)}'" alt="">
       <div class="ur-main"><div class="row" style="gap:6px">${fmtTag(c)}<span class="tag">${esc(c.a)}</span><span class="tag ${c.on ? 'on' : 'off'}">${c.on ? 'ON' : 'OFF'}</span>${sp ? `<span class="tag">광고비 ${man(sp)}</span>` : ''}</div>
         <div class="fr-nm">${esc(c.nm)}</div><div class="muted">${esc(c.cp)} › ${esc(c.as)}</div>${c.m ? `<div style="font-size:12px">「${esc(c.m)}」</div>` : ''}</div>
-      ${isAdmin ? `<select class="unksel">${opts}</select>` : ''}</div>`).join('');
-    document.querySelectorAll('#unklist .unkrow').forEach(r => { const s = r.querySelector('.unksel'); if (s && ch[r.dataset.n]) s.value = ch[r.dataset.n]; });
+      ${isAdmin ? '<div class="unksel"></div>' : ''}</div>`).join('');
+    
     for (const id of ['unkbarTop', 'unkbarBot']) document.getElementById(id).innerHTML = bar();
     box.querySelectorAll('.unksize').forEach(s => s.onchange = () => { const first = unkState.page * unkState.size; unkState.size = +s.value; unkState.page = Math.floor(first / unkState.size); draw(true); });
     box.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => { unkState.page = +b.dataset.pg; draw(true); });
-    document.querySelectorAll('#unklist .unksel').forEach(sel => sel.onchange = () => {
-      const row = sel.closest('.unkrow'), v = sel.value;
-      const ns = document.getElementById('unkSame').checked ? rows.filter(r => r.c.as === row.dataset.as).map(r => String(r.c.n)) : [row.dataset.n];
-      for (const n of ns) { if (v) ch[n] = v; else delete ch[n]; }
-      document.querySelectorAll('#unklist .unkrow').forEach(r => { if (ns.includes(r.dataset.n)) { const s = r.querySelector('.unksel'); s.value = v; r.classList.toggle('picked', !!v); } });
-      updSave();
-    });
+    document.querySelectorAll('#unklist .unksel').forEach(el => { const row = el.closest('.unkrow');
+      prodPicker(el, { value: splitP(ch[row.dataset.n]), choices: productChoices, onChange: arr => {
+        const v = joinP(arr);
+        const ns = document.getElementById('unkSame').checked ? rows.filter(r => r.c.as === row.dataset.as).map(r => String(r.c.n)) : [row.dataset.n];
+        for (const n of ns) { if (v) ch[n] = v; else delete ch[n]; }
+        document.querySelectorAll('#unklist .unkrow').forEach(r => { if (ns.includes(r.dataset.n)) { if (r !== row) r.querySelector('.unksel')?.__pp?.set(arr); r.classList.toggle('picked', !!v); } });
+        updSave();
+      } }); });
     if (scroll) box.scrollIntoView({ block: 'start' });
   };
   draw(false); updSave();
@@ -1220,7 +1246,7 @@ function productsPage() {
   ${unknownBox(isAdmin)}
   ${PRODUCT_LIST.length ? '' : '<p class="notice">등록된 제품이 없습니다.</p>'}
   <div class="grid">${PRODUCT_LIST.map((p, i) => {
-    const wc = new Set(W.filter(w => w.p === p.name).map(w => w.g)).size; const cc = D.creatives.filter(c => c.p === p.name).length;
+    const wc = new Set(W.filter(w => hasP(w, p.name)).map(w => w.g)).size; const cc = D.creatives.filter(c => hasP(c, p.name)).length;
     return `<div class="card" style="cursor:default"><div class="pbox">${p.img ? `<img src="${p.img}" alt="${esc(p.name)}">` : `<div class="noimg">제품 이미지 없음${isAdmin ? '<br><small>「이미지 바꾸기」로 올려 주세요</small>' : ''}</div>`}</div>
       <div class="cb"><div class="row"><span class="tag">${i + 1}</span><b style="font-size:15px">${esc(p.name)}</b></div>
       <div class="muted">${esc(p.label)}${p.size ? ' · ' + esc(p.size) : ''}</div>
@@ -1297,6 +1323,8 @@ async function createPage() {
   const REV_PRODUCTS = REVD ? ordP(Object.keys(REVD.prods).filter(p => p !== '[확인필요]' && p !== '여러 제품 묶음' && REVD.prods[p].best?.length)) : [];
   const CREATE_PRODUCTS = isRev ? REV_PRODUCTS : (REG_ORDER.length ? REG_ORDER : PRODUCTS).filter(p => p !== PROMO).concat([PROMO]);
   const isPromo = !isRev && !isUp && createState.product === PROMO;
+  if (!createState.extra) createState.extra = []; createState.extra = createState.extra.filter(p => p !== createState.product);
+  const extraInfo = () => createState.extra.map(productInfo).filter(Boolean).map(x => `<div class="pmini">${x.img ? `<img src="${x.img}">` : ''}<div><span class="tag p">함께 넣을 제품</span> <b>${esc(x.name)}</b> <span class="muted">${esc(x.label)}${x.size ? ' · ' + esc(x.size) : ''}</span><div style="font-size:12px">${esc(x.look)}</div></div></div>`).join('');
   if (!createState.product || !CREATE_PRODUCTS.includes(createState.product)) createState.product = CREATE_PRODUCTS.includes('페이스클렌징') ? '페이스클렌징' : CREATE_PRODUCTS[0];
   const pr = productRefs(createState.product, createState.placement); const refsAll = pr.list;
   const pinfo = productInfo(createState.product);
@@ -1341,9 +1369,11 @@ async function createPage() {
     <div class="box">
       <div class="frow"><span class="fl">제품</span><select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
       <span class="muted">${isUp ? `올린 파일 <b id="upc">${createState.files.length}</b>개 (최대 6)` : isRev ? `베스트 리뷰 <b id="rrc">${createState.rrefs.length}</b>개 선택 (최대 3)` : `참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)`}</span></div>
+      <div class="frow"><span class="fl">함께 넣을 제품</span><span id="cpx"></span><span class="muted">세트·묶음 소재일 때만 골라 주세요</span></div>
       <div class="frow"><span class="fl">광고 지면</span><select id="cpl">${[...new Set(Object.values(PLACEMENTS).map(p => p.group))].map(gp => `<optgroup label="${gp}">${Object.entries(PLACEMENTS).filter(([, p]) => p.group === gp).map(([k, p]) => `<option value="${k}" ${(createState.placement || DEF_PL) === k ? 'selected' : ''}>${p.label} (${p.w}×${p.h})</option>`).join('')}</optgroup>`).join('')}</select></div>
       <div class="plinfo" id="plinfo" style="margin:0 0 12px 76px"></div>
       ${pinfo ? `<div class="pmini">${pinfo.img ? `<img src="${pinfo.img}">` : ""}<div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
+      <div id="cpxinfo">${extraInfo()}</div>
       ${isPromo ? `<div class="pmini"><div><b>행사·프로모션</b> <span class="muted">브랜드데이·쿠폰·기획전 같은 행사 소재</span><div style="font-size:12px">아래 「방향」 칸에 <b>행사 이름 · 기간 · 혜택</b>을 적어 주세요. 함께 보여 줄 제품이 있으면 제품 이름도 적어 주시면 그 제품 사진을 그대로 넣습니다.</div></div></div>` : ''}
       ${isRev ? `<div id="revpick"><p class="muted"><span class="spin"></span>베스트 리뷰를 불러오는 중...</p></div>` : ''}${isRev || isUp || pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">${esc(plOf(createState.placement).label)} 지면은 아직 위너 기준을 넘은 소재가 없어요. 그래서 ${pr.used ? `가장 비슷한 <b>${esc(FMT[pr.used[0]] || pr.used[0])}</b>` : '다른 지면의'} 위너를 대신 보여 드려요. 문구·분위기만 참고하고 시안은 ${plOf(createState.placement).w}×${plOf(createState.placement).h} 크기로 만듭니다.</p>`}${isRev || isUp || pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
       ${isUp ? `<div id="upwrap"><label class="updrop" id="updrop"><input type="file" id="upf" accept="image/*,video/*" multiple hidden><b>사진·영상 올리기</b><span>여기를 눌러 고르거나 파일을 끌어다 놓으세요 · 최대 6개 · 파일당 50MB</span></label><div class="upthumbs" id="upthumbs"></div></div>` : ''}<div class="refs" id="refs" ${isRev || isUp ? 'style="display:none"' : ''}>${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, (pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`) + (w.sim > 1 ? `<span class="fbadge simb" title="이미지가 같은 소재 ${w.sim}개 중 구매 ROAS가 가장 높은 것만 보여요">같은 이미지 ${w.sim}개</span>` : ''), { pick: true })}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
@@ -1441,6 +1471,7 @@ async function createPage() {
     if (createState.upDir) $('#cd').value = createState.upDir; $('#cd').oninput = e => { createState.upDir = e.target.value; };
     drawUp();
   }
+  if ($('#cpx')) prodPicker($('#cpx'), { value: createState.extra, placeholder: '없음 (제품 1개)', choices: () => (REG_ORDER.length ? REG_ORDER : PRODUCTS).filter(p => p !== PROMO), exclude: [createState.product], onChange: arr => { createState.extra = arr; $('#cpxinfo').innerHTML = extraInfo(); } });
   const refsSel = () => createState.refs.map(n => refsAll.find(w => w.n === n)).filter(Boolean);
   $('#mkreq').onclick = async () => {
     if (isRev && !createState.rrefs.length) return alert('소재로 쓸 베스트 리뷰를 1개 이상 골라 주세요.');
@@ -1463,7 +1494,7 @@ async function createPage() {
         }
       } catch (e) { alert('파일 올리기 실패: ' + (e.message || e)); $('#mkreq').disabled = false; $('#mkreq').textContent = 'Aside에게 제작 요청'; return; }
     }
-    const { error } = await sb.from('creative_requests').insert({ brand: BRAND, media: MEDIA, placement: createState.placement || DEF_PL, product: createState.product, direction: $('#cd').value.trim(), refs: isRev || isUp ? [] : createState.refs, source: isRev ? 'review' : isUp ? 'upload' : 'winner', ...(uploads ? { uploads } : {}), review_refs: isRev ? createState.rrefs : null, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
+    const { error } = await sb.from('creative_requests').insert({ brand: BRAND, media: MEDIA, placement: createState.placement || DEF_PL, product: joinP([createState.product, ...createState.extra]), direction: $('#cd').value.trim(), refs: isRev || isUp ? [] : createState.refs, source: isRev ? 'review' : isUp ? 'upload' : 'winner', ...(uploads ? { uploads } : {}), review_refs: isRev ? createState.rrefs : null, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
     if (error) { alert('요청 실패: ' + error.message); $('#mkreq').disabled = false; return; }
     if (isUp) { createState.files = []; createState.upDir = ''; }
     await createPage();
@@ -1711,7 +1742,7 @@ async function loadData(brand, media = 'gfa') {
   const productOverrides = data.find(r => r.key === 'product_overrides')?.payload || {};
   const productsDr = data.find(r => r.key === 'products_drby')?.payload || [];
   const ruleDr = data.find(r => r.key === 'rule_drby')?.payload;
-  return { ...main, rule: rule || main.rule, ruleDr: ruleDr || rule || main.rule, thumbs, products, productsDr, productOverrides };
+  return { ...main, rule: rule || main.rule, ruleDr: ruleDr || main.rule, thumbs, products, productsDr, productOverrides }; // 위너 기준은 브랜드×매체별로 따로 (rule, rule_drby)
 }
 // 메타: 금액은 달러로 보관 → 지금 환율로 원화로 바꿔서 앱에 넘긴다 (환율을 못 받으면 수집 때 환율)
 async function liveFx() { const tries = [async () => (await (await fetch('https://open.er-api.com/v6/latest/USD')).json()).rates.KRW, async () => (await (await fetch('https://api.frankfurter.app/latest?from=USD&to=KRW')).json()).rates.KRW]; for (const t of tries) { try { const v = await Promise.race([t(), new Promise((_, rj) => setTimeout(() => rj(new Error('timeout')), 4000))]); if (v > 500) return v; } catch {} } return null; }
@@ -1725,8 +1756,8 @@ async function metaData(data) {
   const thumbs = {}; data.filter(r => r.key.startsWith('meta_thumbs')).forEach(r => Object.assign(thumbs, r.payload));
   const frames = {}; data.filter(r => r.key.startsWith('meta_frames')).forEach(r => Object.assign(frames, r.payload));
   const get = k => data.find(r => r.key === k)?.payload;
-  const rule = get('meta_rule') || get('rule') || main.rule;
-  return { ...main, rule, ruleDr: get('meta_rule_drby') || rule, thumbs, frames, products: get('products') || [], productsDr: get('products_drby') || [], productOverrides: get('meta_product_overrides') || {} };
+  const rule = get('meta_rule') || main.rule;
+  return { ...main, rule, ruleDr: get('meta_rule_drby') || main.rule, thumbs, frames, products: get('products') || [], productsDr: get('products_drby') || [], productOverrides: get('meta_product_overrides') || {} };
 }
 let loginRun = null;
 function afterLogin() { if (!loginRun) loginRun = afterLoginInner().finally(() => { loginRun = null; }); return loginRun; }
