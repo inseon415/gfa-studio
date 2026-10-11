@@ -104,7 +104,11 @@ pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);
 .fbadge{position:absolute;left:6px;bottom:6px;background:rgba(15,23,42,.72);color:#fff;font-size:11px;font-weight:600;line-height:1;padding:4px 6px;border-radius:4px;pointer-events:none}
 
 /* 리뷰 분석 · 베스트 리뷰 */
-.srctabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 14px}
+.srctabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 14px}
+.playb.pbtn{pointer-events:auto;cursor:pointer;border:0;font-family:inherit;z-index:2}.playb.pbtn:hover{background:var(--acc)}
+.updrop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px dashed #c9d2de;border-radius:12px;padding:22px 12px;text-align:center;cursor:pointer;background:#fafbfc;color:var(--sub);font-size:13px}.updrop:hover,.updrop.over{border-color:var(--acc);background:var(--acc2);color:var(--ink)}.updrop b{color:var(--ink);font-size:14px}
+.upthumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin:10px 0 4px}.upthumb{position:relative;border-radius:8px;overflow:hidden;background:#111;aspect-ratio:1/1}.upthumb img,.upthumb video{width:100%;height:100%;object-fit:cover;display:block}.upthumb .upx{position:absolute;top:4px;right:4px;border:0;border-radius:999px;width:22px;height:22px;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:12px;line-height:22px;padding:0}.upthumb .upk{position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:2px 6px;border-radius:999px}
+.requp{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}.requp a{display:block;width:54px;height:54px;border-radius:6px;overflow:hidden;background:#111;position:relative}.requp img,.requp video{width:100%;height:100%;object-fit:cover}.requp .upk{position:absolute;left:2px;bottom:2px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;padding:1px 4px;border-radius:999px}
 .srctab{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:12px 16px;border:1px solid #d7dce3;border-radius:10px;background:#fff;cursor:pointer;font:inherit;color:var(--ink)}
 .srctab b{font-size:15px}.srctab span{font-size:12px;color:var(--sub)}
 .srctab.on{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc);background:var(--acc2)}
@@ -405,7 +409,7 @@ const FMT_RATIO = { feed_1x1: 1, feed_16x9: 1200 / 628, feed_2x3: 2 / 3, collect
 const ratioOf = f => FMT_RATIO[f] || 1;
 // 카드 이미지: 「전체」에선 정사각 칸 안에 잘리지 않게(contain), 형태를 고르면 그 비율 그대로
 const META_VIDEO = n => (window.__SB_URL || '') + '/storage/v1/object/public/meta-videos/' + n + '.mp4';
-const imgBox = (w, extra = '') => { const r = ratioOf(w.fmt); if (IS_META && w.vf) extra += '<span class="playb" title="누르면 영상을 바로 볼 수 있어요">▶ 영상</span>'; return `<div class="imgbox ${r === 1 ? 'sq' : 'nsq'}" style="--ar:${r.toFixed(4)}"><img src="${THUMB(w.n)}" alt="${esc(w.nm)}" loading="lazy">${extra}</div>`; };
+const imgBox = (w, extra = '', opt = {}) => { const r = ratioOf(w.fmt); if (opt.pick) extra += IS_META && w.vf ? `<button type="button" class="playb pbtn" data-play="${w.n}" title="눌러서 영상 재생">▶ 재생</button>` : `<button type="button" class="playb pbtn" data-view="${w.n}" title="눌러서 크게 보기">▶ 보기</button>`; else if (IS_META && w.vf) extra += '<span class="playb" title="누르면 영상을 바로 볼 수 있어요">▶ 재생</span>'; return `<div class="imgbox ${r === 1 ? 'sq' : 'nsq'}" style="--ar:${r.toFixed(4)}"><img src="${THUMB(w.n)}" alt="${esc(w.nm)}" loading="lazy">${extra}</div>`; };
 function fitGrid(el, fmt) { if (!el) return; el.classList.toggle('fitfmt', !!fmt); const r = fmt ? ratioOf(fmt) : 1; el.classList.toggle('cols2', r >= 3); el.classList.toggle('cols3', r >= 1.4 && r < 3); }
 const fmtTag = w => IS_META ? `<span class="tag fm">${FMT[w.fmt] || '이미지'}${w.vl ? ' ' + Math.round(w.vl) + '초' : ''}</span>` : `<span class="tag fm" title="${esc((w.ar || []).join(' · '))}">${FMT[w.fmt] || '피드 1:1'} · ${dvName(w.dv)}</span>`;
 W.forEach(w => { w.fmt = w.fmt || 'feed_1x1'; w.dv = w.dv || 'MO'; w.ar = w.ar || ['피드']; });
@@ -515,7 +519,7 @@ function openZoom(src, cap) {
 }
 document.addEventListener('click', e => { const t = e.target.closest && e.target.closest('img.zoomable'); if (t) openZoom(t.src, t.dataset.cap || ''); });
 function openModal(html) { $('#mbody').innerHTML = html; $('#modal').classList.add('show'); }
-function closeModal() { $('#modal').classList.remove('show'); }
+function closeModal() { $('#modal').classList.remove('show'); document.querySelectorAll('#mbody video').forEach(v => v.pause()); }
 $('#mclose').onclick = closeModal; $('#modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
@@ -1288,11 +1292,11 @@ async function withGenImages(list) {
 async function createPage() {
   const hasKey = !!getKey();
   const sb = window.sbClient;
-  const isRev = createState.src === 'review';
+  const isRev = createState.src === 'review'; const isUp = createState.src === 'upload'; if (!createState.files) createState.files = [];
   let REVD = null; if (isRev) { try { REVD = await revData(); } catch (e) { REVD = null; } }
   const REV_PRODUCTS = REVD ? ordP(Object.keys(REVD.prods).filter(p => p !== '[확인필요]' && p !== '여러 제품 묶음' && REVD.prods[p].best?.length)) : [];
   const CREATE_PRODUCTS = isRev ? REV_PRODUCTS : (REG_ORDER.length ? REG_ORDER : PRODUCTS).filter(p => p !== PROMO).concat([PROMO]);
-  const isPromo = !isRev && createState.product === PROMO;
+  const isPromo = !isRev && !isUp && createState.product === PROMO;
   if (!createState.product || !CREATE_PRODUCTS.includes(createState.product)) createState.product = CREATE_PRODUCTS.includes('페이스클렌징') ? '페이스클렌징' : CREATE_PRODUCTS[0];
   const pr = productRefs(createState.product, createState.placement); const refsAll = pr.list;
   const pinfo = productInfo(createState.product);
@@ -1315,6 +1319,7 @@ async function createPage() {
   const locals = localGens.sort((a, b) => b.id.localeCompare(a.id));
   const myId = window.ME?.id; const isAdmin = !!window.ME?.is_admin;
   const pending = reqs.filter(r => r.status === '대기' || r.status === '제작중').length;
+  const REQ_UP = new Map(); for (const r of (reqRes.data || [])) if ((r.uploads || []).length) REQ_UP.set(r.id, r.uploads);
   const genCard = (g, local) => {
     const copies = g.copies || []; const refs = g.refs || [];
     const when = local ? g.at : new Date(g.created_at).toLocaleString('ko-KR');
@@ -1326,30 +1331,30 @@ async function createPage() {
       ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
       ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `${c.imageText ? `「${esc(c.imageText)}」 / ` : ''}${c.headline ? `헤드라인 「${esc(c.headline)}」 / ` : ''}${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
       ${g.analysis ? `<div class="copy"><span>${g.source === 'review' ? '살린 리뷰 포인트' : '참고 위너 공통점'}</span>${esc(g.analysis)}</div>` : ''}
-      ${g.source === 'review' ? `<div class="muted"><span class="tag p">베스트 리뷰</span> 리뷰 ${(g.review_refs || []).length}개로 만듦</div>` : refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
+      ${REQ_UP.get(g.request_id) ? `<div class="muted"><span class="tag p">요청 소재</span> 올린 파일 ${REQ_UP.get(g.request_id).length}개로 만듦</div><div class="requp">${REQ_UP.get(g.request_id).map(u => `<a href="${esc(u.url)}" target="_blank" rel="noopener">${u.type === 'video' ? `<video src="${esc(u.url)}#t=0.5" muted preload="metadata"></video><span class="upk">영상</span>` : `<img src="${esc(u.url)}" alt="" loading="lazy">`}</a>`).join('')}</div>` : g.source === 'review' ? `<div class="muted"><span class="tag p">베스트 리뷰</span> 리뷰 ${(g.review_refs || []).length}개로 만듦</div>` : refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
       <div class="row">${g.video_url ? `<a href="${esc(g.video_url)}" target="_blank" rel="noopener" download>동영상 받기 (MP4)</a>` : ''}<a href="${g.image}" download="${IS_META ? '메타' : 'GFA'}시안_${esc(g.product)}_${plOf(g.placement).w}x${plOf(g.placement).h}_${String(id).slice(0, 8)}.${(g.isPng ?? String(g.image).startsWith('data:image/png')) ? 'png' : 'jpg'}">${g.video_url ? '첫 장면 이미지 받기' : `내려받기 (${plOf(g.placement).w}×${plOf(g.placement).h})`}</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && olderOf(g).length ? `<button class="lnk" data-hist="${g.id}">이전 버전 ${olderOf(g).length}개 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
   };
   app.innerHTML = `<h1>소재 만들기</h1>
-  <div class="srctabs"><button class="srctab ${isRev ? '' : 'on'}" data-src="winner"><b>위너 소재</b><span>광고에서 성과 좋았던 소재를 참고해 만들기</span></button><button class="srctab ${isRev ? 'on' : ''}" data-src="review"><b>베스트 리뷰</b><span>스마트스토어 4~5점 좋은 리뷰 문장으로 만들기</span></button></div>
-  <p class="sub" style="margin-bottom:12px">${isRev ? '제품과 소재로 쓸 <b>베스트 리뷰</b>를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, 리뷰 속 실제 고객의 말을 살린 시안(문구 + 이미지)을 고른 지면 규격으로 만들어 아래 <b>팀 시안 갤러리</b>에 올립니다.' : ''}${isRev ? '' : `제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 자동으로 받아 고른 지면 규격에 맞는 시안(새 문구 + 이미지)을 찍어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.`}</p>
+  <div class="srctabs"><button class="srctab ${isRev || isUp ? '' : 'on'}" data-src="winner"><b>위너 소재</b><span>광고에서 성과 좋았던 소재를 참고해 만들기</span></button><button class="srctab ${isRev ? 'on' : ''}" data-src="review"><b>베스트 리뷰</b><span>스마트스토어 4~5점 좋은 리뷰 문장으로 만들기</span></button><button class="srctab ${isUp ? 'on' : ''}" data-src="upload"><b>요청 소재</b><span>내 사진·영상을 올리고 원하는 대로 요청하기</span></button></div>
+  <p class="sub" style="margin-bottom:12px">${isRev ? '제품과 소재로 쓸 <b>베스트 리뷰</b>를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, 리뷰 속 실제 고객의 말을 살린 시안(문구 + 이미지)을 고른 지면 규격으로 만들어 아래 <b>팀 시안 갤러리</b>에 올립니다.' : ''}${isUp ? '우리 강아지 사진, 원하는 느낌의 이미지·영상을 올리고 <b>원하는 소재를 글로 자유롭게</b> 적어 주세요. 예를 들어 강아지 사진을 올리면 <b>그 강아지와 똑같은 강아지</b>로 시안을 만듭니다. 결과는 아래 <b>팀 시안 갤러리</b>에 올라옵니다.' : ''}${isRev || isUp ? '' : `제품과 참고할 위너를 고르고 <b>「Aside에게 제작 요청」</b>을 누르면, Aside가 자동으로 받아 고른 지면 규격에 맞는 시안(새 문구 + 이미지)을 찍어 아래 <b>팀 시안 갤러리</b>에 올립니다. 크레딧(유료 AI 키)이 필요 없습니다.`}</p>
   <div class="two">
     <div class="box">
       <div class="frow"><span class="fl">제품</span><select id="cp">${CREATE_PRODUCTS.map(p => `<option ${p === createState.product ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>
-      <span class="muted">${isRev ? `베스트 리뷰 <b id="rrc">${createState.rrefs.length}</b>개 선택 (최대 3)` : `참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)`}</span></div>
+      <span class="muted">${isUp ? `올린 파일 <b id="upc">${createState.files.length}</b>개 (최대 6)` : isRev ? `베스트 리뷰 <b id="rrc">${createState.rrefs.length}</b>개 선택 (최대 3)` : `참고 위너 <b id="rc">${createState.refs.length}</b>개 선택 (최대 4)`}</span></div>
       <div class="frow"><span class="fl">광고 지면</span><select id="cpl">${[...new Set(Object.values(PLACEMENTS).map(p => p.group))].map(gp => `<optgroup label="${gp}">${Object.entries(PLACEMENTS).filter(([, p]) => p.group === gp).map(([k, p]) => `<option value="${k}" ${(createState.placement || DEF_PL) === k ? 'selected' : ''}>${p.label} (${p.w}×${p.h})</option>`).join('')}</optgroup>`).join('')}</select></div>
       <div class="plinfo" id="plinfo" style="margin:0 0 12px 76px"></div>
       ${pinfo ? `<div class="pmini">${pinfo.img ? `<img src="${pinfo.img}">` : ""}<div><b>${esc(pinfo.name)}</b> <span class="muted">${esc(pinfo.label)}${pinfo.size ? ' · ' + esc(pinfo.size) : ''}</span><div style="font-size:12px">${esc(pinfo.look)}</div><div class="muted">시안에는 이 용기·단상자 모습을 그대로 넣습니다. <a download="${esc(pinfo.name)}.webp" href="${pinfo.img}">제품 이미지 받기</a></div></div></div>` : ''}
       ${isPromo ? `<div class="pmini"><div><b>행사·프로모션</b> <span class="muted">브랜드데이·쿠폰·기획전 같은 행사 소재</span><div style="font-size:12px">아래 「방향」 칸에 <b>행사 이름 · 기간 · 혜택</b>을 적어 주세요. 함께 보여 줄 제품이 있으면 제품 이름도 적어 주시면 그 제품 사진을 그대로 넣습니다.</div></div></div>` : ''}
-      ${isRev ? `<div id="revpick"><p class="muted"><span class="spin"></span>베스트 리뷰를 불러오는 중...</p></div>` : ''}${isRev || pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">${esc(plOf(createState.placement).label)} 지면은 아직 위너 기준을 넘은 소재가 없어요. 그래서 ${pr.used ? `가장 비슷한 <b>${esc(FMT[pr.used[0]] || pr.used[0])}</b>` : '다른 지면의'} 위너를 대신 보여 드려요. 문구·분위기만 참고하고 시안은 ${plOf(createState.placement).w}×${plOf(createState.placement).h} 크기로 만듭니다.</p>`}${isRev || pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
-      <div class="refs" id="refs" ${isRev ? 'style="display:none"' : ''}>${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, (pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`) + (w.sim > 1 ? `<span class="fbadge simb" title="이미지가 같은 소재 ${w.sim}개 중 구매 ROAS가 가장 높은 것만 보여요">같은 이미지 ${w.sim}개</span>` : ''))}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
-      <p style="margin:12px 0 6px"><b>방향 (선택)</b></p>
-      <textarea id="cd" rows="3" placeholder="${isRev ? '예) 리뷰 말투 그대로, 보호자 후기 느낌, 겨울 분위기' : isPromo ? '예) 10월 브랜드데이, 10/15~10/17, 전 제품 쿠폰. 아이즈·조인트 같이 보여 주기' : '예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이'}"></textarea>
+      ${isRev ? `<div id="revpick"><p class="muted"><span class="spin"></span>베스트 리뷰를 불러오는 중...</p></div>` : ''}${isRev || isUp || pr.fmtMatch ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">${esc(plOf(createState.placement).label)} 지면은 아직 위너 기준을 넘은 소재가 없어요. 그래서 ${pr.used ? `가장 비슷한 <b>${esc(FMT[pr.used[0]] || pr.used[0])}</b>` : '다른 지면의'} 위너를 대신 보여 드려요. 문구·분위기만 참고하고 시안은 ${plOf(createState.placement).w}×${plOf(createState.placement).h} 크기로 만듭니다.</p>`}${isRev || isUp || pr.own ? '' : `<p class="notice" style="padding:8px 10px;margin-bottom:10px">이 제품은 아직 위너 소재가 없어서, ${pr.sib ? '같은 계열 제품' : '다른 제품'}의 위너 중 구매 ROAS가 높은 소재를 참고로 보여 드립니다.</p>`}
+      ${isUp ? `<div id="upwrap"><label class="updrop" id="updrop"><input type="file" id="upf" accept="image/*,video/*" multiple hidden><b>사진·영상 올리기</b><span>여기를 눌러 고르거나 파일을 끌어다 놓으세요 · 최대 6개 · 파일당 50MB</span></label><div class="upthumbs" id="upthumbs"></div></div>` : ''}<div class="refs" id="refs" ${isRev || isUp ? 'style="display:none"' : ''}>${refsAll.slice(0, 12).map(w => `<div class="ref ${createState.refs.includes(w.n) ? 'sel' : ''}" data-n="${w.n}"><span class="ck">✓</span>${imgBox(w, (pr.fmtMatch ? '' : `<span class="fbadge">${esc(FMT[w.fmt] || w.fmt)}</span>`) + (w.sim > 1 ? `<span class="fbadge simb" title="이미지가 같은 소재 ${w.sim}개 중 구매 ROAS가 가장 높은 것만 보여요">같은 이미지 ${w.sim}개</span>` : ''), { pick: true })}<div><b>${pct(w.proas)}</b> · ${w.month}<br>${esc((w.it || w.m).slice(0, 34))}</div></div>`).join('')}</div>
+      <p style="margin:12px 0 6px"><b>${isUp ? '요청 내용 (필수)' : '방향 (선택)'}</b></p>
+      <textarea id="cd" rows="${isUp ? 5 : 3}" placeholder="${isUp ? '예) 첨부한 강아지와 똑같은 강아지로, 산책 다녀와서 얼굴 씻기는 장면. 따뜻한 가을 느낌, 글자는 짧게. 2번 사진의 분위기처럼' : isRev ? '예) 리뷰 말투 그대로, 보호자 후기 느낌, 겨울 분위기' : isPromo ? '예) 10월 브랜드데이, 10/15~10/17, 전 제품 쿠폰. 아이즈·조인트 같이 보여 주기' : '예) 겨울 느낌, 후기형 말투, 강아지 말풍선, 할인 문구 없이'}"></textarea>
       <div class="row" style="margin-top:10px">
         <label>장수 <select id="cn"><option>1</option><option>2</option><option>3</option></select></label>
         <button class="pri" id="mkreq" ${sb ? '' : 'disabled'}>Aside에게 제작 요청</button>
-        <button id="mkprompt" ${isRev ? 'style="display:none"' : ''}>시안 요청문 복사용</button>
+        <button id="mkprompt" ${isRev || isUp ? 'style="display:none"' : ''}>시안 요청문 복사용</button>
       </div>
-      <details style="margin-top:12px;${isRev ? 'display:none' : ''}"><summary class="muted" style="cursor:pointer">내 AI 키로 바로 만들기 (OpenRouter 크레딧 필요)</summary>
+      <details style="margin-top:12px;${isRev || isUp ? 'display:none' : ''}"><summary class="muted" style="cursor:pointer">내 AI 키로 바로 만들기 (OpenRouter 크레딧 필요)</summary>
         <div class="row" style="margin-top:8px"><button id="mkai" ${hasKey ? '' : 'disabled'}>문구(Claude) + 이미지(GPT) 바로 만들기</button>${hasKey ? '' : '<button class="lnk" id="setk2">AI 키 연결</button>'}</div>
       </details>
     </div>
@@ -1359,6 +1364,7 @@ async function createPage() {
       <p class="muted" style="margin:6px 0 10px">요청은 Aside가 자동으로 받아 만듭니다. 이 목록은 저절로 새로고침됩니다.</p>
       ${reqs.length ? reqs.map(r => `<div class="qa" style="padding:8px 0"><div class="row" style="justify-content:space-between"><span><span class="tag ${STATUS_TAG[r.status] || ''}">${esc(r.status)}</span> ${r.kind === '수정' ? '<span class="tag p">수정</span> ' : ''}<b>${esc(r.product)}</b> · ${r.kind === '수정' ? '재제작' : r.count + '장'}</span><span class="muted">${new Date(r.created_at).toLocaleString('ko-KR')}</span></div>
         <div class="muted">${esc(r.requester_name || '')}${r.kind === '수정' ? ' · 수정안: ' + esc(r.revision_note) : (r.direction ? ' · ' + esc(r.direction) : '')}</div>
+        ${(r.uploads || []).length ? `<div class="requp">${r.uploads.map(u => `<a href="${esc(u.url)}" target="_blank" rel="noopener" title="${esc(u.name || '')}">${u.type === 'video' ? `<video src="${esc(u.url)}#t=0.5" muted preload="metadata"></video><span class="upk">영상</span>` : `<img src="${esc(u.url)}" alt="" loading="lazy">`}</a>`).join('')}</div>` : ''}
         ${r.note ? `<div style="font-size:12px">${esc(r.note)}</div>` : ''}
         ${r.status === '대기' && (r.requester === myId || isAdmin) ? `<button class="lnk" data-cancel="${r.id}">요청 취소</button>` : ''}</div>`).join('') : '<p class="muted">아직 요청이 없습니다.</p>'}
     </div>
@@ -1394,7 +1400,7 @@ async function createPage() {
     $('#galgrid').querySelectorAll('[data-gdel]').forEach(el => el.onclick = async () => { if (!confirm('팀 갤러리에서 이 시안을 지울까요?')) return; const { error } = await sb.from('generations').delete().eq('id', el.dataset.gdel); if (error) alert(error.message); createPage(); });
   };
   drawGal();
-  const drawPl = () => { const k = $('#cpl').value; createState.placement = k; const p = plOf(k); $('#plinfo').innerHTML = IS_META ? `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.video ? 'MP4 · 힉스필드(Seedance 1.5, 4~8초)' : 'JPG'}<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>` : `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.min > 1 ? p.min + 'KB 이상 ' : ''}${p.max >= 1000 ? (p.max / 1000).toFixed(1) + 'MB' : p.max + 'KB'} 이하 · ${/^smartchannel/.test(k) ? 'PNG(투명 배경)' : 'JPG/RGB'}<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>`; };
+  const drawPl = () => { const k = $('#cpl').value; createState.placement = k; const p = plOf(k); $('#plinfo').innerHTML = IS_META ? `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.video ? 'MP4 · 힉스필드 완성 광고(14.5초, 음악·내레이션·자막·엔드카드)' : 'JPG'}<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>` : `<b>${p.label}</b> · ${p.w}×${p.h}px · ${p.min > 1 ? p.min + 'KB 이상 ' : ''}${p.max >= 1000 ? (p.max / 1000).toFixed(1) + 'MB' : p.max + 'KB'} 이하 · ${/^smartchannel/.test(k) ? 'PNG(투명 배경)' : 'JPG/RGB'}<br><span class="muted">노출: ${p.where}${p.tip ? ' · ' + p.tip : ''}</span>`; };
   $('#cpl').onchange = () => { drawPl(); createState.refs = null; createPage(); }; drawPl();
   if ($('#setk2')) $('#setk2').onclick = openSettings;
   $('#rfq').onclick = () => createPage();
@@ -1414,18 +1420,52 @@ async function createPage() {
       box.querySelectorAll('[data-rr]').forEach(el => el.onclick = () => { const n = +el.dataset.rr; const i = createState.rrefs.indexOf(n); if (i >= 0) createState.rrefs.splice(i, 1); else if (createState.rrefs.length < 3) createState.rrefs.push(n); else return alert('베스트 리뷰는 3개까지 고를 수 있어요.'); el.classList.toggle('sel', createState.rrefs.includes(n)); $('#rrc').textContent = createState.rrefs.length; });
     }).catch(e => { const box = document.getElementById('revpick'); if (box) box.innerHTML = `<p class="notice">${esc(e.message)}</p>`; });
   }
+  // 위너 카드의 「▶ 재생」(영상)·「▶ 보기」(이미지): 선택은 그대로 두고 크게 보기
+  const wName = n => { const w = refsAll.find(x => x.n === n) || C.get(n) || {}; return (w.nm || '') + (w.proas ? ' · 구매 ROAS ' + pct(w.proas) : ''); };
+  document.querySelectorAll('#refs [data-play]').forEach(b => b.onclick = e => { e.stopPropagation(); const n = +b.dataset.play; openModal(`<h2 style="margin:0 0 10px">${esc(wName(n))}</h2><video class="mvid" src="${META_VIDEO(n)}" poster="${THUMB(n)}" controls autoplay playsinline preload="auto"></video>`); });
+  document.querySelectorAll('#refs [data-view]').forEach(b => b.onclick = e => { e.stopPropagation(); const n = +b.dataset.view; const c = C.get(n) || {}; openZoom(c.img || THUMB(n), wName(n)); const im = document.querySelector('#zoombox .zimg img'); if (im && c.img) im.onerror = () => { im.onerror = null; im.src = THUMB(n); }; });
   document.querySelectorAll('.ref').forEach(el => el.onclick = () => { const n = +el.dataset.n; const i = createState.refs.indexOf(n); if (i >= 0) createState.refs.splice(i, 1); else if (createState.refs.length < 4) createState.refs.push(n); el.classList.toggle('sel', createState.refs.includes(n)); $('#rc').textContent = createState.refs.length; });
   document.querySelectorAll('[data-ldel]').forEach(el => el.onclick = async () => { if (confirm('이 시안을 지울까요?')) { await idb.del(el.dataset.ldel); createPage(); } });
   document.querySelectorAll('[data-gdel]').forEach(el => el.onclick = async () => { if (!confirm('팀 갤러리에서 이 시안을 지울까요?')) return; const { error } = await sb.from('generations').delete().eq('id', el.dataset.gdel); if (error) alert(error.message); createPage(); });
   document.querySelectorAll('[data-cancel]').forEach(el => el.onclick = async () => { const { error } = await sb.from('creative_requests').update({ status: '취소' }).eq('id', el.dataset.cancel); if (error) alert(error.message); createPage(); });
+  if (isUp) {
+    const drawUp = () => {
+      const box = $('#upthumbs'); if (!box) return;
+      box.innerHTML = createState.files.map((f, i) => { f.__url = f.__url || URL.createObjectURL(f); const vid = f.type.startsWith('video'); return `<div class="upthumb" title="${esc(f.name)}">${vid ? `<video src="${f.__url}#t=0.5" muted preload="metadata"></video><span class="upk">영상</span>` : `<img src="${f.__url}" alt="">`}<button class="upx" data-upx="${i}" title="빼기">✕</button></div>`; }).join('');
+      box.querySelectorAll('[data-upx]').forEach(b => b.onclick = () => { createState.files.splice(+b.dataset.upx, 1); drawUp(); });
+      if ($('#upc')) $('#upc').textContent = createState.files.length;
+    };
+    const addFiles = list => { for (const f of list) { if (!/^(image|video)\//.test(f.type)) { alert(f.name + ': 사진이나 영상만 올릴 수 있어요.'); continue; } if (f.size > 50 * 1024 * 1024) { alert(f.name + ': 50MB 보다 커서 못 올려요.'); continue; } if (createState.files.length >= 6) { alert('파일은 6개까지 올릴 수 있어요.'); break; } createState.files.push(f); } drawUp(); };
+    $('#upf').onchange = e => { addFiles([...e.target.files]); e.target.value = ''; };
+    const dz = $('#updrop'); dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); }; dz.ondragleave = () => dz.classList.remove('over'); dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); addFiles([...e.dataTransfer.files]); };
+    if (createState.upDir) $('#cd').value = createState.upDir; $('#cd').oninput = e => { createState.upDir = e.target.value; };
+    drawUp();
+  }
   const refsSel = () => createState.refs.map(n => refsAll.find(w => w.n === n)).filter(Boolean);
   $('#mkreq').onclick = async () => {
     if (isRev && !createState.rrefs.length) return alert('소재로 쓸 베스트 리뷰를 1개 이상 골라 주세요.');
-    if (!isRev && !createState.refs.length) return alert('참고할 위너를 1개 이상 골라 주세요.');
+    if (isUp && !createState.files.length) return alert('사진이나 영상을 1개 이상 올려 주세요.');
+    if (isUp && !$('#cd').value.trim()) { $('#cd').focus(); return alert('「요청 내용」에 어떤 소재를 원하는지 적어 주세요.'); }
+    if (!isRev && !isUp && !createState.refs.length) return alert('참고할 위너를 1개 이상 골라 주세요.');
     if (isPromo && !$('#cd').value.trim()) { $('#cd').focus(); return alert('행사 소재는 「방향」 칸에 행사 이름·기간·혜택을 적어 주세요.'); }
     $('#mkreq').disabled = true;
-    const { error } = await sb.from('creative_requests').insert({ brand: BRAND, media: MEDIA, placement: createState.placement || DEF_PL, product: createState.product, direction: $('#cd').value.trim(), refs: isRev ? [] : createState.refs, source: isRev ? 'review' : 'winner', review_refs: isRev ? createState.rrefs : null, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
+    let uploads = null;
+    if (isUp) {
+      uploads = [];
+      try {
+        for (let i = 0; i < createState.files.length; i++) {
+          const f = createState.files[i]; $('#mkreq').textContent = `파일 올리는 중 ${i + 1}/${createState.files.length}`;
+          const ext = ((f.name.match(/\.([a-z0-9]{2,5})$/i) || [])[1] || (f.type.split('/')[1] || 'bin')).toLowerCase();
+          const path = `${window.ME?.id || 'u'}/${Date.now()}_${i}.${ext}`;
+          const { error: ue } = await sb.storage.from('req-uploads').upload(path, f, { contentType: f.type, upsert: false });
+          if (ue) throw ue;
+          uploads.push({ url: (window.__SB_URL || '') + '/storage/v1/object/public/req-uploads/' + path, type: f.type.startsWith('video') ? 'video' : 'image', name: f.name, size: f.size });
+        }
+      } catch (e) { alert('파일 올리기 실패: ' + (e.message || e)); $('#mkreq').disabled = false; $('#mkreq').textContent = 'Aside에게 제작 요청'; return; }
+    }
+    const { error } = await sb.from('creative_requests').insert({ brand: BRAND, media: MEDIA, placement: createState.placement || DEF_PL, product: createState.product, direction: $('#cd').value.trim(), refs: isRev || isUp ? [] : createState.refs, source: isRev ? 'review' : isUp ? 'upload' : 'winner', ...(uploads ? { uploads } : {}), review_refs: isRev ? createState.rrefs : null, count: +$('#cn').value, requester_name: window.ME?.name || window.ME?.email || '' });
     if (error) { alert('요청 실패: ' + error.message); $('#mkreq').disabled = false; return; }
+    if (isUp) { createState.files = []; createState.upDir = ''; }
     await createPage();
     const box = document.getElementById('cout'); box.insertAdjacentHTML('afterbegin', '<p class="notice" style="padding:8px 10px">요청을 넣었습니다. Aside가 만들면 아래 갤러리에 올라옵니다.</p>');
   };
