@@ -455,7 +455,7 @@ const META_PLACEMENTS = {
   meta_feed_45: { label: '메타 피드 4:5', group: '메타 이미지', w: 1080, h: 1350, min: 1, max: 30000, where: '페이스북·인스타그램 피드 (모바일 기본 비율)', tip: '초점 하나, 이미지 위 글자는 최소로. 하고 싶은 말은 광고 텍스트 칸에' },
   meta_story_916: { label: '메타 스토리·릴스 9:16', group: '메타 이미지', w: 1080, h: 1920, min: 1, max: 30000, where: '인스타·페이스북 스토리, 릴스, 메신저 스토리', tip: '위 약 14%·아래 약 35%는 비우고 핵심은 가운데' },
   meta_square: { label: '메타 1:1', group: '메타 이미지', w: 1080, h: 1080, min: 1, max: 30000, where: '인스타 피드 이미지·캐러셀·마켓플레이스·검색', tip: '캐러셀은 모든 카드 비율을 같게' },
-  meta_video_916: { label: '메타 동영상 9:16', group: '메타 동영상', w: 720, h: 1280, min: 1, max: 4000000, where: '스토리·릴스 동영상 (힉스필드로 제작, 15초 이하·기본 4~8초)', tip: '첫 3초에 제품·브랜드, 끝에도 브랜드. 소리 없이도 이해되게', video: true },
+  meta_video_916: { label: '메타 동영상 9:16', group: '메타 동영상', w: 720, h: 1280, min: 1, max: 4000000, where: '스토리·릴스 동영상 (힉스필드로 제작, 14.5초 완성 광고)', tip: '첫 장면에 고민, 사용 장면, 끝에 제품·브랜드. 자막이 있어 소리 없이도 이해되게', video: true },
 };
 if (IS_META) { for (const k of Object.keys(PLACEMENTS)) delete PLACEMENTS[k]; Object.assign(PLACEMENTS, META_PLACEMENTS); }
 const DEF_PL = IS_META ? 'meta_feed_45' : 'feed_1x1';
