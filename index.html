@@ -104,6 +104,7 @@ pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);
 .fbadge{position:absolute;left:6px;bottom:6px;background:rgba(15,23,42,.72);color:#fff;font-size:11px;font-weight:600;line-height:1;padding:4px 6px;border-radius:4px;pointer-events:none}
 
 /* 리뷰 분석 · 베스트 리뷰 */
+.srcbadge{position:absolute;top:8px;left:8px;z-index:2;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:none}.gimg{position:relative}.srcw{background:#2F6FD0}.srcr{background:#1E9E6A}.srcu{background:#E07A1F}.tag.srcw,.tag.srcr,.tag.srcu{color:#fff;border-color:transparent}.galtab.srcw.on,.galtab.srcr.on,.galtab.srcu.on{color:#fff;border-color:transparent}
 .srctabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 14px}
 .playb.pbtn{pointer-events:auto;cursor:pointer;border:0;font-family:inherit;z-index:2}.playb.pbtn:hover{background:var(--acc)}
 .updrop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px dashed #c9d2de;border-radius:12px;padding:22px 12px;text-align:center;cursor:pointer;background:#fafbfc;color:var(--sub);font-size:13px}.updrop:hover,.updrop.over{border-color:var(--acc);background:var(--acc2);color:var(--ink)}.updrop b{color:var(--ink);font-size:14px}
@@ -1347,18 +1348,20 @@ async function createPage() {
   const locals = localGens.sort((a, b) => b.id.localeCompare(a.id));
   const myId = window.ME?.id; const isAdmin = !!window.ME?.is_admin;
   const pending = reqs.filter(r => r.status === '대기' || r.status === '제작중').length;
+  const SRC_INFO = { winner: { label: '위너 소재', cls: 'srcw' }, review: { label: '베스트 리뷰', cls: 'srcr' }, upload: { label: '요청 소재', cls: 'srcu' } };
+  const srcOf = g => SRC_INFO[g.source] ? g.source : 'winner';
   const REQ_UP = new Map(); for (const r of (reqRes.data || [])) if ((r.uploads || []).length) REQ_UP.set(r.id, r.uploads);
   const genCard = (g, local) => {
     const copies = g.copies || []; const refs = g.refs || [];
     const when = local ? g.at : new Date(g.created_at).toLocaleString('ko-KR');
     const id = local ? g.id : g.id;
-    return `<div class="card gen" style="cursor:default">${g.video_url ? `<div class="gimg gvid"><video src="${esc(g.video_url)}" poster="${g.image}" controls playsinline loop muted preload="none"></video></div>` : `<div class="gimg" data-zoom="${g.id}" title="클릭하면 크게 봅니다"><img src="${g.image}" alt=""><span class="zhint">크게 보기</span></div>`}<div class="cb"><div class="row"><span class="tag p">${esc(g.product)}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
+    return `<div class="card gen" style="cursor:default">${g.video_url ? `<div class="gimg gvid">${local ? '' : `<span class="srcbadge ${SRC_INFO[srcOf(g)].cls}">${SRC_INFO[srcOf(g)].label}</span>`}<video src="${esc(g.video_url)}" poster="${g.image}" controls playsinline loop muted preload="none"></video></div>` : `<div class="gimg" data-zoom="${g.id}" title="클릭하면 크게 봅니다">${local ? '' : `<span class="srcbadge ${SRC_INFO[srcOf(g)].cls}">${SRC_INFO[srcOf(g)].label}</span>`}<img src="${g.image}" alt=""><span class="zhint">크게 보기</span></div>`}<div class="cb"><div class="row">${local ? '' : `<span class="tag ${SRC_INFO[srcOf(g)].cls}">${SRC_INFO[srcOf(g)].label}로 만듦</span>`}<span class="tag p">${esc(g.product)}</span>${g.version > 1 ? `<span class="tag on">수정본 v${g.version}</span>` : ''}</div>
       <div class="gspec">${plTag(g.placement)} · ${g.kb ?? imgKB(g.image)}KB</div>
       <div class="muted">${esc(local ? '내 브라우저' : (g.maker || 'Aside'))} · ${esc(when)}</div>
       ${g.revision_note ? `<div class="copy"><span>반영한 수정안</span>${esc(g.revision_note)}</div>` : ''}
       ${g.direction ? `<div class="copy"><span>요청 방향</span>${esc(g.direction)}</div>` : ''}
       ${copies.length ? `<div class="copy"><span>제안 문구</span>${copies.map(c => `${c.imageText ? `「${esc(c.imageText)}」 / ` : ''}${c.headline ? `헤드라인 「${esc(c.headline)}」 / ` : ''}${esc(c.adMessage)}`).join('<br>')}</div>` : ''}
-      ${g.analysis ? `<div class="copy"><span>${g.source === 'review' ? '살린 리뷰 포인트' : '참고 위너 공통점'}</span>${esc(g.analysis)}</div>` : ''}
+      ${g.analysis ? `<div class="copy"><span>${g.source === 'review' ? '살린 리뷰 포인트' : g.source === 'upload' ? '올린 파일에서 살린 점' : '참고 위너 공통점'}</span>${esc(g.analysis)}</div>` : ''}
       ${REQ_UP.get(g.request_id) ? `<div class="muted"><span class="tag p">요청 소재</span> 올린 파일 ${REQ_UP.get(g.request_id).length}개로 만듦</div><div class="requp">${REQ_UP.get(g.request_id).map(u => `<a href="${esc(u.url)}" target="_blank" rel="noopener">${u.type === 'video' ? `<video src="${esc(u.url)}#t=0.5" muted preload="metadata"></video><span class="upk">영상</span>` : `<img src="${esc(u.url)}" alt="" loading="lazy">`}</a>`).join('')}</div>` : g.source === 'review' ? `<div class="muted"><span class="tag p">베스트 리뷰</span> 리뷰 ${(g.review_refs || []).length}개로 만듦</div>` : refs.length ? `<div class="muted">참고: ${refs.map(n => esc(C.get(+n)?.nm || n)).join(', ')}</div>` : ''}
       <div class="row">${g.video_url ? `<a href="${esc(g.video_url)}" target="_blank" rel="noopener" download>동영상 받기 (MP4)</a>` : ''}<a href="${g.image}" download="${IS_META ? '메타' : 'GFA'}시안_${esc(g.product)}_${plOf(g.placement).w}x${plOf(g.placement).h}_${String(id).slice(0, 8)}.${(g.isPng ?? String(g.image).startsWith('data:image/png')) ? 'png' : 'jpg'}">${g.video_url ? '첫 장면 이미지 받기' : `내려받기 (${plOf(g.placement).w}×${plOf(g.placement).h})`}</a>${!local && sb ? `<button class="revbtn" data-rev="${g.id}">수정 요청</button>` : ''}${!local && olderOf(g).length ? `<button class="lnk" data-hist="${g.id}">이전 버전 ${olderOf(g).length}개 보기</button>` : ''}${local ? `<button class="lnk" data-ldel="${g.id}">지우기</button>` : (isAdmin || g.made_by === myId ? `<button class="lnk" data-gdel="${g.id}">지우기</button>` : '')}</div></div></div>`;
   };
@@ -1392,7 +1395,7 @@ async function createPage() {
       <div class="row" style="justify-content:space-between"><h2 style="margin:0">제작 요청 ${pending ? `<span class="tag off">진행 중 ${pending}건</span>` : ''}</h2><button id="rfq">새로고침</button></div>
       ${(() => { const at = hb?.updated_at ? new Date(hb.updated_at) : null; const min = at ? Math.round((Date.now() - at) / 60000) : null; const on = min !== null && min <= 12; return `<div class="workerst ${on ? 'on' : 'off'}"><b>${on ? '● 제작 담당 PC 켜짐' : '● 제작 담당 PC 꺼짐'}</b> <span>${on ? '요청하면 보통 5~10분 안에 갤러리에 올라와요.' : `마지막 확인 ${at ? at.toLocaleString('ko-KR') : '-'}. 요청은 그대로 저장되고, PC가 켜지면 들어온 순서대로 만들어요.`}</span></div>`; })()}
       <p class="muted" style="margin:6px 0 10px">요청은 Aside가 자동으로 받아 만듭니다. 이 목록은 저절로 새로고침됩니다.</p>
-      ${reqs.length ? reqs.map(r => `<div class="qa" style="padding:8px 0"><div class="row" style="justify-content:space-between"><span><span class="tag ${STATUS_TAG[r.status] || ''}">${esc(r.status)}</span> ${r.kind === '수정' ? '<span class="tag p">수정</span> ' : ''}<b>${esc(r.product)}</b> · ${r.kind === '수정' ? '재제작' : r.count + '장'}</span><span class="muted">${new Date(r.created_at).toLocaleString('ko-KR')}</span></div>
+      ${reqs.length ? reqs.map(r => `<div class="qa" style="padding:8px 0"><div class="row" style="justify-content:space-between"><span><span class="tag ${STATUS_TAG[r.status] || ''}">${esc(r.status)}</span> ${r.kind === '수정' ? '<span class="tag p">수정</span> ' : `<span class="tag ${(SRC_INFO[r.source] || SRC_INFO.winner).cls}">${(SRC_INFO[r.source] || SRC_INFO.winner).label}</span> `}<b>${esc(r.product)}</b> · ${r.kind === '수정' ? '재제작' : r.count + '장'}</span><span class="muted">${new Date(r.created_at).toLocaleString('ko-KR')}</span></div>
         <div class="muted">${esc(r.requester_name || '')}${r.kind === '수정' ? ' · 수정안: ' + esc(r.revision_note) : (r.direction ? ' · ' + esc(r.direction) : '')}</div>
         ${(r.uploads || []).length ? `<div class="requp">${r.uploads.map(u => `<a href="${esc(u.url)}" target="_blank" rel="noopener" title="${esc(u.name || '')}">${u.type === 'video' ? `<video src="${esc(u.url)}#t=0.5" muted preload="metadata"></video><span class="upk">영상</span>` : `<img src="${esc(u.url)}" alt="" loading="lazy">`}</a>`).join('')}</div>` : ''}
         ${r.note ? `<div style="font-size:12px">${esc(r.note)}</div>` : ''}
@@ -1400,7 +1403,7 @@ async function createPage() {
     </div>
   </div>
   <section style="margin-top:28px"><h2>팀 시안 갤러리 ${gens.length}개</h2><p class="muted" style="margin-bottom:10px">로그인한 팀원 모두가 같이 봅니다. 광고에 올리기 전에 문구·제품 표기를 꼭 확인해 주세요.</p>
-  ${gens.length ? `<div class="galfilter"><span class="gfl">제품</span><div class="galtabs" id="galtabs"></div></div><div class="galfilter"><span class="gfl">지면</span><div class="galtabs" id="galpltabs"></div></div>` : ''}
+  ${gens.length ? `<div class="galfilter"><span class="gfl">만든 곳</span><div class="galtabs" id="galsrctabs"></div></div><div class="galfilter"><span class="gfl">제품</span><div class="galtabs" id="galtabs"></div></div><div class="galfilter"><span class="gfl">지면</span><div class="galtabs" id="galpltabs"></div></div>` : ''}
   <div class="grid" id="galgrid"></div></section>
   ${locals.length ? `<section><h2>이 브라우저에만 있는 시안 ${locals.length}개</h2><div class="grid">${locals.map(g => genCard(g, true)).join('')}</div></section>` : ''}`;
   if (createState.gal && !gens.some(g => g.product === createState.gal)) createState.gal = '';
@@ -1409,14 +1412,16 @@ async function createPage() {
   const plOrder = Object.keys(PLACEMENTS);
   const plShort = k => { const p = plOf(k); return p.label.includes(p.w + '×' + p.h) ? p.label : p.label + ' ' + p.w + '×' + p.h; };
   const drawGal = () => {
-    let byPr = createState.gal ? gens.filter(g => g.product === createState.gal) : gens;
+    const G0 = createState.galSrc ? gens.filter(g => srcOf(g) === createState.galSrc) : gens;
+    if ($('#galsrctabs')) { $('#galsrctabs').innerHTML = [['', '전체', gens.length]].concat(Object.entries(SRC_INFO).map(([k, v]) => [k, v.label, gens.filter(g => srcOf(g) === k).length])).map(([v, label, n]) => `<button class="galtab ${v ? SRC_INFO[v].cls : ''} ${(createState.galSrc || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-galsrc="${v}">${esc(label)} <b>${n}</b></button>`).join(''); document.querySelectorAll('#galsrctabs .galtab').forEach(b => b.onclick = () => { createState.galSrc = b.dataset.galsrc; createState.gal = ''; createState.galPl = ''; drawGal(); }); }
+    let byPr = createState.gal ? G0.filter(g => g.product === createState.gal) : G0;
     const plKeys = [...new Set(byPr.map(gPl))];
     if (createState.galPl && !plKeys.includes(createState.galPl)) createState.galPl = '';
     if (plKeys.length < 2) createState.galPl = '';
-    const byPl = createState.galPl ? gens.filter(g => gPl(g) === createState.galPl) : gens;
+    const byPl = createState.galPl ? G0.filter(g => gPl(g) === createState.galPl) : G0;
     const list = byPl.filter(g => !createState.gal || g.product === createState.gal);
     if ($('#galtabs')) {
-      $('#galtabs').innerHTML = [['', '전체', byPl.length]].concat(ordP(new Set(gens.map(g => g.product))).map(p => [p, p, byPl.filter(g => g.product === p).length])).filter(([v, , n]) => v === '' || n > 0 || v === createState.gal).map(([v, label, n]) => `<button class="galtab ${(createState.gal || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-gal="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
+      $('#galtabs').innerHTML = [['', '전체', byPl.length]].concat(ordP(new Set(G0.map(g => g.product))).map(p => [p, p, byPl.filter(g => g.product === p).length])).filter(([v, , n]) => v === '' || n > 0 || v === createState.gal).map(([v, label, n]) => `<button class="galtab ${(createState.gal || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-gal="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
       $('#galpltabs').closest('.galfilter').style.display = plKeys.length < 2 ? 'none' : '';
       $('#galpltabs').innerHTML = [['', '전체', byPr.length]].concat(plKeys.sort((a, b) => plOrder.indexOf(a) - plOrder.indexOf(b)).map(k => [k, plShort(k), byPr.filter(g => gPl(g) === k).length])).map(([v, label, n]) => `<button class="galtab ${(createState.galPl || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-galpl="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
       document.querySelectorAll('#galtabs .galtab').forEach(b => b.onclick = () => { createState.gal = b.dataset.gal; drawGal(); });
