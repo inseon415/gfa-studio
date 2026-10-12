@@ -1335,8 +1335,8 @@ async function createPage() {
   if (!isRev || createState.rrefsFor !== createState.product) { if (createState.rrefsFor !== createState.product) createState.rrefs = createState.rrefs && createState.rrefsFor === undefined ? createState.rrefs : []; createState.rrefsFor = createState.product; }
   const hbP = sb ? sb.from('app_data').select('updated_at').eq('key', 'worker_heartbeat').maybeSingle() : Promise.resolve({ data: null });
   const [reqRes, genRes, localGens] = await Promise.all([
-    sb ? sb.from('creative_requests').select('*').order('created_at', { ascending: false }).limit(30) : { data: [] },
-    sb ? sb.from('generations').select(GEN_COLS).order('created_at', { ascending: false }).limit(60).then(async r => { if (!r.error && r.data) await withGenImages(r.data); return r; }) : { data: [] },
+    sb ? sb.from('creative_requests').select('*').eq('brand', BRAND).eq('media', MEDIA).order('created_at', { ascending: false }).limit(2000) : { data: [] },
+    sb ? sb.from('generations').select(GEN_COLS).eq('brand', BRAND).eq('media', MEDIA).order('created_at', { ascending: false }).limit(5000).then(async r => { if (!r.error && r.data) await withGenImages(r.data); return r; }) : { data: [] },
     idb.all().catch(() => [])
   ]);
   const hb = (await hbP).data;
