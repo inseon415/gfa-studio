@@ -106,7 +106,7 @@ pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);
 /* 리뷰 분석 · 베스트 리뷰 */
 .galfilter:has(+ .galfilter){margin-bottom:8px!important}
 .galfilter .gfl{white-space:nowrap!important;flex:0 0 56px!important;width:56px}
-.pptools{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}.pprow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pprow .gfl{white-space:nowrap;flex:0 0 40px;font-size:13px;font-weight:700;color:#475569}.ppseg{display:flex;gap:4px;flex-wrap:wrap}.pptbl{font-variant-numeric:tabular-nums}.pptbl th,.pptbl td{white-space:nowrap}.pptbl .ppname{position:sticky;left:0;background:#fff;z-index:1;min-width:150px}.pptbl thead .ppname{background:#f8fafc}.pptbl .ppmet{position:sticky;left:150px;background:#fff;z-index:1;color:#475569;font-size:12px;font-weight:600;min-width:64px;border-right:1px solid var(--line)}.pptbl thead .ppmet{background:#f8fafc}.pptbl td.ppname{vertical-align:top;font-weight:600;padding-top:9px}.pptbl tr.ppfirst td{border-top:2px solid #dfe5ee}.pptbl td{padding-top:5px;padding-bottom:5px}.pptbl .ppname{max-width:150px;width:150px}
+.pptools{margin-bottom:10px}.ppfilters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ppwave{color:#64748b;font-weight:600}.ppcnt{margin-left:4px}.pprow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pprow .gfl{white-space:nowrap;flex:0 0 40px;font-size:13px;font-weight:700;color:#475569}.ppseg{display:flex;gap:4px;flex-wrap:wrap}.pptbl{font-variant-numeric:tabular-nums}.pptbl th,.pptbl td{white-space:nowrap}.pptbl .ppname{position:sticky;left:0;background:#fff;z-index:1;min-width:150px}.pptbl thead .ppname{background:#f8fafc}.pptbl .ppmet{position:sticky;left:150px;background:#fff;z-index:1;color:#475569;font-size:12px;font-weight:600;min-width:64px;border-right:1px solid var(--line)}.pptbl thead .ppmet{background:#f8fafc}.pptbl td.ppname{vertical-align:top;font-weight:600;padding-top:9px}.pptbl tr.ppfirst td{border-top:2px solid #dfe5ee}.pptbl td{padding-top:5px;padding-bottom:5px}.pptbl .ppname{max-width:150px;width:150px}
 .pptbl .ppsum{font-weight:700;border-left:2px solid var(--line);position:sticky;right:0;background:#f8fafc;z-index:1}.pptbl .ppgrprow td{background:#fafbfc;padding:6px 10px}.pptbl .pptotal td{font-weight:700;border-top:2px solid var(--line);background:#f8fafc}
 .spbr{flex-basis:100%;height:0;margin:0}.spbr+.spmark{margin-left:0}.spmark{min-width:92px;justify-content:center;display:inline-flex;align-items:center;font-size:11.5px;font-weight:700;padding:0 8px;height:30px;border-radius:6px;margin-left:6px;white-space:nowrap}.spmark:first-child{margin-left:0}.sp-dog{color:#9a5a12;background:#fff3e2}.sp-cat{color:#6b3fa0;background:#f2eafc}.sp-both{color:#1f6b45;background:#e8f5ee}.sp-etc{color:#475569;background:#eef1f5}.sptag{font-size:11px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:1px}.ppgrp{font-size:11.5px;font-weight:700;padding:8px 6px 2px;color:#475569}.sphead{display:flex;align-items:center;gap:8px;margin:22px 0 10px;font-size:16px}
 .srcbadge{position:absolute;top:8px;left:8px;z-index:2;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:none}.gimg{position:relative}.srcw{background:#2F6FD0}.srcr{background:#1E9E6A}.srcu{background:#E07A1F}.tag.srcw,.tag.srcr,.tag.srcu{color:#fff!important;border-color:transparent!important}.tag.srcw{background:#2F6FD0!important}.tag.srcr{background:#1E9E6A!important}.tag.srcu{background:#E07A1F!important}.galtab.srcw.on,.galtab.srcr.on,.galtab.srcu.on{color:#fff;border-color:transparent}
@@ -445,7 +445,7 @@ const PRODUCT_LIST = D.products || [];
 const REG_ORDER = PRODUCT_LIST.map(p => p.name);
 // 제품 목록은 어디서나 강아지 → 고양이 → 강아지·고양이(공용) → 기타 순, 그 안에서 가나다 순 (인선 님 2026-10-12)
 // 대상 동물은 브랜드스토어 상세 학습(대상) 기준. 이름에 '캣'·'고양이'가 있으면 고양이, 아래 목록은 예외
-const SPECIES_FIX = { '요로케어': 'cat', '헤어볼케어': 'cat', '오랄': 'cat', '액티브 오메가 리솔브': 'cat', '쏙쏙패드': 'cat', '아이드롭': 'both', '탈취제': 'both', '아토버블샤워기': 'both', '아이클리너': 'both' }; // 스킨케어 = 강아지, 쏙쏙패드 = 고양이 (인선 님 2026-10-12)
+const SPECIES_FIX = { '요로케어': 'cat', '헤어볼케어': 'cat', '오랄': 'cat', '액티브 오메가 리솔브': 'cat', '쏙쏙패드': 'cat', 'HJ케어': 'cat', '아이드롭': 'both', '탈취제': 'both', '아토버블샤워기': 'both', '아이클리너': 'both' }; // 스킨케어 = 강아지, 쏙쏙패드 = 고양이 (인선 님 2026-10-12)
 const SP_ETC = new Set(['행사·프로모션', '여러 제품 묶음', '카탈로그(자동 상품)', '[확인필요]']);
 const SP_LABEL = { dog: '강아지', cat: '고양이', both: '강아지·고양이', etc: '기타' }, SP_RANK = { dog: 0, cat: 1, both: 2, etc: 3 };
 const spOf = name => { const p = String(name || '').split(' + ')[0].trim(); return SPECIES_FIX[p] || (SP_ETC.has(p) ? 'etc' : /^캣|고양이/.test(p) ? 'cat' : 'dog'); };
@@ -850,14 +850,16 @@ function prodPeriodBox(id, rows, title, note, link) {
 function drawProdPeriod(id, rows, link) {
   // 제품마다 광고비·매출·ROAS·구매수·소재 수 5줄을 한 번에 (인선 님 2026-10-12)
   const box = document.getElementById(id); if (!box) return;
-  const st = ppState[id] ||= { unit: 'month', range: 12, sp: '' };
+  // 기간은 「위너 소재」 탭처럼 드롭다운으로 직접 고른다: 보기 단위(월별/연도별) · 연도 · 시작 월 ~ 끝 월 · 동물
+  const MS = [...MONTHS].sort(), YS = [...new Set(MS.map(m => m.slice(0, 4)))];
+  const st = ppState[id] ||= { unit: 'month', year: '', from: MS[Math.max(0, MS.length - 12)], to: MS[MS.length - 1], sp: '' };
   const keyOf = m => st.unit === 'year' ? m.slice(0, 4) : m;
-  let periods = [...new Set(rows.map(s => keyOf(s.month)))].sort();
-  if (st.unit === 'month' && st.range) periods = periods.slice(-st.range);
+  const inRange = m => (!st.year || m.slice(0, 4) === st.year) && m >= st.from && m <= st.to;
+  const periods = [...new Set(MS.filter(inRange).map(keyOf))].sort();
   const PS = new Set(periods), agg = {}, colT = {}, all = { cost: 0, sales: 0, pc: 0, n: new Set() };
   const mk = () => ({ cost: 0, sales: 0, pc: 0, n: new Set() });
   const add = (o, s, sh) => { o.cost += s.cost * sh; o.sales += s.psales * sh; o.pc += s.pc * sh; o.n.add(s.n); };
-  for (const s of rows) { const k = keyOf(s.month); if (!PS.has(k)) continue; const c = C.get(s.n) || {}; const ps0 = c.ps || [c.p]; const ps = ps0.filter(p => !st.sp || spOf(p) === st.sp); if (!ps.length) continue; const sh = 1 / ps0.length;
+  for (const s of rows) { if (!inRange(s.month)) continue; const k = keyOf(s.month); if (!PS.has(k)) continue; const c = C.get(s.n) || {}; const ps0 = c.ps || [c.p]; const ps = ps0.filter(p => !st.sp || spOf(p) === st.sp); if (!ps.length) continue; const sh = 1 / ps0.length;
     for (const p of ps) { const a = (agg[p] ||= { _t: mk() }); add(a[k] ||= mk(), s, sh); add(a._t, s, sh); add(colT[k] ||= mk(), s, sh); add(all, s, sh); } }
   const MET = [['cost', '광고비'], ['sales', '매출'], ['roas', 'ROAS'], ['pc', '구매수'], ['cnt', '소재 수']];
   const val = (o, m) => !o ? null : m === 'roas' ? (o.cost ? o.sales / o.cost * 100 : null) : m === 'cnt' ? o.n.size : o[m];
@@ -865,9 +867,14 @@ function drawProdPeriod(id, rows, link) {
   const prods = ordP(Object.keys(agg));
   const maxV = {}; for (const [m] of MET) maxV[m] = Math.max(1, ...prods.flatMap(p => periods.map(k => val(agg[p][k], m) || 0)));
   const shade = (v, m) => v == null ? '' : m === 'roas' ? `background:${v >= RULE.minPurchaseRoas ? 'rgba(22,163,74,' + Math.min(.4, .08 + (v - RULE.minPurchaseRoas) / 400).toFixed(2) + ')' : 'rgba(220,38,38,' + Math.min(.3, .06 + (RULE.minPurchaseRoas - v) / 400).toFixed(2) + ')'}` : `background:rgba(47,127,208,${(v / maxV[m] * .4).toFixed(2)})`;
-  const seg = (k, opts, cur) => `<span class="ppseg">${opts.map(([v, l]) => `<button class="galtab ${String(cur) === String(v) ? 'on' : ''}" data-pp="${k}" data-v="${v}">${l}</button>`).join('')}</span>`;
-  box.querySelector('.pptools').innerHTML = `<div class="pprow"><span class="gfl">기간</span>${seg('unit', [['month', '월별'], ['year', '연도별']], st.unit)}${st.unit === 'month' ? seg('range', [[12, '최근 12개월'], [24, '최근 24개월'], [0, '전체']], st.range) : ''}</div>
-    <div class="pprow"><span class="gfl">동물</span>${seg('sp', [['', '전체'], ['dog', '강아지'], ['cat', '고양이'], ['both', '강아지·고양이'], ['etc', '기타']], st.sp)}</div>`;
+  const sel = (k, opts) => `<select data-pp="${k}">${opts.map(([v, l]) => `<option value="${v}" ${String(st[k]) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  const mOpts = (y) => MS.filter(m => !y || m.slice(0, 4) === y).map(m => [m, m.replace('-', '년 ') + '월']);
+  box.querySelector('.pptools').innerHTML = `<div class="filters ppfilters">
+    ${sel('unit', [['month', '월별로 보기'], ['year', '연도별로 보기']])}
+    ${sel('year', [['', '연도 전체']].concat(YS.map(y => [y, y + '년'])))}
+    ${sel('from', mOpts(st.year))}<span class="ppwave">~</span>${sel('to', mOpts(st.year))}
+    ${sel('sp', [['', '동물 전체'], ['dog', '강아지'], ['cat', '고양이'], ['both', '강아지·고양이'], ['etc', '기타']])}
+    <button data-pp="reset">초기화</button><span class="muted ppcnt">${periods.length}${st.unit === 'year' ? '개 연도' : '개월'}</span></div>`;
   const head = `<tr><th class="ppname">제품</th><th class="ppmet">지표</th>${periods.map(k => `<th class="n">${st.unit === 'year' ? k + '년' : k.slice(2).replace('-', '.')}</th>`).join('')}<th class="n ppsum">합계</th></tr>`;
   const block = (name, getAll, getK, cls) => MET.map(([m, l], j) => `<tr class="${cls || ''} ${j === 0 ? 'ppfirst' : ''}">${j === 0 ? `<td class="ppname" rowspan="${MET.length}">${name}</td>` : ''}<td class="ppmet">${l}</td>${periods.map(k => { const v = val(getK(k), m); return `<td class="n" style="${cls ? '' : shade(v, m)}">${fmt(v, m)}</td>`; }).join('')}<td class="n ppsum">${fmt(val(getAll(), m), m)}</td></tr>`).join('');
   let body = '', last = '';
@@ -875,7 +882,11 @@ function drawProdPeriod(id, rows, link) {
     body += block(link ? `<a href="${link(p)}">${esc(p)}</a>` : esc(p), () => agg[p]._t, k => agg[p][k]); }
   body += block('합계', () => all, k => colT[k], 'pptotal');
   box.querySelector('.ppwrap').innerHTML = prods.length ? `<table class="pptbl"><thead>${head}</thead><tbody>${body}</tbody></table>` : '<p class="muted" style="padding:12px">이 조건의 자료가 없어요.</p>';
-  box.querySelectorAll('[data-pp]').forEach(b => b.onclick = () => { const k = b.dataset.pp; st[k] = k === 'range' ? +b.dataset.v : b.dataset.v; drawProdPeriod(id, rows, link); });
+  box.querySelectorAll('select[data-pp]').forEach(s => s.onchange = () => { const k = s.dataset.pp; st[k] = s.value;
+    if (k === 'year') { const ms = MS.filter(m => !st.year || m.slice(0, 4) === st.year); st.from = ms[0]; st.to = ms[ms.length - 1]; }
+    if (k === 'from' && st.from > st.to) st.to = st.from; if (k === 'to' && st.to < st.from) st.from = st.to;
+    drawProdPeriod(id, rows, link); });
+  box.querySelector('[data-pp="reset"]').onclick = () => { delete ppState[id]; drawProdPeriod(id, rows, link); };
 }
 
 // ---------- 소재 분석 (위너 포함, 광고비를 쓴 모든 소재) ----------
