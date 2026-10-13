@@ -106,6 +106,7 @@ pre.prompt{white-space:pre-wrap;background:#f9fafb;border:1px solid var(--line);
 /* 리뷰 분석 · 베스트 리뷰 */
 .galfilter:has(+ .galfilter){margin-bottom:8px!important}
 .galfilter .gfl{white-space:nowrap!important;flex:0 0 56px!important;width:56px}
+.ppflat{width:100%}.pptbl.ppflat th.n,.pptbl.ppflat td.n{width:15%}.pptbl.ppflat .ppname{position:static;min-width:180px;width:auto;max-width:none}.pplink{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--acc-d,#1d4f91);cursor:pointer;text-align:left}.pplink:hover{text-decoration:underline}.ppopen td{background:#f3f7fd}.ppdet>td{padding:0 0 10px 24px!important;background:#f8fafc}.ppdetin{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;margin-top:4px}.ppsub{width:100%;font-variant-numeric:tabular-nums}.ppsub th{background:#f1f5f9;font-size:12px}.ppsub td,.ppsub th{padding:5px 10px}.ppsub th.n,.ppsub td.n{width:15%}.ppsub .ppyr td{font-weight:700;background:#f8fafc;border-top:1px solid var(--line)}
 .rqpager{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}.rqpager .galtab{min-width:34px}.rqpager .galtab:disabled{opacity:.4;cursor:default}.rqpager .muted{margin-left:auto;font-size:12px}.rqdots{color:#94a3b8;padding:0 2px}
 .pptools{margin-bottom:10px}.ppfilters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ppwave{color:#64748b;font-weight:600}.ppcnt{margin-left:4px}.pprow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pprow .gfl{white-space:nowrap;flex:0 0 40px;font-size:13px;font-weight:700;color:#475569}.ppseg{display:flex;gap:4px;flex-wrap:wrap}.pptbl{font-variant-numeric:tabular-nums}.pptbl th,.pptbl td{white-space:nowrap}.pptbl .ppname{position:sticky;left:0;background:#fff;z-index:1;min-width:150px}.pptbl thead .ppname{background:#f8fafc}.pptbl .ppmet{position:sticky;left:150px;background:#fff;z-index:1;color:#475569;font-size:12px;font-weight:600;min-width:64px;border-right:1px solid var(--line)}.pptbl thead .ppmet{background:#f8fafc}.pptbl td.ppname{vertical-align:top;font-weight:600;padding-top:9px}.pptbl tr.ppfirst td{border-top:2px solid #dfe5ee}.pptbl td{padding-top:5px;padding-bottom:5px}.pptbl .ppname{max-width:150px;width:150px}
 .pptbl .ppsum{font-weight:700;border-left:2px solid var(--line);background:#f8fafc}.pptbl .ppgrprow td{background:#fafbfc;padding:6px 10px}.pptbl .pptotal td{font-weight:700;border-top:2px solid var(--line);background:#f8fafc}
@@ -844,51 +845,51 @@ function bindRuleBox() {
 // 광고비·매출·ROAS·구매수·소재 수를 제품 × 월(또는 연도)로. 세트·묶음 소재는 제품 수로 나눠 더한다(합계가 부풀지 않게)
 const ppState = {};
 const PP_METRICS = { cost: '광고비', sales: '매출', roas: 'ROAS', pc: '구매수', cnt: '소재 수' };
-function prodPeriodBox(id, rows, title, note, link) {
-  setTimeout(() => drawProdPeriod(id, rows, link), 0);
+function prodPeriodBox(id, rows, title, note) {
+  setTimeout(() => drawProdPeriod(id, rows), 0);
   return `<section class="ppbox" id="${id}"><h2>${title}</h2>${note ? `<p class="muted" style="margin:-6px 0 10px">${note}</p>` : ''}<div class="pptools"></div><div class="tbl ppwrap"></div></section>`;
 }
-function drawProdPeriod(id, rows, link) {
-  // 제품마다 광고비·매출·ROAS·구매수·소재 수 5줄을 한 번에 (인선 님 2026-10-12)
+function drawProdPeriod(id, rows) {
+  // 제품 | 광고비 | 매출 | ROAS | 구매수 | 소재 수 를 가로로 한 줄씩 (인선 님 2026-10-12)
+  // 필터: 월 · 연도 · 계절 · 계정 · 동물. 제품 이름을 누르면 그 제품의 달마다 성과가 바로 아래에 펼쳐진다
   const box = document.getElementById(id); if (!box) return;
-  // 기간은 「위너 소재」 탭처럼 드롭다운으로 직접 고른다: 보기 단위(월별/연도별) · 연도 · 시작 월 ~ 끝 월 · 동물
   const MS = [...MONTHS].sort(), YS = [...new Set(MS.map(m => m.slice(0, 4)))];
-  const st = ppState[id] ||= { unit: 'month', year: '', from: MS[Math.max(0, MS.length - 12)], to: MS[MS.length - 1], sp: '' };
-  const keyOf = m => st.unit === 'year' ? m.slice(0, 4) : m;
-  const inRange = m => (!st.year || m.slice(0, 4) === st.year) && m >= st.from && m <= st.to;
-  const periods = [...new Set(MS.filter(inRange).map(keyOf))].sort();
-  const PS = new Set(periods), agg = {}, colT = {}, all = { cost: 0, sales: 0, pc: 0, n: new Set() };
+  const st = ppState[id] ||= { month: '', year: '', season: '', account: '', sp: '', open: new Set() };
+  const ok = s => (!st.month || s.month === st.month) && (!st.year || s.month.slice(0, 4) === st.year) && (!st.season || seasonOf(s.month) === st.season) && (!st.account || (C.get(s.n) || {}).a === st.account);
   const mk = () => ({ cost: 0, sales: 0, pc: 0, n: new Set() });
   const add = (o, s, sh) => { o.cost += s.cost * sh; o.sales += s.psales * sh; o.pc += s.pc * sh; o.n.add(s.n); };
-  for (const s of rows) { if (!inRange(s.month)) continue; const k = keyOf(s.month); if (!PS.has(k)) continue; const c = C.get(s.n) || {}; const ps0 = c.ps || [c.p]; const ps = ps0.filter(p => !st.sp || spOf(p) === st.sp); if (!ps.length) continue; const sh = 1 / ps0.length;
-    for (const p of ps) { const a = (agg[p] ||= { _t: mk() }); add(a[k] ||= mk(), s, sh); add(a._t, s, sh); add(colT[k] ||= mk(), s, sh); add(all, s, sh); } }
+  const agg = {}, byM = {}, all = mk();
+  for (const s of rows) { if (!ok(s)) continue; const c = C.get(s.n) || {}; const ps0 = c.ps || [c.p]; const ps = ps0.filter(p => !st.sp || spOf(p) === st.sp); if (!ps.length) continue; const sh = 1 / ps0.length;
+    for (const p of ps) { add(agg[p] ||= mk(), s, sh); add((byM[p] ||= {})[s.month] ||= mk(), s, sh); add(all, s, sh); } }
   const MET = [['cost', '광고비'], ['sales', '매출'], ['roas', 'ROAS'], ['pc', '구매수'], ['cnt', '소재 수']];
   const val = (o, m) => !o ? null : m === 'roas' ? (o.cost ? o.sales / o.cost * 100 : null) : m === 'cnt' ? o.n.size : o[m];
-  const fmt = (v, m) => v == null ? '' : m === 'roas' ? pct(v) : m === 'cost' || m === 'sales' ? (v === 0 ? '0원' : v < 5000 ? '1만원 미만' : man(v)) : Math.round(v).toLocaleString('ko-KR');
+  const fmt = (v, m) => v == null ? '-' : m === 'roas' ? pct(v) : m === 'cost' || m === 'sales' ? (v === 0 ? '0원' : v < 5000 ? '1만원 미만' : man(v)) : Math.round(v).toLocaleString('ko-KR');
   const prods = ordP(Object.keys(agg));
-  const maxV = {}; for (const [m] of MET) maxV[m] = Math.max(1, ...prods.flatMap(p => periods.map(k => val(agg[p][k], m) || 0)));
+  const maxV = {}; for (const [m] of MET) maxV[m] = Math.max(1, ...prods.map(p => val(agg[p], m) || 0));
   const shade = (v, m) => v == null ? '' : m === 'roas' ? `background:${v >= RULE.minPurchaseRoas ? 'rgba(22,163,74,' + Math.min(.4, .08 + (v - RULE.minPurchaseRoas) / 400).toFixed(2) + ')' : 'rgba(220,38,38,' + Math.min(.3, .06 + (RULE.minPurchaseRoas - v) / 400).toFixed(2) + ')'}` : `background:rgba(47,127,208,${(v / maxV[m] * .4).toFixed(2)})`;
   const sel = (k, opts) => `<select data-pp="${k}">${opts.map(([v, l]) => `<option value="${v}" ${String(st[k]) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
-  const mOpts = (y) => MS.filter(m => !y || m.slice(0, 4) === y).map(m => [m, m.replace('-', '년 ') + '월']);
   box.querySelector('.pptools').innerHTML = `<div class="filters ppfilters">
-    ${sel('unit', [['month', '월별로 보기'], ['year', '연도별로 보기']])}
-    ${sel('year', [['', '연도 전체']].concat(YS.map(y => [y, y + '년'])))}
-    ${sel('from', mOpts(st.year))}<span class="ppwave">~</span>${sel('to', mOpts(st.year))}
+    ${sel('month', [['', '월 전체']].concat([...MS].reverse().map(m => [m, m])))}
+    ${sel('year', [['', '연도 전체']].concat([...YS].reverse().map(y => [y, y + '년'])))}
+    ${sel('season', [['', '계절 전체']].concat(SEASONS.map(s => [s, s])))}
+    ${sel('account', [['', '계정 전체']].concat(BRANDS[BRAND].accounts.map(a => [a, a])))}
     ${sel('sp', [['', '동물 전체'], ['dog', '강아지'], ['cat', '고양이'], ['both', '강아지·고양이'], ['etc', '기타']])}
-    <button data-pp="reset">초기화</button><span class="muted ppcnt">${periods.length}${st.unit === 'year' ? '개 연도' : '개월'}</span></div>`;
-  const head = `<tr><th class="ppname">제품</th><th class="ppmet">지표</th>${periods.map(k => `<th class="n">${st.unit === 'year' ? k + '년' : k.slice(2).replace('-', '.')}</th>`).join('')}<th class="n ppsum">합계</th></tr>`;
-  const block = (name, getAll, getK, cls) => MET.map(([m, l], j) => `<tr class="${cls || ''} ${j === 0 ? 'ppfirst' : ''}">${j === 0 ? `<td class="ppname" rowspan="${MET.length}">${name}</td>` : ''}<td class="ppmet">${l}</td>${periods.map(k => { const v = val(getK(k), m); return `<td class="n" style="${cls ? '' : shade(v, m)}">${fmt(v, m)}</td>`; }).join('')}<td class="n ppsum">${fmt(val(getAll(), m), m)}</td></tr>`).join('');
+    <button data-pp="reset">초기화</button><span class="muted ppcnt">제품 ${prods.length}개 · 제품 이름을 누르면 달마다 성과가 펼쳐져요</span></div>`;
+  const cells = (o, sh) => MET.map(([m]) => { const v = val(o, m); return `<td class="n" style="${sh ? shade(v, m) : ''}">${fmt(v, m)}</td>`; }).join('');
+  const detail = p => { const ms = Object.keys(byM[p] || {}).sort().reverse(); const yrs = [...new Set(ms.map(m => m.slice(0, 4)))];
+    const yT = y => { const o = mk(); for (const m of ms.filter(m => m.startsWith(y))) { const a = byM[p][m]; o.cost += a.cost; o.sales += a.sales; o.pc += a.pc; a.n.forEach(n => o.n.add(n)); } return o; };
+    return `<tr class="ppdet"><td colspan="${MET.length + 1}"><div class="ppdetin"><table class="ppsub"><thead><tr><th>${esc(p)} · 월</th>${MET.map(([, l]) => `<th class="n">${l}</th>`).join('')}</tr></thead><tbody>
+      ${yrs.map(y => `<tr class="ppyr"><td>${y}년 합계</td>${cells(yT(y), false)}</tr>` + ms.filter(m => m.startsWith(y)).map(m => `<tr><td>${m}</td>${cells(byM[p][m], false)}</tr>`).join('')).join('')}
+      </tbody></table></div></td></tr>`; };
   let body = '', last = '';
-  for (const p of prods) { const sp = spOf(p); if (sp !== last) { body += `<tr class="ppgrprow"><td colspan="${periods.length + 3}"><span class="sptag sp-${sp}" style="margin-left:0;position:sticky;left:10px">${SP_LABEL[sp]}</span></td></tr>`; last = sp; }
-    body += block(link ? `<a href="${link(p)}">${esc(p)}</a>` : esc(p), () => agg[p]._t, k => agg[p][k]); }
-  body += block('합계', () => all, k => colT[k], 'pptotal');
-  box.querySelector('.ppwrap').innerHTML = prods.length ? `<table class="pptbl"><thead>${head}</thead><tbody>${body}</tbody></table>` : '<p class="muted" style="padding:12px">이 조건의 자료가 없어요.</p>';
-  { const w = box.querySelector('.ppwrap'); w.scrollLeft = w.scrollWidth; } // 표가 넓으면 최근 달·합계가 보이게 오른쪽 끝에서 시작
-  box.querySelectorAll('select[data-pp]').forEach(s => s.onchange = () => { const k = s.dataset.pp; st[k] = s.value;
-    if (k === 'year') { const ms = MS.filter(m => !st.year || m.slice(0, 4) === st.year); st.from = ms[0]; st.to = ms[ms.length - 1]; }
-    if (k === 'from' && st.from > st.to) st.to = st.from; if (k === 'to' && st.to < st.from) st.from = st.to;
-    drawProdPeriod(id, rows, link); });
-  box.querySelector('[data-pp="reset"]').onclick = () => { delete ppState[id]; drawProdPeriod(id, rows, link); };
+  for (const p of prods) { const sp = spOf(p); if (sp !== last) { body += `<tr class="ppgrprow"><td colspan="${MET.length + 1}"><span class="sptag sp-${sp}" style="margin-left:0">${SP_LABEL[sp]}</span></td></tr>`; last = sp; }
+    const open = st.open.has(p);
+    body += `<tr class="${open ? 'ppopen' : ''}"><td class="ppname"><button class="pplink" data-ppopen="${esc(p)}">${open ? '▾' : '▸'} ${esc(p)}</button></td>${cells(agg[p], true)}</tr>` + (open ? detail(p) : ''); }
+  body += `<tr class="pptotal"><td class="ppname">합계</td>${cells(all, false)}</tr>`;
+  box.querySelector('.ppwrap').innerHTML = prods.length ? `<table class="pptbl ppflat"><thead><tr><th class="ppname">제품</th>${MET.map(([, l]) => `<th class="n">${l}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>` : '<p class="muted" style="padding:12px">이 조건의 자료가 없어요.</p>';
+  box.querySelectorAll('select[data-pp]').forEach(s => s.onchange = () => { st[s.dataset.pp] = s.value; if (s.dataset.pp === 'month' && s.value) { st.year = ''; st.season = ''; } if ((s.dataset.pp === 'year' || s.dataset.pp === 'season') && s.value) st.month = ''; drawProdPeriod(id, rows); });
+  box.querySelector('[data-pp="reset"]').onclick = () => { delete ppState[id]; drawProdPeriod(id, rows); };
+  box.querySelectorAll('[data-ppopen]').forEach(b => b.onclick = () => { const p = b.dataset.ppopen; st.open.has(p) ? st.open.delete(p) : st.open.add(p); drawProdPeriod(id, rows); });
 }
 
 // ---------- 소재 분석 (위너 포함, 광고비를 쓴 모든 소재) ----------
@@ -927,7 +928,7 @@ function creativeAnalysis() {
   </div><div class="tbl" style="margin-top:10px"><table><thead><tr><th>월</th><th class="n">소재</th><th class="n">위너 소재</th><th class="n">광고비</th><th class="n">매출</th><th class="n">ROAS</th><th class="n">구매수</th><th class="n">위너 소재 광고비 비중</th></tr></thead><tbody>
   ${[...byM].reverse().map(x => `<tr><td>${x.m}</td><td class="n">${x.n}</td><td class="n">${x.win}</td><td class="n">${man(x.cost)}</td><td class="n">${man(x.sales)}</td><td class="n">${x.cost ? pct(x.sales / x.cost * 100) : '-'}</td><td class="n">${Math.round(x.pc).toLocaleString()}</td><td class="n">${x.cost ? pct(x.wcost / x.cost * 100) : '-'}</td></tr>`).join('')}
   </tbody></table></div></section>
-  ${prodPeriodBox('ppall', all, '제품별 월·연도별 광고비·매출 (모든 소재)', '제품마다 광고비·매출·ROAS·구매수·소재 수를 한 번에 봐요. 칸 색: 값이 클수록 진한 파랑, ROAS 는 위너 기준 이상이면 초록·아래면 빨강. 세트 소재는 제품 수로 나눠 더했어요.', p => '#winners?product=' + encodeURIComponent(p))}
+  ${prodPeriodBox('ppall', all, '제품별 광고비·매출 (모든 소재)', '월·연도·계절·계정으로 거를 수 있어요. 칸 색: 값이 클수록 진한 파랑, ROAS 는 위너 기준 이상이면 초록·아래면 빨강. 세트 소재는 제품 수로 나눠 더했어요.')}
   <section><h2>ROAS 구간별 광고비</h2><p class="muted" style="margin:-6px 0 8px">소재-월(한 소재의 한 달 성과) 기준. 광고비가 어느 효율 구간에 쓰이고 있는지</p><div class="tbl"><table><thead><tr><th>ROAS 구간</th><th class="n">소재-월</th><th class="n">광고비</th><th class="n">광고비 비중</th><th class="n">매출</th></tr></thead><tbody>
   ${bk.map(b => `<tr><td>${b.l}</td><td class="n">${b.n.toLocaleString()}</td><td class="n">${man(b.cost)}</td><td class="n" style="background:rgba(47,127,208,${(b.cost / Math.max(1, tCost) * .6).toFixed(2)})">${pct(b.cost / Math.max(1, tCost) * 100)}</td><td class="n">${man(b.sales)}</td></tr>`).join('')}
   </tbody></table></div></section>
@@ -968,7 +969,7 @@ function analysis() {
   <section><h2>제품별</h2><div class="tbl"><table><thead><tr><th>제품</th><th class="n">위너</th><th class="n">위너 소재</th><th class="n">위너율</th><th class="n">위너 총 비용</th><th class="n">위너 구매완료 전환매출액</th><th class="n">위너 구매 ROAS(합산)</th><th class="n">봄</th><th class="n">여름</th><th class="n">가을</th><th class="n">겨울</th></tr></thead><tbody>
   ${rows.map(r => `<tr><td><a href="#winners?product=${encodeURIComponent(r.p)}">${esc(r.p)}</a><span class="sptag sp-${spOf(r.p)}">${SP_LABEL[spOf(r.p)]}</span></td><td class="n">${r.win}</td><td class="n">${r.cre.size}</td><td class="n">${pct(r.win / r.act * 100)}</td><td class="n">${man(r.cost)}</td><td class="n">${man(r.sales)}</td><td class="n">${pct(r.sales / r.cost * 100)}</td>${SEASONS.map(s => `<td class="n" style="background:rgba(22,163,74,${(r.seasons[s] / heatMax * .45).toFixed(2)})">${r.seasons[s] || ''}</td>`).join('')}</tr>`).join('')}
   </tbody></table></div></section>
-  ${prodPeriodBox('ppwin', W, '제품별 월·연도별 광고비·매출 (위너 소재)', '위너가 된 소재-월만 더했어요. 모든 소재 기준은 「소재 분석」 탭에서 볼 수 있어요. 세트 소재는 제품 수로 나눠 더했어요.', p => '#winners?product=' + encodeURIComponent(p))}
+  ${prodPeriodBox('ppwin', W, '제품별 광고비·매출 (위너 소재)', '위너가 된 소재-월만 더했어요(모든 소재는 「소재 분석」 탭). 월·연도·계절·계정으로 거를 수 있어요. 세트 소재는 제품 수로 나눠 더했어요.')}
   <section><h2>달마다 위너 수</h2><div class="bars">
   ${byMonth.map(x => `<a class="bar" href="#winners?month=${x.m}" title="${x.m} · 위너 ${x.n}건 / ${won(RULE.minCost)} 이상 소재 ${x.a}개"><s>${x.n || ''}</s><i style="height:${x.n / maxN * 110}px"></i><u>${x.m.slice(2).replace('-', '.')}</u></a>`).join('')}
   </div></section>
@@ -1549,7 +1550,7 @@ async function createPage() {
     const byPl = createState.galPl ? G0.filter(g => gPl(g) === createState.galPl) : G0;
     const list = byPl.filter(g => !createState.gal || g.product === createState.gal);
     if ($('#galtabs')) {
-      $('#galtabs').innerHTML = [['', '전체', byPl.length]].concat(ordP(new Set(G0.map(g => g.product))).map(p => [p, p, byPl.filter(g => g.product === p).length])).filter(([v, , n]) => v === '' || n > 0 || v === createState.gal).map(([v, label, n], i, arr) => (v && (arr[i - 1][0] === '' || spOf(v) !== spOf(arr[i - 1][0])) ? `${arr[i - 1][0] === '' ? '' : '<span class="spbr"></span>'}<span class="spmark sp-${spOf(v)}">${SP_LABEL[spOf(v)]}</span>` : '') + `<button class="galtab ${(createState.gal || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-gal="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
+      $('#galtabs').innerHTML = [['', '전체', byPl.length]].concat(ordP(new Set(G0.map(g => g.product))).map(p => [p, p, byPl.filter(g => g.product === p).length])).filter(([v, , n]) => v === '' || n > 0 || v === createState.gal).map(([v, label, n], i, arr) => (v && (arr[i - 1][0] === '' || spOf(v) !== spOf(arr[i - 1][0])) ? `<span class="spbr"></span><span class="spmark sp-${spOf(v)}">${SP_LABEL[spOf(v)]}</span>` : '') + `<button class="galtab ${(createState.gal || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-gal="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
       $('#galpltabs').closest('.galfilter').style.display = plKeys.length < 2 ? 'none' : '';
       $('#galpltabs').innerHTML = [['', '전체', byPr.length]].concat(plKeys.sort((a, b) => plOrder.indexOf(a) - plOrder.indexOf(b)).map(k => [k, plShort(k), byPr.filter(g => gPl(g) === k).length])).map(([v, label, n]) => `<button class="galtab ${(createState.galPl || '') === v ? 'on' : ''} ${n ? '' : 'zero'}" data-galpl="${esc(v)}">${esc(label)} <b>${n}</b></button>`).join('');
       document.querySelectorAll('#galtabs .galtab').forEach(b => b.onclick = () => { createState.gal = b.dataset.gal; drawGal(); });
