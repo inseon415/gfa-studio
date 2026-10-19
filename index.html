@@ -448,7 +448,7 @@ const PRODUCT_LIST = D.products || [];
 const REG_ORDER = PRODUCT_LIST.map(p => p.name);
 // 제품 목록은 어디서나 강아지 → 고양이 → 강아지·고양이(공용) → 기타 순, 그 안에서 가나다 순 (인선 님 2026-10-12)
 // 대상 동물은 브랜드스토어 상세 학습(대상) 기준. 이름에 '캣'·'고양이'가 있으면 고양이, 아래 목록은 예외
-const SPECIES_FIX = { '요로케어': 'cat', '헤어볼케어': 'cat', '오랄': 'cat', '액티브 오메가 리솔브': 'cat', '쏙쏙패드': 'cat', 'HJ케어': 'cat', '아이드롭': 'both', '탈취제': 'both', '아토버블샤워기': 'both', '아이클리너': 'both', '뱀부 바디 타올': 'both' }; // 스킨케어 = 강아지, 쏙쏙패드 = 고양이 (인선 님 2026-10-12)
+const SPECIES_FIX = { '요로케어': 'cat', '헤어볼케어': 'cat', '오랄': 'cat', '액티브 오메가 리솔브': 'cat', '쏙쏙패드': 'cat', 'HJ케어': 'cat', '아이드롭': 'both', '탈취제': 'both', '아토버블샤워기': 'both', '아이클리너': 'both', '뱀부 바디 타올': 'both', '뱀부 풋 타올': 'both' }; // 스킨케어 = 강아지, 쏙쏙패드 = 고양이 (인선 님 2026-10-12)
 const SP_ETC = new Set(['행사·프로모션', '여러 제품 묶음', '카탈로그(자동 상품)', '[확인필요]']);
 const SP_LABEL = { dog: '강아지', cat: '고양이', both: '강아지·고양이', etc: '기타' }, SP_RANK = { dog: 0, cat: 1, both: 2, etc: 3 };
 const spOf = name => { const p = String(name || '').split(' + ')[0].trim(); return SPECIES_FIX[p] || (SP_ETC.has(p) ? 'etc' : /^캣|고양이/.test(p) ? 'cat' : 'dog'); };
